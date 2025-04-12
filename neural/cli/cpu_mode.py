@@ -24,7 +24,7 @@ def is_cpu_mode() -> bool:
     """
     Check if CPU mode is enabled.
     """
-    return (os.environ.get('NEURAL_FORCE_CPU', '').lower() in ['1', 'true', 'yes'] or 
+    return (os.environ.get('NEURAL_FORCE_CPU', '').lower() in ['1', 'true', 'yes'] or
             os.environ.get('CUDA_VISIBLE_DEVICES', '') == '')
 
 def run_with_cpu_mode(func, *args, **kwargs):
@@ -40,7 +40,7 @@ def run_with_cpu_mode(func, *args, **kwargs):
         'PYTORCH_CUDA_ALLOC_CONF': os.environ.get('PYTORCH_CUDA_ALLOC_CONF', ''),
         'TF_CPP_MIN_LOG_LEVEL': os.environ.get('TF_CPP_MIN_LOG_LEVEL', '')
     }
-    
+
     try:
         set_cpu_mode()
         return func(*args, **kwargs)
