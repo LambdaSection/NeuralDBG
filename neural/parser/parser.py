@@ -2226,6 +2226,23 @@ class ModelTransformer(lark.Transformer):
             dict: A dictionary containing the metrics configuration, with metric names as keys
                  and their parameters as values.
         """
+        if not items:
+            return {'metrics': {}}
+        result = {}
+        for item in items:
+            if item is None:
+                continue
+            val = self._extract_value(item)
+            if isinstance(val, dict):
+                result.update(val)
+            elif isinstance(val, str) and ':' in val:
+                key, v = val.split(':', 1)
+                try:
+                    result[key.strip()] = float(v.strip())
+                except ValueError:
+                    result[key.strip()] = v.strip()
+        return {'metrics': result}
+    
     def exponential_decay(self, items):
         """Process ExponentialDecay learning rate schedule with parameters."""
         # Expected structure:
@@ -2257,22 +2274,7 @@ class ModelTransformer(lark.Transformer):
             'type': 'ExponentialDecay',
             'params': params
         }
-        if not items:
-            return {'metrics': {}}
-        result = {}
-        for item in items:
-            if item is None:
-                continue
-            val = self._extract_value(item)
-            if isinstance(val, dict):
-                result.update(val)
-            elif isinstance(val, str) and ':' in val:
-                key, v = val.split(':', 1)
-                try:
-                    result[key.strip()] = float(v.strip())
-                except ValueError:
-                    result[key.strip()] = v.strip()
-        return {'metrics': result}
+        
 
     def accuracy_param(self, items):
         """
