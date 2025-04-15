@@ -1048,7 +1048,7 @@ class ModelTransformer(lark.Transformer):
             elif not isinstance(ks, int) or ks <= 0:
                 self.raise_validation_error(f"Conv1D kernel_size must be a positive integer, got {ks}", items[0])
 
-            
+
         return {'type': 'Conv1D', 'params': params}
 
     def conv2d(self, items):
