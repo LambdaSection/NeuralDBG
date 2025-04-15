@@ -779,6 +779,7 @@ class ModelTransformer(lark.Transformer):
                 sub_layers.append(item)
         return sub_layers
 
+    @pysnooper.snoop()
     def basic_layer(self, items):
         layer_type_node = items[0]
         layer_type = layer_type_node.children[0].value.upper()
@@ -1272,18 +1273,6 @@ class ModelTransformer(lark.Transformer):
                 self.raise_validation_error(f"validation_split must be between 0 and 1, got {val_split}")
 
         return params
-
-    def device_spec(self, items):
-        """Process device specification correctly."""
-        if len(items) > 1 and isinstance(items[1], Token) and items[1].type == "STRING":
-            device = items[1].value.strip('"')
-        else:
-            device = self._extract_value(items[0])
-
-        allowed_devices = ["cpu", "cuda", "tpu", "auto", "cuda:0", "cuda:1"]  # Example allowed devices
-        if device.lower() not in [d.lower() for d in allowed_devices]:
-            self.raise_validation_error(f"Invalid device '{device}'. Allowed devices are: {allowed_devices}", items[0], Severity.ERROR)
-        return device
 
     def validation_split_param(self, items):
         return {'validation_split': self._extract_value(items[0])}
@@ -3299,9 +3288,9 @@ class ModelTransformer(lark.Transformer):
         return {"type": "range", "start": start, "end": end, "step": step}
 
     def hpo_log_range(self, items):
-        start = self._extract_value(items[0])
-        end = self._extract_value(items[1])
-        return {"type": "log_range", "start": start, "end": end}
+        min = self._extract_value(items[0])
+        max = self._extract_value(items[1])
+        return {"type": "log_range", "min": min, "max": max}
 
     def layer_choice(self, items):
         return {"hpo_type": "layer_choice", "options": [self._extract_value(item) for item in items]}
