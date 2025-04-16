@@ -1,5 +1,12 @@
 [
   {
+    "title": "Neural DSL v0.2.7: Enhanced HPO Support and Parser Improvements",
+    "date": "2025-04-16",
+    "excerpt": "We're excited to announce the release of Neural DSL v0.2.7, which brings significant improvements to hyperparameter optimization (HPO) support, particularly for convolutional layers and learning rate schedules...",
+    "filename": "website_v0.2.7_release.md",
+    "url": "website_v0.2.7_release.html"
+  },
+  {
     "title": "Neural DSL v0.2.6: Enhanced Dashboard UI & Blog Support",
     "date": "2025-03-25",
     "excerpt": "We're excited to announce the release of Neural DSL v0.2.6! This update brings significant improvements to the NeuralDbg dashboard with a more aesthetic design, along with blog support and several other...",

@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.2.7] - 16-04-2025
+
+### Added
+- **Enhanced HPO Support for Conv2D Layers**: Added HPO tracking for kernel_size parameter in Conv2D layers.
+- **Improved ExponentialDecay Parameter Structure**: Enhanced support for complex decay schedules with better parameter handling.
+- **Extended Padding Options in Layers**: Added HPO expression support for padding parameters.
+- **NeuralPaper Integration**: Further developed NeuralPaper.ai backend and frontend components for interactive model visualization.
+
+### Fixed
+- **Parser Improvements**:
+  - Fixed indentation issues in parser.py and added proper docstrings for better code readability.
+  - Corrected metrics processing logic that was incorrectly placed in the exponential_decay method.
+  - Fixed syntax error in MaxPooling2D validation.
+  - Improved HPO log_range parameter naming from low/high to min/max for consistency.
+  - Enhanced HPO range handling with better step parameter defaults.
+  - Removed redundant device_spec method that was causing conflicts with newer implementations.
+- **Code Quality**:
+  - Fixed trailing whitespace and end-of-file issues across multiple files.
+  - Removed duplicate code in Conv2D kernel_size validation.
+  - Added proper docstrings to improve code documentation.
+
+### Improved
+- **Repository Organization**:
+  - Comprehensive repository reorganization with better folder structure.
+  - Enhanced documentation with README files in key directories.
+  - Added architecture diagrams and workflow documentation.
+- **Development Workflow**:
+  - Added code complexity analysis tools and reports.
+  - Improved GitHub Actions workflows for better CI/CD pipeline.
+  - Enhanced dependency management with updated requirements.
+- **Dependency Management**:
+  - Updated matplotlib dependency to be compatible with newer versions (<3.10).
+  - Upgraded Next.js in NeuralPaper frontend from 13.5.11 to 14.2.26 for better performance and security.
+  - Fixed tweepy dependency to version 4.15.0 for stable Twitter API integration.
+
+### Known Issues
+- Some complex nested HPO configurations may still require additional validation.
+- Edge cases in TensorFlow backend HPO integration need further testing.
+- Certain advanced layer configurations may not be fully supported in PyTorch backend.
+
+### Technical Debt and Future Improvements
+- **Documentation Updates**: Several documentation links in README.md need to be created or updated.
+- **PyTorch Support**: Expand layer support for PyTorch backend to match TensorFlow capabilities.
+- **NeuralPaper Integration**: Continue development of NeuralPaper.ai with better integration between frontend and backend.
+- **Version References**: Update version references in documentation (e.g., README.md still references v0.2.6).
+
+---
+
 ## [0.2.6] - 06-04-2025
 
 ### Added

@@ -1,5 +1,58 @@
 # Neural DSL Documentation
 
+## What's New in v0.2.7
+
+### Key Improvements
+- **Enhanced HPO Support for Conv2D Layers**: Added HPO tracking for kernel_size parameter in Conv2D layers.
+- **Improved ExponentialDecay Parameter Structure**: Enhanced support for complex decay schedules with better parameter handling.
+- **Extended Padding Options in Layers**: Added HPO expression support for padding parameters.
+- **Parser Improvements**: Fixed metrics processing logic and improved HPO log_range parameter naming for consistency.
+
+### Example: Enhanced HPO for Conv2D Layers
+```yaml
+network ConvHPOExample {
+  input: (28, 28, 1)
+  layers:
+    # Conv2D with HPO for both filters and kernel_size
+    Conv2D(
+      filters=HPO(choice(32, 64)),
+      kernel_size=HPO(choice((3,3), (5,5))),
+      padding=HPO(choice("same", "valid")),
+      activation="relu"
+    )
+    MaxPooling2D(pool_size=(2,2))
+    Flatten()
+    Dense(128, activation="relu")
+    Output(10, activation="softmax")
+
+  optimizer: Adam(learning_rate=0.001)
+  loss: "sparse_categorical_crossentropy"
+}
+```
+
+### Example: Improved ExponentialDecay Parameter Structure
+```yaml
+network DecayExample {
+  input: (28, 28, 1)
+  layers:
+    Conv2D(32, (3,3), activation="relu")
+    MaxPooling2D(pool_size=(2,2))
+    Flatten()
+    Dense(128, activation="relu")
+    Output(10, activation="softmax")
+
+  # Enhanced ExponentialDecay with complex parameter structure
+  optimizer: Adam(
+    learning_rate=ExponentialDecay(
+      HPO(log_range(1e-3, 1e-1)),  # Initial learning rate
+      HPO(choice(500, 1000, 2000)),  # Decay steps
+      HPO(range(0.9, 0.99, step=0.01))  # Decay rate
+    )
+  )
+  loss: "sparse_categorical_crossentropy"
+}
+```
+
 ## What's New in v0.2.6
 
 ### Key Improvements
@@ -79,12 +132,16 @@ optimizer: SGD(
 ```
 
 ## Table of Contents
+- [What's New in v0.2.7](#whats-new-in-v027)
+- [What's New in v0.2.6](#whats-new-in-v026)
+- [What's New in v0.2.5](#whats-new-in-v025)
 - [Syntax Reference](#syntax-reference)
 - [Core Components](#core-components)
 - [Validation Rules](#validation-rules)
 - [CLI Reference](#cli-reference)
 - [Error Handling](#error-handling)
 - [Examples](#examples)
+- [Enhanced HPO Support (v0.2.7+)](#enhanced-hpo-support-v027)
 - [Enhanced Dashboard UI (v0.2.6+)](#enhanced-dashboard-ui-v026)
 - [Blog Support (v0.2.6+)](#blog-support-v026)
 - [Development Guide](#development-guide)
@@ -307,11 +364,15 @@ HPO(log_range(1e-4, 1e-2))      # Log-scale range for learning rates
 ```
 
 ### Supported Parameters
-| Parameter | HPO Type | Example |
-|-----------|----------|---------|
-| Dense units | `choice` | `Dense(HPO(choice(64, 128, 256)))` |
-| Dropout rate | `range` | `Dropout(HPO(range(0.3, 0.7, step=0.1)))` |
-| Learning rate | `log_range` | `Adam(learning_rate=HPO(log_range(1e-4, 1e-2)))` |
+| Parameter | HPO Type | Example | Since Version |
+|-----------|----------|---------|---------------|
+| Dense units | `choice` | `Dense(HPO(choice(64, 128, 256)))` | v0.2.5 |
+| Dropout rate | `range` | `Dropout(HPO(range(0.3, 0.7, step=0.1)))` | v0.2.5 |
+| Learning rate | `log_range` | `Adam(learning_rate=HPO(log_range(1e-4, 1e-2)))` | v0.2.5 |
+| Conv2D filters | `choice` | `Conv2D(filters=HPO(choice(32, 64)))` | v0.2.6 |
+| Conv2D kernel_size | `choice` | `Conv2D(kernel_size=HPO(choice((3,3), (5,5))))` | v0.2.7 |
+| Padding | `choice` | `Conv2D(padding=HPO(choice("same", "valid")))` | v0.2.7 |
+| Decay steps | `choice` | `ExponentialDecay(0.1, HPO(choice(500, 1000)), 0.96)` | v0.2.7 |
 
 ### Validation Rules
 - Dense units must be positive integers
@@ -443,6 +504,64 @@ Supported schedules:
 - `InverseTimeDecay`: Applies inverse time decay to the learning rate
 
 ---
+
+## Enhanced HPO Support (v0.2.7+)
+
+Version 0.2.7 introduces significant improvements to hyperparameter optimization support, particularly for Conv2D layers and learning rate schedules.
+
+### Key HPO Improvements
+- **Conv2D kernel_size HPO**: Added support for optimizing kernel sizes in convolutional layers
+- **Padding Parameter HPO**: Extended HPO support to padding parameters
+- **ExponentialDecay Parameter Structure**: Enhanced support for complex decay schedules
+- **HPO Parameter Naming**: Improved parameter naming from low/high to min/max for consistency
+
+### Conv2D with HPO Parameters
+```yaml
+# Basic Conv2D with HPO for filters only (supported in v0.2.6)
+Conv2D(filters=HPO(choice(32, 64)), kernel_size=(3,3))
+
+# Enhanced Conv2D with HPO for both filters and kernel_size (new in v0.2.7)
+Conv2D(
+  filters=HPO(choice(32, 64)),
+  kernel_size=HPO(choice((3,3), (5,5))),
+  padding=HPO(choice("same", "valid"))
+)
+```
+
+### ExponentialDecay with HPO Parameters
+```yaml
+# Basic ExponentialDecay with HPO (supported in v0.2.6)
+ExponentialDecay(
+  HPO(range(0.05, 0.2, step=0.05)),  # Initial learning rate
+  1000,                              # Fixed decay steps
+  HPO(range(0.9, 0.99, step=0.01))   # Decay rate
+)
+
+# Enhanced ExponentialDecay with HPO for all parameters (new in v0.2.7)
+ExponentialDecay(
+  HPO(log_range(1e-3, 1e-1)),       # Initial learning rate
+  HPO(choice(500, 1000, 2000)),      # Variable decay steps
+  HPO(range(0.9, 0.99, step=0.01))   # Decay rate
+)
+```
+
+### HPO Parameter Naming Improvements
+```yaml
+# Old style (v0.2.6)
+HPO(log_range(low=1e-4, high=1e-2))
+
+# New style (v0.2.7)
+HPO(log_range(min=1e-4, max=1e-2))
+```
+
+### HPO Range Step Parameter
+```yaml
+# In v0.2.7, the step parameter is optional with a default value
+HPO(range(0.1, 0.5))  # Uses default step
+
+# Explicit step parameter
+HPO(range(0.1, 0.5, step=0.1))
+```
 
 ## Enhanced Dashboard UI (v0.2.6+)
 
