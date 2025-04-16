@@ -102,7 +102,7 @@ network AdvancedHPOExample {
       activation="relu"
     )
     MaxPooling2D(pool_size=(2,2))
-    
+
     # Another conv block with HPO
     Conv2D(
       filters=HPO(choice(64, 128)),
@@ -111,13 +111,13 @@ network AdvancedHPOExample {
       activation="relu"
     )
     MaxPooling2D(pool_size=(2,2))
-    
+
     # Flatten and dense layers
     Flatten()
     Dense(HPO(choice(128, 256, 512)), activation="relu")
     Dropout(HPO(range(0.3, 0.7, step=0.1)))
     Output(10, "softmax")
-  
+
   # Advanced optimizer configuration with HPO
   optimizer: Adam(
     learning_rate=ExponentialDecay(
@@ -126,9 +126,9 @@ network AdvancedHPOExample {
       HPO(range(0.9, 0.99, step=0.01))   # Decay rate
     )
   )
-  
+
   loss: "sparse_categorical_crossentropy"
-  
+
   # Training configuration with HPO
   train {
     epochs: 20

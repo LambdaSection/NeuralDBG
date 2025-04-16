@@ -21,7 +21,7 @@ HPO(log_range(1e-4, 1e-2))      # Log-scale range (good for learning rates)
 Neural DSL supports HPO for a wide range of parameters:
 
 | Parameter | HPO Type | Example | Since Version |
-|-----------|----------|---------|---------------|  
+|-----------|----------|---------|---------------|
 | Dense units | `choice` | `Dense(HPO(choice(64, 128, 256)))` | v0.2.5 |
 | Dropout rate | `range` | `Dropout(HPO(range(0.3, 0.7, step=0.1)))` | v0.2.5 |
 | Learning rate | `log_range` | `Adam(learning_rate=HPO(log_range(1e-4, 1e-2)))` | v0.2.5 |
@@ -44,10 +44,10 @@ network SimpleHPOExample {
     Dense(HPO(choice(128, 256)), activation="relu")
     Dropout(HPO(range(0.3, 0.7, step=0.1)))
     Output(10, activation="softmax")
-  
+
   optimizer: Adam(learning_rate=HPO(log_range(1e-4, 1e-2)))
   loss: "sparse_categorical_crossentropy"
-  
+
   train {
     epochs: 10
     batch_size: 32
@@ -73,7 +73,7 @@ network AdvancedHPOExample {
       activation="relu"
     )
     MaxPooling2D(pool_size=(2,2))
-    
+
     # Another conv block with HPO
     Conv2D(
       filters=HPO(choice(64, 128)),
@@ -82,13 +82,13 @@ network AdvancedHPOExample {
       activation="relu"
     )
     MaxPooling2D(pool_size=(2,2))
-    
+
     # Flatten and dense layers
     Flatten()
     Dense(HPO(choice(128, 256, 512)), activation="relu")
     Dropout(HPO(range(0.3, 0.7, step=0.1)))
     Output(10, "softmax")
-  
+
   # Advanced optimizer configuration with HPO
   optimizer: Adam(
     learning_rate=ExponentialDecay(
@@ -97,9 +97,9 @@ network AdvancedHPOExample {
       HPO(range(0.9, 0.99, step=0.01))   # Decay rate
     )
   )
-  
+
   loss: "sparse_categorical_crossentropy"
-  
+
   # Training configuration with HPO
   train {
     epochs: 20
