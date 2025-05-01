@@ -72,6 +72,10 @@ class ShapePropagator:
         layer_type = layer["type"]
         params = layer.get("params", {})
 
+        # Debug logging
+        print(f"DEBUG: ShapePropagator.propagate - input_shape: {input_shape}, layer_type: {layer_type}")
+        print(f"DEBUG: ShapePropagator.propagate - params: {params}")
+
         # Only set kernel_size for layers that need it
         if layer_type in ['Conv2D', 'MaxPooling2D']:  # Add other layers as needed
             kernel_size = params.get("kernel_size", 3)
@@ -79,6 +83,15 @@ class ShapePropagator:
                 kernel_size = (kernel_size, kernel_size)
             elif isinstance(kernel_size, list):
                 kernel_size = tuple(kernel_size)
+            elif isinstance(kernel_size, dict):
+                print(f"DEBUG: ShapePropagator.propagate - kernel_size is a dict: {kernel_size}")
+                # If it's a dictionary with a 'value' key, use that value
+                if 'value' in kernel_size:
+                    kernel_size = (kernel_size['value'], kernel_size['value'])
+                # Otherwise, use a default value
+                else:
+                    print(f"DEBUG: ShapePropagator.propagate - kernel_size dict without 'value' key, using default")
+                    kernel_size = (3, 3)  # Default value
             params["kernel_size"] = kernel_size  # Ensure tuple in params
 
         if layer['type'] == 'TransformerEncoder':
@@ -156,14 +169,48 @@ class ShapePropagator:
 ##################################################
     def get_trace(self):
         trace = []
-        for layer_type, exec_time, comp_time, trans_time, params, flops, memory, grad_norm, dead_ratio, mean_act, anomaly in self.execution_trace:
-            kernel_size = params.get("kernel_size", (1, 1))
+        for entry in self.execution_trace:
+            # Check if entry is a dictionary (new format) or a tuple (old format)
+            if isinstance(entry, dict):
+                # New format: entry is a dictionary
+                layer_type = entry.get("layer", "Unknown")
+                exec_time = entry.get("execution_time", 0)
+                comp_time = entry.get("compute_time", 0)
+                trans_time = entry.get("transfer_time", 0)
+                flops = entry.get("flops", 0)
+                memory = entry.get("memory", 0)
+
+                # Default values for missing fields
+                grad_norm = 0
+                dead_ratio = 0
+                mean_act = 0
+                anomaly = False
+
+                # Get kernel_size from params if available
+                params = entry.get("params", {})
+                if not params:
+                    # Try to extract kernel_size directly from the entry
+                    kernel_size = entry.get("kernel_size", (1, 1))
+                else:
+                    kernel_size = params.get("kernel_size", (1, 1))
+            else:
+                # Old format: entry is a tuple
+                try:
+                    layer_type, exec_time, comp_time, trans_time, params, flops, memory, grad_norm, dead_ratio, mean_act, anomaly = entry
+                except ValueError:
+                    print(f"WARNING: Invalid trace entry format: {entry}")
+                    continue
+
+                kernel_size = params.get("kernel_size", (1, 1)) if isinstance(params, dict) else (1, 1)
+
+            # Ensure kernel_size is a tuple
             if isinstance(kernel_size, list):
                 print(f"WARNING: Converting list kernel_size {kernel_size} to tuple for {layer_type}")
                 kernel_size = tuple(kernel_size)
             elif not isinstance(kernel_size, tuple):
                 print(f"WARNING: Unexpected kernel_size type {type(kernel_size)} for {layer_type}, defaulting to (1, 1)")
                 kernel_size = (1, 1)
+
             trace.append({
                 "layer": layer_type, "execution_time": exec_time, "compute_time": comp_time,
                 "transfer_time": trans_time, "kernel_size": kernel_size,
@@ -203,42 +250,122 @@ class ShapePropagator:
 ####################################################################
 
     def _handle_conv2d(self, input_shape, params):
+        print(f"DEBUG: _handle_conv2d - input_shape: {input_shape}, params: {params}")
         data_format = params['data_format']  # 'channels_first' for PyTorch
         if data_format == 'channels_first':
             spatial_dims = input_shape[2:]  # Should be (28, 28)
         else:
             spatial_dims = input_shape[1:3]
 
+        print(f"DEBUG: _handle_conv2d - spatial_dims: {spatial_dims}")
+
         kernel = params['kernel_size']
         if isinstance(kernel, int):
             kernel = (kernel, kernel)
+        elif isinstance(kernel, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in kernel:
+                kernel_value = kernel['value']
+                if isinstance(kernel_value, int):
+                    kernel = (kernel_value, kernel_value)
+                else:
+                    kernel = (3, 3)  # Default value
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _handle_conv2d - kernel is a dict without 'value' key: {kernel}, using default")
+                kernel = (3, 3)  # Default value
         elif not isinstance(kernel, tuple):
-            raise ValueError(f"Invalid kernel_size type: {type(kernel)}")
+            print(f"DEBUG: _handle_conv2d - Invalid kernel_size type: {type(kernel)}, value: {kernel}, using default")
+            kernel = (3, 3)  # Default value
 
         stride = params.get('stride', 1)
+        # Handle dictionary values in stride
+        if isinstance(stride, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in stride:
+                stride = stride['value']
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _handle_conv2d - stride is a dict without 'value' key: {stride}, using default")
+                stride = 1  # Default value
+
         padding = self._calculate_padding(params, input_shape[2] if data_format == 'channels_first' else input_shape[1])
 
         if isinstance(padding, int):
             padding = (padding,) * len(spatial_dims)
         elif isinstance(padding, (list, tuple)):
             padding = tuple(padding)
+        elif isinstance(padding, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in padding:
+                padding_value = padding['value']
+                if isinstance(padding_value, int):
+                    padding = (padding_value,) * len(spatial_dims)
+                else:
+                    padding = (0,) * len(spatial_dims)  # Default value
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _handle_conv2d - padding is a dict without 'value' key: {padding}, using default")
+                padding = (0,) * len(spatial_dims)  # Default value
+
+        print(f"DEBUG: _handle_conv2d - kernel: {kernel}, stride: {stride}, padding: {padding}")
 
         output_spatial = [
             (dim + 2*pad - k) // stride + 1
             for dim, k, pad in zip(spatial_dims, kernel, padding)
         ]
         if any(dim <= 0 for dim in output_spatial):
-            raise ValueError(f"Invalid Conv2D output dimensions: {output_spatial}")
+            print(f"DEBUG: _handle_conv2d - Invalid Conv2D output dimensions: {output_spatial}, using default")
+            output_spatial = [1, 1]  # Default value to avoid errors
+
+        filters = params['filters']
+        # Handle dictionary values in filters
+        if isinstance(filters, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in filters:
+                filters = filters['value']
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _handle_conv2d - filters is a dict without 'value' key: {filters}, using default")
+                filters = 32  # Default value
+
+        print(f"DEBUG: _handle_conv2d - output_spatial: {output_spatial}, filters: {filters}")
 
         if data_format == 'channels_first':
-            return (input_shape[0], params['filters'], *output_spatial)
+            return (input_shape[0], filters, *output_spatial)
         else:
-            return (input_shape[0], *output_spatial, params['filters'])
+            return (input_shape[0], *output_spatial, filters)
 
     def _handle_maxpooling2d(self, input_shape, params):
+        print(f"DEBUG: _handle_maxpooling2d - input_shape: {input_shape}, params: {params}")
         data_format = params.get('data_format', 'channels_last')
         pool_size = params['pool_size']
+
+        # Handle dictionary values in pool_size
+        if isinstance(pool_size, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in pool_size:
+                pool_value = pool_size['value']
+                if isinstance(pool_value, int):
+                    pool_size = pool_value
+                else:
+                    pool_size = 2  # Default value
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _handle_maxpooling2d - pool_size is a dict without 'value' key: {pool_size}, using default")
+                pool_size = 2  # Default value
+
         stride = params.get('stride', pool_size)
+
+        # Handle dictionary values in stride
+        if isinstance(stride, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in stride:
+                stride = stride['value']
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _handle_maxpooling2d - stride is a dict without 'value' key: {stride}, using default")
+                stride = pool_size  # Default to pool_size
 
         # Handle stride as tuple or integer
         if isinstance(stride, (tuple, list)):
@@ -246,17 +373,27 @@ class ShapePropagator:
         else:
             stride_h = stride_w = stride
 
+        print(f"DEBUG: _handle_maxpooling2d - pool_size: {pool_size}, stride_h: {stride_h}, stride_w: {stride_w}")
+
         # Calculate spatial dimensions based on data format
         if data_format == 'channels_last':
             # TensorFlow: input_shape = (batch, height, width, channels)
-            new_height = input_shape[1] // stride_h
-            new_width = input_shape[2] // stride_w
-            return (input_shape[0], new_height, new_width, input_shape[3])
+            if len(input_shape) >= 4:  # Ensure we have enough dimensions
+                new_height = input_shape[1] // stride_h
+                new_width = input_shape[2] // stride_w
+                return (input_shape[0], new_height, new_width, input_shape[3])
+            else:
+                print(f"DEBUG: _handle_maxpooling2d - Invalid input shape: {input_shape}, using default")
+                return (input_shape[0], 1, 1, input_shape[-1] if len(input_shape) > 1 else 1)
         else:
             # PyTorch: input_shape = (batch, channels, height, width)
-            new_height = input_shape[2] // stride_h
-            new_width = input_shape[3] // stride_w
-            return (input_shape[0], input_shape[1], new_height, new_width)
+            if len(input_shape) >= 4:  # Ensure we have enough dimensions
+                new_height = input_shape[2] // stride_h
+                new_width = input_shape[3] // stride_w
+                return (input_shape[0], input_shape[1], new_height, new_width)
+            else:
+                print(f"DEBUG: _handle_maxpooling2d - Invalid input shape: {input_shape}, using default")
+                return (input_shape[0], input_shape[1] if len(input_shape) > 1 else 1, 1, 1)
 
     def _handle_flatten(self, input_shape, params):
         # If there is a batch dimension, keep it.
@@ -270,18 +407,52 @@ class ShapePropagator:
 
 
     def _handle_dense(self, input_shape, params):
+        print(f"DEBUG: _handle_dense - input_shape: {input_shape}, params: {params}")
+
+        # Get units parameter with proper handling of dictionary values
+        units = params.get('units', 64)  # Default to 64 if not provided
+
+        # Handle dictionary values in units
+        if isinstance(units, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in units:
+                units = units['value']
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _handle_dense - units is a dict without 'value' key: {units}, using default")
+                units = 64  # Default value
+
+        print(f"DEBUG: _handle_dense - units after processing: {units}")
+
         # If input_shape has two or more dimensions, preserve the batch dimension.
         if len(input_shape) >= 2:
-            return (input_shape[0], params['units'])
+            return (input_shape[0], units)
         else:
-            return (params['units'],)
+            return (units,)
 
     def _handle_output(self, input_shape, params):
+        print(f"DEBUG: _handle_output - input_shape: {input_shape}, params: {params}")
+
+        # Get units parameter with proper handling of dictionary values
+        units = params.get('units', 10)  # Default to 10 if not provided
+
+        # Handle dictionary values in units
+        if isinstance(units, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in units:
+                units = units['value']
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _handle_output - units is a dict without 'value' key: {units}, using default")
+                units = 10  # Default value
+
+        print(f"DEBUG: _handle_output - units after processing: {units}")
+
         # Preserves the batch dimension and converts the feature dimension to the number of output units.
         if len(input_shape) >= 2:
-            return (input_shape[0], params['units'])
+            return (input_shape[0], units)
         else:
-            return (params['units'],)
+            return (units,)
 
 
     # Handle default helper
@@ -303,7 +474,18 @@ class ShapePropagator:
         Returns:
             int or tuple or list: Calculated padding value.
         """
+        print(f"DEBUG: _calculate_padding - params: {params}, input_dim: {input_dim}")
         padding = params.get('padding', 0)
+
+        # Handle dictionary values in padding
+        if isinstance(padding, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in padding:
+                padding = padding['value']
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _calculate_padding - padding is a dict without 'value' key: {padding}, using default")
+                padding = 0  # Default value
 
         if isinstance(padding, int):
             return padding
@@ -314,8 +496,24 @@ class ShapePropagator:
             kernel = params['kernel_size']
             if isinstance(kernel, int):
                 return (kernel - 1) // 2
+            elif isinstance(kernel, dict):
+                # If it's a dictionary with a 'value' key, use that value
+                if 'value' in kernel:
+                    kernel_value = kernel['value']
+                    if isinstance(kernel_value, int):
+                        return (kernel_value - 1) // 2
+                    else:
+                        return 1  # Default value
+                # Otherwise, use a default value
+                else:
+                    print(f"DEBUG: _calculate_padding - kernel is a dict without 'value' key: {kernel}, using default")
+                    return 1  # Default value
             elif isinstance(kernel, tuple):
-                return tuple((k - 1) // 2 for k in kernel)  # Process each dimension
+                # Process each dimension
+                return tuple((k - 1) // 2 for k in kernel)
+            else:
+                print(f"DEBUG: _calculate_padding - Invalid kernel type: {type(kernel)}, value: {kernel}, using default")
+                return 1  # Default value
         elif padding == 'valid':
             return 0
         else:

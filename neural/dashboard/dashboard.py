@@ -52,26 +52,59 @@ except Exception as e:
 UPDATE_INTERVAL = config.get("websocket_interval", 1000) # Use default if config file not found
 
 
-# Store Execution Trace Data
+# Store Execution Trace Data and Model Data
 trace_data = []
+model_data = None
+backend = 'tensorflow'
+shape_history = []
 
-########################################################################
-#### WebSocket Listener (Sending trace & Intervals) for Live Updates ###
-########################################################################
+# Function to print data for debugging
+def print_dashboard_data():
+    global trace_data, model_data
+    print("\n=== DASHBOARD DATA ===")
+    print(f"Model data: {model_data is not None}")
+    if model_data:
+        print(f"  Input: {model_data.get('input', 'None')}")
+        print(f"  Layers: {len(model_data.get('layers', []))} layers")
 
-@socketio.on("request_trace_update")
-def send_trace_update():
-    global trace_data
-    while True:
-        trace_data = propagator.get_trace()
-        # Double-check kernel_size is a tuple
-        trace_data = [
-            {k: tuple(v) if k == "kernel_size" and isinstance(v, list) else v for k, v in entry.items()}
-            for entry in trace_data
-        ]
-        print(f"DEBUG: Emitting trace_data with kernel_size: {trace_data[0]['kernel_size']}, type: {type(trace_data[0]['kernel_size'])}")
-        socketio.emit("trace_update", json.dumps(trace_data))
-        time.sleep(UPDATE_INTERVAL / 1000)
+    print(f"Trace data: {len(trace_data) if trace_data else 0} entries")
+    if trace_data and len(trace_data) > 0:
+        print(f"  First entry: {trace_data[0]}")
+    print("=====================\n")
+
+# Function to update dashboard data
+def update_dashboard_data(new_model_data=None, new_trace_data=None, new_backend=None):
+    """Update the dashboard data with new data from the CLI."""
+    global model_data, trace_data, backend, shape_history
+
+    if new_model_data is not None:
+        model_data = new_model_data
+
+    if new_trace_data is not None:
+        # Convert numpy values to Python native types for JSON serialization
+        processed_trace_data = []
+        for entry in new_trace_data:
+            processed_entry = {}
+            for key, value in entry.items():
+                if hasattr(value, 'item') and callable(getattr(value, 'item')):
+                    # Convert numpy values to Python native types
+                    processed_entry[key] = value.item()
+                else:
+                    processed_entry[key] = value
+            processed_trace_data.append(processed_entry)
+        trace_data = processed_trace_data
+
+    if new_backend is not None:
+        backend = new_backend
+
+    # Clear shape history to force recalculation
+    shape_history = []
+
+    # Print the updated data
+    print_dashboard_data()
+
+# Print initial data when module is loaded
+print_dashboard_data()
 
 ### Interval Updates ####
 @app.callback(
@@ -117,8 +150,17 @@ def update_trace_graph(n, viz_type, selected_layers=None):
     execution_times = [entry["execution_time"] for entry in filtered_data]
 
     # Simulate compute_time and transfer_time for stacked bar (you can extend ShapePropagator to include these)
-    compute_times = [t * 0.7 for t in execution_times]  # 70% of execution time for compute
-    transfer_times = [t * 0.3 for t in execution_times]  # 30% for data transfer
+    compute_times = []
+    transfer_times = []
+    for t in execution_times:
+        # Ensure t is a number
+        if isinstance(t, (int, float)):
+            compute_times.append(t * 0.7)  # 70% of execution time for compute
+            transfer_times.append(t * 0.3)  # 30% for data transfer
+        else:
+            # Default values if t is not a number
+            compute_times.append(0.1)
+            transfer_times.append(0.05)
 
     fig = go.Figure()
 
@@ -195,10 +237,17 @@ def update_trace_graph(n, viz_type, selected_layers=None):
 
     elif viz_type == "thresholds":
         # Bar Chart with Annotations and Thresholds
-        fig = go.Figure([go.Bar(x=layers, y=execution_times, name="Execution Time",
-                               marker_color=["red" if t > 0.003 else "blue" for t in execution_times])])
+        marker_colors = []
+        for t in execution_times:
+            if isinstance(t, (int, float)) and t > 0.003:
+                marker_colors.append("red")
+            else:
+                marker_colors.append("blue")
+
+        fig = go.Figure([go.Bar(x=layers, y=execution_times, name="Execution Time", marker_color=marker_colors)])
+
         for i, t in enumerate(execution_times):
-            if t > 0.003:
+            if isinstance(t, (int, float)) and t > 0.003:
                 fig.add_annotation(
                     x=layers[i], y=t, text=f"High: {t}s", showarrow=True, arrowhead=2,
                     font=dict(size=10), align="center"
@@ -262,14 +311,15 @@ def update_loss(n):
     fig.update_layout(title="Loss Over Time")
     return fig
 
-app.layout = html.Div([
-    html.H1("Compare Architectures"),
-    dcc.Dropdown(id="architecture_selector", options=[
-        {"label": "Model A", "value": "A"},
-        {"label": "Model B", "value": "B"},
-    ], value="A"),
-    dcc.Graph(id="architecture_graph"),
-])
+# This layout is replaced by the principal layout below
+# app.layout = html.Div([
+#     html.H1("Compare Architectures"),
+#     dcc.Dropdown(id="architecture_selector", options=[
+#         {"label": "Model A", "value": "A"},
+#         {"label": "Model B", "value": "B"},
+#     ], value="A"),
+#     dcc.Graph(id="architecture_graph"),
+# ])
 
 ##########################
 ### Architecture Graph ###
@@ -281,18 +331,160 @@ app.layout = html.Div([
     Input("architecture_selector", "value")
 )
 def update_graph(arch):
-    # Initialize input shape (e.g., for a 28x28 RGB image)
-    input_shape = (1, 28, 28, 3)  # Batch, height, width, channels
+    """Update the architecture graph visualization."""
+    global model_data, backend, trace_data
 
+    # Print debug information
+    print(f"Updating architecture graph with model_data: {model_data is not None}")
+
+    # Create a figure
+    fig = go.Figure()
+
+    # If we have model data, use it
+    if model_data and isinstance(model_data, dict):
+        # Get input shape from model data
+        if 'input' in model_data and 'shape' in model_data['input']:
+            input_shape = model_data['input']['shape']
+            print(f"Input shape: {input_shape}")
+
+            # Get layers from model data
+            if 'layers' in model_data and isinstance(model_data['layers'], list):
+                layers = model_data['layers']
+                print(f"Layers: {len(layers)}")
+
+                # Extract layer types for visualization
+                layer_types = []
+                for layer in layers:
+                    if isinstance(layer, dict) and 'type' in layer:
+                        layer_types.append(layer['type'])
+
+                # Create a simple network visualization
+                x_positions = [0]  # Input node
+                y_positions = [0]
+                node_labels = ["Input"]
+                node_colors = ["blue"]
+
+                # Add layer nodes
+                for i, layer_type in enumerate(layer_types):
+                    x_positions.append(i + 1)
+                    y_positions.append(0 if i % 2 == 0 else 1)  # Alternate y positions
+                    node_labels.append(layer_type)
+
+                    # Color based on layer type
+                    if "Conv" in layer_type:
+                        node_colors.append("red")
+                    elif "Pool" in layer_type:
+                        node_colors.append("green")
+                    elif "Dense" in layer_type:
+                        node_colors.append("purple")
+                    elif "Dropout" in layer_type:
+                        node_colors.append("orange")
+                    else:
+                        node_colors.append("gray")
+
+                # Add output node
+                x_positions.append(len(layer_types) + 1)
+                y_positions.append(0)
+                node_labels.append("Output")
+                node_colors.append("blue")
+
+                # Add nodes to the figure
+                fig.add_trace(go.Scatter(
+                    x=x_positions,
+                    y=y_positions,
+                    mode="markers+text",
+                    marker=dict(size=30, color=node_colors),
+                    text=node_labels,
+                    textposition="bottom center"
+                ))
+
+                # Add edges (connections between nodes)
+                edge_x = []
+                edge_y = []
+
+                for i in range(len(x_positions) - 1):
+                    edge_x.extend([x_positions[i], x_positions[i+1], None])
+                    edge_y.extend([y_positions[i], y_positions[i+1], None])
+
+                fig.add_trace(go.Scatter(
+                    x=edge_x,
+                    y=edge_y,
+                    mode="lines",
+                    line=dict(width=2, color="gray"),
+                    hoverinfo="none"
+                ))
+
+                # Update layout
+                fig.update_layout(
+                    title="Network Architecture",
+                    showlegend=False,
+                    hovermode="closest",
+                    margin=dict(b=20, l=5, r=5, t=40),
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    height=400
+                )
+
+                return fig
+            else:
+                print("Model data does not contain a valid 'layers' list")
+        else:
+            print("Model data does not contain a valid 'input' with 'shape'")
+    else:
+        print("No valid model data available")
+
+    # Fallback to default behavior if no model data is available
     if arch == "A":
-        layers = ["Conv2D", "Dense"]  # Example
-        params = [{"kernel_size": (3, 3), "units": 128} for _ in layers]
+        # Simple architecture
+        fig.add_trace(go.Scatter(
+            x=[0, 1, 2, 3],
+            y=[0, 1, 0, 1],
+            mode="markers+text",
+            marker=dict(size=30, color=["blue", "red", "green", "purple"]),
+            text=["Input", "Conv", "Pool", "Output"],
+            textposition="bottom center"
+        ))
 
-    propagator = ShapePropagator()
-    for layer in layers:
-        input_shape = propagator.propagate(input_shape, layer, framework='tensorflow')  # Update input shape
+        # Add edges
+        fig.add_trace(go.Scatter(
+            x=[0, 1, 1, 2, 2, 3],
+            y=[0, 1, 1, 0, 0, 1],
+            mode="lines",
+            line=dict(width=2, color="gray"),
+            hoverinfo="none"
+        ))
+    else:
+        # More complex architecture
+        fig.add_trace(go.Scatter(
+            x=[0, 1, 2, 3, 4, 5],
+            y=[0, 1, 0, 1, 0, 1],
+            mode="markers+text",
+            marker=dict(size=30, color=["blue", "red", "green", "red", "purple", "blue"]),
+            text=["Input", "Conv1", "Pool", "Conv2", "Dense", "Output"],
+            textposition="bottom center"
+        ))
 
-    return create_animated_network(propagator.shape_history)  # Pass shape history
+        # Add edges
+        fig.add_trace(go.Scatter(
+            x=[0, 1, 1, 2, 2, 3, 3, 4, 4, 5],
+            y=[0, 1, 1, 0, 0, 1, 1, 0, 0, 1],
+            mode="lines",
+            line=dict(width=2, color="gray"),
+            hoverinfo="none"
+        ))
+
+    # Update layout
+    fig.update_layout(
+        title=f"Network Architecture {arch}",
+        showlegend=False,
+        hovermode="closest",
+        margin=dict(b=20, l=5, r=5, t=40),
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        height=400
+    )
+
+    return fig
 
 
 ###########################
@@ -304,8 +496,10 @@ def update_graph(arch):
 )
 def update_gradient_chart(n):
     """Visualizes gradient flow per layer."""
-    response = requests.get("http://localhost:5001/trace")
-    trace_data = response.json()
+    global trace_data
+
+    if not trace_data:
+        return go.Figure()
 
     layers = [entry["layer"] for entry in trace_data]
     grad_norms = [entry.get("grad_norm", 0) for entry in trace_data]
@@ -313,7 +507,7 @@ def update_gradient_chart(n):
     fig = go.Figure([go.Bar(x=layers, y=grad_norms, name="Gradient Magnitude")])
     fig.update_layout(title="Gradient Flow", xaxis_title="Layers", yaxis_title="Gradient Magnitude")
 
-    return [fig]
+    return fig
 
 #########################
 ### Dead Neuron Panel ###
@@ -324,8 +518,10 @@ def update_gradient_chart(n):
 )
 def update_dead_neurons(n):
     """Displays percentage of dead neurons per layer."""
-    response = requests.get("http://localhost:5001/trace")
-    trace_data = response.json()
+    global trace_data
+
+    if not trace_data:
+        return go.Figure()
 
     layers = [entry["layer"] for entry in trace_data]
     dead_ratios = [entry.get("dead_ratio", 0) for entry in trace_data]
@@ -333,7 +529,7 @@ def update_dead_neurons(n):
     fig = go.Figure([go.Bar(x=layers, y=dead_ratios, name="Dead Neurons (%)")])
     fig.update_layout(title="Dead Neuron Detection", xaxis_title="Layers", yaxis_title="Dead Ratio", yaxis_range=[0, 1])
 
-    return [fig]
+    return fig
 
 ##############################
 ### Anomaly Detection Panel###
@@ -344,8 +540,10 @@ def update_dead_neurons(n):
 )
 def update_anomaly_chart(n):
     """Visualizes unusual activations per layer."""
-    response = requests.get("http://localhost:5001/trace")
-    trace_data = response.json()
+    global trace_data
+
+    if not trace_data:
+        return go.Figure()
 
     layers = [entry["layer"] for entry in trace_data]
     activations = [entry.get("mean_activation", 0) for entry in trace_data]
@@ -357,7 +555,7 @@ def update_anomaly_chart(n):
     ])
     fig.update_layout(title="Activation Anomalies", xaxis_title="Layers", yaxis_title="Activation Magnitude")
 
-    return [fig]
+    return fig
 
 ###########################
 ### Step Debugger Button###
@@ -378,31 +576,48 @@ def trigger_step_debug(n):
 ####################################
 
 @app.callback(
-    [Output("resource_graph", "figure")],
-    [Input("interval_component", "n_intervals")]
+    Output("resource_graph", "figure"),
+    Input("interval_component", "n_intervals")
 )
 def update_resource_graph(n):
     """Visualize CPU/GPU usage, memory, and I/O bottlenecks."""
-    import psutil
-    import torch
+    try:
+        import psutil
 
-    cpu_usage = psutil.cpu_percent()
-    memory_usage = psutil.virtual_memory().percent
-    gpu_memory = 0
-    if torch.cuda.is_available():
-        gpu_memory = torch.cuda.memory_allocated() / (1024 ** 3)  # GB
+        # Get CPU and memory usage
+        cpu_usage = psutil.cpu_percent()
+        memory_usage = psutil.virtual_memory().percent
 
-    fig = go.Figure([
-        go.Bar(x=["CPU", "Memory", "GPU"], y=[cpu_usage, memory_usage, gpu_memory], name="Resource Usage (%)"),
-    ])
-    fig.update_layout(
-        title="Resource Monitoring",
-        xaxis_title="Resource",
-        yaxis_title="Usage (%)",
-        template="plotly_dark",
-        height=400
-    )
-    return [fig]
+        # Try to get GPU usage if available
+        gpu_memory = 0
+        try:
+            import torch
+            if torch.cuda.is_available():
+                gpu_memory = torch.cuda.memory_allocated() / (1024 ** 3) * 100  # Convert to percentage
+        except (ImportError, Exception):
+            # If torch is not available or there's an error, just use 0
+            pass
+
+        fig = go.Figure([
+            go.Bar(x=["CPU", "Memory", "GPU"], y=[cpu_usage, memory_usage, gpu_memory], name="Resource Usage (%)"),
+        ])
+        fig.update_layout(
+            title="Resource Monitoring",
+            xaxis_title="Resource",
+            yaxis_title="Usage (%)",
+            template="plotly_dark",
+            height=400
+        )
+    except Exception as e:
+        # If there's an error, return an empty figure
+        print(f"Error in resource monitoring: {e}")
+        fig = go.Figure()
+        fig.update_layout(
+            title="Resource Monitoring (Error)",
+            height=400
+        )
+
+    return fig
 
 #################################
 ### Tensor Flow Visualization ###
@@ -412,8 +627,43 @@ def update_resource_graph(n):
     Input("interval_component", "n_intervals")
 )
 def update_tensor_flow(n):
-    from neural.tensor_flow import create_animated_network
-    return create_animated_network(propagator.shape_history)
+    """Visualize tensor flow through the network."""
+    global shape_history, model_data, backend
+
+    # If we have shape_history, use it
+    if shape_history:
+        return create_animated_network(shape_history)
+
+    # If we have a global propagator with shape_history, use it
+    if 'propagator' in globals() and hasattr(propagator, 'shape_history'):
+        return create_animated_network(propagator.shape_history)
+
+    # If we have model_data, create a new shape history
+    if model_data and isinstance(model_data, dict):
+        if 'input' in model_data and 'shape' in model_data['input'] and 'layers' in model_data:
+            input_shape = model_data['input']['shape']
+            layers = model_data['layers']
+
+            # Check if layers is a list
+            if isinstance(layers, list) and layers:
+                # Create a new propagator
+                local_propagator = ShapePropagator()
+
+                # Propagate shapes through the network
+                for layer in layers:
+                    try:
+                        input_shape = local_propagator.propagate(input_shape, layer, backend)
+                    except Exception as e:
+                        print(f"Error propagating shape for layer {layer.get('type', 'unknown')}: {e}")
+
+                # Store the shape history for future use
+                shape_history = local_propagator.shape_history
+
+                # Return the animated network
+                return create_animated_network(shape_history)
+
+    # If all else fails, return an empty figure
+    return go.Figure()
 
 
 # Custom Theme
@@ -430,91 +680,64 @@ app.css.append_css({
 ########################
 
 app.layout = html.Div([
-    html.H1("NeuralDbg: Real-Time Execution Monitoring"),
+    html.H1("NeuralDbg: Neural Network Debugger", style={"textAlign": "center", "marginBottom": "30px"}),
 
-    # Visualization Selector
-    dcc.Dropdown(
-        id="viz_type",
-        options=[
-            {"label": "Basic Bar Chart", "value": "basic"},
-            {"label": "Stacked Bar Chart", "value": "stacked"},
-            {"label": "Sorted Horizontal Bar", "value": "horizontal"},
-            {"label": "Box Plot (Variability)", "value": "box"},
-            {"label": "Gantt Chart (Timeline)", "value": "gantt"},
-            {"label": "Heatmap (Over Time)", "value": "heatmap"},
-            {"label": "Bar with Thresholds", "value": "thresholds"},
-        ],
-        value="basic",  # Default visualization
-        multi=False
-
-    ),
-    dcc.Slider(
-        id="update_interval",
-        min=500, max=5000, step=500, value=UPDATE_INTERVAL,
-        marks={i: f"{i}ms" for i in range(500, 5500, 500)},
-        tooltip={"placement": "bottom", "always_visible": True}
-    ),
-    dcc.Dropdown(
-        id="layer_filter",
-        options=[{"label": l, "value": l} for l in ["Conv2D", "Dense"]],
-        multi=True,
-        value=["Conv2D", "Dense"]
-    ),
-
-    # Execution Trace Visualization
-    dcc.Graph(id="trace_graph"),
-
-    # FLOPs & Memory Usage
-    dcc.Graph(id="flops_memory_chart"),
-
-    # Shape Propagation
-    html.H1("Neural Shape Propagation Dashboard"),
-    dcc.Graph(id="shape_graph"),
-
-    # Training Metrics
-    html.H1("Training Metrics"),
-    dcc.Graph(id="loss_graph"),
-    dcc.Graph(id="accuracy_graph"),
-
-    # Model Comparison
-    html.H1("Compare Architectures"),
-    dcc.Dropdown(
-        id="architecture_selector",
-        options=[
-            {"label": "Model A", "value": "A"},
-            {"label": "Model B", "value": "B"},
-        ],
-        value="A"
-    ),
-    dcc.Graph(id="architecture_graph"),
-
-    # Resource Monitoring
-    html.H1("Resource Monitoring"),
-    dcc.Graph(id="resource_graph"),
-
-    # Interval for updates (initial value, updated dynamically)
-    dcc.Interval(id="interval_component", interval=UPDATE_INTERVAL, n_intervals=0),
-
-    # Add progress tracking to the layout
+    # Main container with two columns
     html.Div([
-        html.H3("Network Visualization"),
-        dcc.Loading(
-            id="loading-network-viz",
-            type="circle",
-            children=[
-                html.Div(id="network-viz-container", children=[
-                    dcc.Graph(id="architecture_graph"),
-                    create_progress_component(),
-                    html.Button("Generate Visualization", id="generate-viz-button", n_clicks=0),
-                ])
-            ]
-        ),
-
+        # Left column - Model Structure
         html.Div([
-            html.H3("Computation Timeline"),
-            dcc.Graph(id="computation-timeline")
-        ], style={"marginTop": "30px"})
-    ], className="container"),
+            html.H2("Model Structure", style={"textAlign": "center"}),
+            html.Div([
+                html.Button("Visualize Model", id="generate-viz-button", n_clicks=1,
+                           style={"marginBottom": "10px", "width": "100%", "padding": "10px",
+                                  "backgroundColor": "#4CAF50", "color": "white", "border": "none"}),
+                dcc.Loading(
+                    id="loading-network-viz",
+                    type="circle",
+                    children=[
+                        html.Div(id="network-viz-container", children=[
+                            dcc.Graph(id="architecture_viz_graph"),
+                            create_progress_component(),
+                        ])
+                    ]
+                ),
+            ], style={"border": "1px solid #ddd", "padding": "15px", "borderRadius": "5px"}),
+
+            html.H2("Layer Performance", style={"textAlign": "center", "marginTop": "20px"}),
+            html.Div([
+                dcc.Graph(id="flops_memory_chart"),
+            ], style={"border": "1px solid #ddd", "padding": "15px", "borderRadius": "5px"}),
+        ], style={"width": "48%", "display": "inline-block", "verticalAlign": "top"}),
+
+        # Right column - Analysis
+        html.Div([
+            html.H2("Gradient Flow Analysis", style={"textAlign": "center"}),
+            html.Div([
+                dcc.Graph(id="gradient_flow_chart"),
+            ], style={"border": "1px solid #ddd", "padding": "15px", "borderRadius": "5px"}),
+
+            html.H2("Dead Neuron Detection", style={"textAlign": "center", "marginTop": "20px"}),
+            html.Div([
+                dcc.Graph(id="dead_neuron_chart"),
+            ], style={"border": "1px solid #ddd", "padding": "15px", "borderRadius": "5px"}),
+
+            html.H2("Anomaly Detection", style={"textAlign": "center", "marginTop": "20px"}),
+            html.Div([
+                dcc.Graph(id="anomaly_chart"),
+            ], style={"border": "1px solid #ddd", "padding": "15px", "borderRadius": "5px"}),
+        ], style={"width": "48%", "display": "inline-block", "verticalAlign": "top", "marginLeft": "4%"}),
+    ]),
+
+    # Bottom row - Resource monitoring
+    html.Div([
+        html.H2("Resource Monitoring", style={"textAlign": "center", "marginTop": "20px"}),
+        html.Div([
+            dcc.Graph(id="resource_graph"),
+        ], style={"border": "1px solid #ddd", "padding": "15px", "borderRadius": "5px"}),
+    ]),
+
+    # Interval for updates
+    dcc.Interval(id="interval_component", interval=UPDATE_INTERVAL, n_intervals=0),
 
     # Hidden div for storing progress data
     html.Div(id="progress-store", style={"display": "none"})
@@ -522,43 +745,153 @@ app.layout = html.Div([
 
 # Add callbacks for the visualization and progress updates
 @app.callback(
-    [Output("architecture_graph", "figure"),
+    [Output("architecture_viz_graph", "figure"),
      Output("progress-store", "children")],
-    [Input("generate-viz-button", "n_clicks"),
-     Input("architecture_selector", "value")],
+    [Input("generate-viz-button", "n_clicks")],
     [State("progress-store", "children")]
 )
-def update_network_visualization(n_clicks, arch_type, progress_data):
-    if n_clicks == 0:
-        # Initial load - return empty figure
-        return go.Figure(), json.dumps({"progress": 0, "details": "Click to generate"})
+def update_network_visualization(n_clicks, _):
+    """Generate a visualization of the neural network architecture."""
+    global model_data, backend, shape_history
 
-    # Get layer data based on selected architecture
-    if arch_type == "A":
-        layer_data = [
-            {"layer": "Input", "output_shape": (1, 28, 28, 3)},
-            {"layer": "Conv2D", "output_shape": (1, 26, 26, 32)},
-            {"layer": "MaxPooling2D", "output_shape": (1, 13, 13, 32)},
-            {"layer": "Flatten", "output_shape": (1, 5408)},
-            {"layer": "Dense", "output_shape": (1, 128)},
-            {"layer": "Output", "output_shape": (1, 10)}
-        ]
-    else:
-        # Default or other architectures
-        layer_data = [
-            {"layer": "Input", "output_shape": (1, 224, 224, 3)},
-            {"layer": "Conv2D_1", "output_shape": (1, 112, 112, 64)},
-            {"layer": "Conv2D_2a", "output_shape": (1, 56, 56, 128)},
-            {"layer": "Conv2D_2b", "output_shape": (1, 56, 56, 128)},
-            {"layer": "Concat", "output_shape": (1, 56, 56, 256)},
-            {"layer": "Dense", "output_shape": (1, 1000)},
-        ]
+    # Print debug information
+    print(f"Updating network visualization with n_clicks={n_clicks}")
+    print(f"Model data available: {model_data is not None}")
+    if model_data:
+        print(f"Model data keys: {model_data.keys() if isinstance(model_data, dict) else 'Not a dict'}")
 
-    # Generate the visualization with progress tracking
-    fig = create_animated_network(layer_data, show_progress=True)
+    # Create a default figure
+    fig = go.Figure()
+
+    # Always generate visualization regardless of n_clicks
+    # Start with progress updates
+    progress = 10
+    details = "Starting visualization..."
+
+    # If we have model_data, use it to create a visualization
+    if model_data and isinstance(model_data, dict):
+        if 'input' in model_data and 'layers' in model_data and isinstance(model_data['layers'], list):
+            progress = 20
+            details = "Processing model data..."
+
+            # Extract layer types for visualization
+            layers = model_data['layers']
+            layer_types = []
+            for layer in layers:
+                if isinstance(layer, dict) and 'type' in layer:
+                    layer_type = layer['type']
+                    layer_types.append(layer_type)
+                    print(f"Found layer: {layer_type}")
+
+            # Create a simple network visualization
+            x_positions = [0]  # Input node
+            y_positions = [0]
+            node_labels = ["Input"]
+            node_colors = ["blue"]
+
+            # Add layer nodes
+            for i, layer_type in enumerate(layer_types):
+                x_positions.append(i + 1)
+                y_positions.append(0 if i % 2 == 0 else 1)  # Alternate y positions
+                node_labels.append(layer_type)
+
+                # Color based on layer type
+                if "Conv" in layer_type:
+                    node_colors.append("red")
+                elif "Pool" in layer_type:
+                    node_colors.append("green")
+                elif "Dense" in layer_type:
+                    node_colors.append("purple")
+                elif "Dropout" in layer_type:
+                    node_colors.append("orange")
+                else:
+                    node_colors.append("gray")
+
+            # Add output node
+            x_positions.append(len(layer_types) + 1)
+            y_positions.append(0)
+            node_labels.append("Output")
+            node_colors.append("blue")
+
+            # Add nodes to the figure
+            fig.add_trace(go.Scatter(
+                x=x_positions,
+                y=y_positions,
+                mode="markers+text",
+                marker=dict(size=30, color=node_colors),
+                text=node_labels,
+                textposition="bottom center"
+            ))
+
+            # Add edges (connections between nodes)
+            edge_x = []
+            edge_y = []
+
+            for i in range(len(x_positions) - 1):
+                edge_x.extend([x_positions[i], x_positions[i+1], None])
+                edge_y.extend([y_positions[i], y_positions[i+1], None])
+
+            fig.add_trace(go.Scatter(
+                x=edge_x,
+                y=edge_y,
+                mode="lines",
+                line=dict(width=2, color="gray"),
+                hoverinfo="none"
+            ))
+
+            # Update layout
+            fig.update_layout(
+                title="Network Architecture",
+                showlegend=False,
+                hovermode="closest",
+                margin=dict(b=20, l=5, r=5, t=40),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                height=500
+            )
+
+            progress = 100
+            details = "Visualization complete!"
+
+            return fig, json.dumps({"progress": progress, "details": details})
+
+    # Fallback to default visualization if we don't have model_data
+    progress = 50
+    details = "Using default visualization..."
+
+    # Create a default visualization
+    # Simple architecture
+    fig.add_trace(go.Scatter(
+        x=[0, 1, 2, 3, 4, 5],
+        y=[0, 1, 0, 1, 0, 1],
+        mode="markers+text",
+        marker=dict(size=30, color=["blue", "red", "green", "red", "purple", "blue"]),
+        text=["Input", "Conv2D", "MaxPool", "Conv2D", "Dense", "Output"],
+        textposition="bottom center"
+    ))
+
+    # Add edges
+    fig.add_trace(go.Scatter(
+        x=[0, 1, 1, 2, 2, 3, 3, 4, 4, 5],
+        y=[0, 1, 1, 0, 0, 1, 1, 0, 0, 1],
+        mode="lines",
+        line=dict(width=2, color="gray"),
+        hoverinfo="none"
+    ))
+
+    # Update layout
+    fig.update_layout(
+        title="Network Architecture (Default)",
+        showlegend=False,
+        hovermode="closest",
+        margin=dict(b=20, l=5, r=5, t=40),
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        height=500
+    )
 
     # Return the figure and final progress state
-    return fig, json.dumps({"progress": 100, "details": "Visualization complete"})
+    return fig, json.dumps({"progress": 100, "details": "Default visualization complete"})
 
 # Update progress bar
 @app.callback(
@@ -587,15 +920,48 @@ def update_progress_display(progress_json):
 # Add computation timeline
 @app.callback(
     Output("computation-timeline", "figure"),
-    [Input("architecture_graph", "figure")]
+    [Input("interval_component", "n_intervals")]
 )
-def update_computation_timeline(network_fig):
-    if not network_fig:
-        raise PreventUpdate
+def update_computation_timeline(n_intervals):
+    """Create a Gantt chart showing layer execution times."""
+    global trace_data
 
-    # Get the same layer data used for the network visualization
-    # In a real implementation, you would use actual execution times
-    if "A" in network_fig.get("layout", {}).get("title", {}).get("text", ""):
+    # Print debug information
+    print(f"Updating computation timeline with trace_data: {len(trace_data) if trace_data else 0} entries")
+
+    # Create a figure
+    fig = go.Figure()
+
+    if trace_data and len(trace_data) > 0:
+        # Extract layer names and execution times
+        layers = [entry.get("layer", "Unknown") for entry in trace_data]
+        execution_times = [entry.get("execution_time", 0) for entry in trace_data]
+
+        # Calculate cumulative times for Gantt chart
+        start_times = [0]
+        for i in range(1, len(execution_times)):
+            start_times.append(start_times[i-1] + execution_times[i-1])
+
+        # Create Gantt chart
+        for i, layer in enumerate(layers):
+            fig.add_trace(go.Bar(
+                x=[execution_times[i]],
+                y=[layer],
+                orientation='h',
+                base=start_times[i],
+                marker=dict(color='rgb(55, 83, 109)'),
+                name=layer
+            ))
+
+        fig.update_layout(
+            title="Layer Execution Timeline",
+            xaxis_title="Time (s)",
+            yaxis_title="Layer",
+            height=400,
+            showlegend=False
+        )
+    else:
+        # Use default data if no trace data is available
         layer_data = [
             {"layer": "Input", "execution_time": 0.1},
             {"layer": "Conv2D", "execution_time": 0.8},
@@ -604,17 +970,36 @@ def update_computation_timeline(network_fig):
             {"layer": "Dense", "execution_time": 0.5},
             {"layer": "Output", "execution_time": 0.2}
         ]
-    else:
-        layer_data = [
-            {"layer": "Input", "execution_time": 0.1},
-            {"layer": "Conv2D_1", "execution_time": 1.2},
-            {"layer": "Conv2D_2a", "execution_time": 0.9},
-            {"layer": "Conv2D_2b", "execution_time": 0.9},
-            {"layer": "Concat", "execution_time": 0.2},
-            {"layer": "Dense", "execution_time": 0.7}
-        ]
 
-    return create_layer_computation_timeline(layer_data)
+        # Extract layer names and execution times
+        layers = [entry["layer"] for entry in layer_data]
+        execution_times = [entry["execution_time"] for entry in layer_data]
+
+        # Calculate cumulative times for Gantt chart
+        start_times = [0]
+        for i in range(1, len(execution_times)):
+            start_times.append(start_times[i-1] + execution_times[i-1])
+
+        # Create Gantt chart
+        for i, layer in enumerate(layers):
+            fig.add_trace(go.Bar(
+                x=[execution_times[i]],
+                y=[layer],
+                orientation='h',
+                base=start_times[i],
+                marker=dict(color='rgb(55, 83, 109)'),
+                name=layer
+            ))
+
+        fig.update_layout(
+            title="Layer Execution Timeline (Default Data)",
+            xaxis_title="Time (s)",
+            yaxis_title="Layer",
+            height=400,
+            showlegend=False
+        )
+
+    return fig
 
 if __name__ == "__main__":
     app.run_server(debug=False, use_reloader=False)
