@@ -6,7 +6,7 @@ import numpy as np
 import psutil
 import plotly.graph_objects as go
 from graphviz import Digraph
-from typing import Dict, Tuple, Optional, Any, List
+from typing import Dict, Tuple, Optional, Any, List, Union, Callable
 
 import sys
 import os
@@ -16,6 +16,15 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from parser.parser import ModelTransformer
 from pretrained_models.pretrained import PretrainedModelHub
+from .utils import extract_param, calculate_output_dims, detect_shape_issues, suggest_optimizations
+from .utils import format_error_message, calculate_memory_usage, format_memory_size
+from .layer_docs import get_layer_documentation, format_layer_documentation
+from .layer_handlers import (
+    handle_conv1d, handle_conv3d, handle_lstm, handle_dropout,
+    handle_batch_normalization, handle_concatenate, handle_add,
+    handle_global_average_pooling1d, handle_reshape, handle_permute,
+    handle_zero_padding2d, handle_cropping2d
+)
 
 class PerformanceMonitor:
     def __init__(self):
@@ -42,6 +51,23 @@ class PerformanceMonitor:
 
 
 class ShapePropagator:
+    # Registry for external layer handlers
+    LAYER_HANDLERS = {}
+
+    @classmethod
+    def register_layer_handler(cls, layer_type):
+        """Decorator to register layer handlers dynamically.
+
+        Args:
+            layer_type: Type of layer to register handler for
+
+        Returns:
+            Decorator function
+        """
+        def decorator(func):
+            cls.LAYER_HANDLERS[layer_type] = func
+            return func
+        return decorator
 
     def __init__(self, debug=False):
         self.debug = debug
@@ -51,6 +77,8 @@ class ShapePropagator:
         self.execution_trace = []  # Stores nntrace logs
         self.performance_monitor = PerformanceMonitor()
         self.hub = PretrainedModelHub()
+        self.issues = []  # Store detected issues
+        self.optimizations = []  # Store optimization suggestions
 
         # Framework compatibility mappings
         self.param_aliases = {
@@ -69,12 +97,27 @@ class ShapePropagator:
               layer: Dict[str, Any],
               framework: str = 'tensorflow') -> Tuple[Optional[int], ...]:
         """Processes a layer and logs shape changes for nntrace."""
+        # Validate layer has a type
+        if "type" not in layer:
+            raise KeyError("Layer must have a 'type' field")
+
         layer_type = layer["type"]
         params = layer.get("params", {})
 
         # Debug logging
         print(f"DEBUG: ShapePropagator.propagate - input_shape: {input_shape}, layer_type: {layer_type}")
         print(f"DEBUG: ShapePropagator.propagate - params: {params}")
+
+        # Validate input shape
+        if not input_shape:
+            raise ValueError("Input shape cannot be empty")
+
+        # Check for negative dimensions in input shape
+        if any(dim is not None and dim < 0 for dim in input_shape):
+            raise ValueError(f"Input shape cannot contain negative dimensions: {input_shape}")
+
+        # Validate layer parameters based on layer type
+        self._validate_layer_params(layer_type, params, input_shape)
 
         # Only set kernel_size for layers that need it
         if layer_type in ['Conv2D', 'MaxPooling2D']:  # Add other layers as needed
@@ -221,14 +264,53 @@ class ShapePropagator:
         return trace
 
     def _process_layer(self, input_shape, layer, framework):
+        """Process a layer and calculate its output shape.
+
+        Args:
+            input_shape: Input tensor shape
+            layer: Layer definition
+            framework: Framework (tensorflow or pytorch)
+
+        Returns:
+            Output tensor shape
+        """
         layer_type = layer['type']
         params = self._standardize_params(layer.get('params', {}), layer_type, framework)
-        # Unified parameter handling
+
+        # Check for registered external handlers first
+        if layer_type in self.LAYER_HANDLERS:
+            return self.LAYER_HANDLERS[layer_type](self, input_shape, params)
+
+        # Then check for internal handlers
         handler_name = f"_handle_{layer_type.lower()}"
         if hasattr(self, handler_name):
             output_shape = getattr(self, handler_name)(input_shape, params)
         else:
-            output_shape = self._handle_default(input_shape, params)
+            # Try to use imported handlers
+            if layer_type == 'Conv1D':
+                output_shape = handle_conv1d(input_shape, params)
+            elif layer_type == 'Conv3D':
+                output_shape = handle_conv3d(input_shape, params)
+            elif layer_type == 'LSTM':
+                output_shape = handle_lstm(input_shape, params)
+            elif layer_type == 'Dropout':
+                output_shape = handle_dropout(input_shape, params)
+            elif layer_type == 'BatchNormalization':
+                output_shape = handle_batch_normalization(input_shape, params)
+            elif layer_type == 'Reshape':
+                output_shape = handle_reshape(input_shape, params)
+            elif layer_type == 'Permute':
+                output_shape = handle_permute(input_shape, params)
+            elif layer_type == 'ZeroPadding2D':
+                output_shape = handle_zero_padding2d(input_shape, params)
+            elif layer_type == 'Cropping2D':
+                output_shape = handle_cropping2d(input_shape, params)
+            elif layer_type == 'GlobalAveragePooling1D':
+                output_shape = handle_global_average_pooling1d(input_shape, params)
+            else:
+                # Fall back to default handler
+                output_shape = self._handle_default(input_shape, params)
+
         return output_shape
 
     def _standardize_params(self, params, layer_type, framework):
@@ -244,6 +326,121 @@ class ShapePropagator:
                 standardized[k] = v
         standardized.setdefault('data_format', 'channels_first' if framework == 'pytorch' else 'channels_last')
         return standardized
+
+    def _validate_layer_params(self, layer_type, params, input_shape):
+        """Validate layer parameters based on layer type."""
+        # Validate based on layer type
+        if layer_type == 'Conv2D':
+            # Check if filters parameter exists
+            if 'filters' not in params:
+                raise ValueError(f"Conv2D layer requires filters parameter")
+
+            # Check if filters is positive
+            filters = params.get('filters')
+            if isinstance(filters, dict):
+                if 'value' in filters:
+                    filters = filters['value']
+            if filters is not None and isinstance(filters, (int, float)) and filters <= 0:
+                raise ValueError(f"Conv2D filters must be a positive integer, got {filters}")
+
+            # Check if kernel_size parameter exists
+            if 'kernel_size' not in params:
+                raise ValueError(f"Conv2D layer requires kernel_size parameter")
+
+            # Check if kernel_size is valid
+            kernel_size = params.get('kernel_size')
+            if isinstance(kernel_size, dict):
+                if 'value' in kernel_size:
+                    kernel_size = kernel_size['value']
+            if isinstance(kernel_size, int):
+                kernel_size = (kernel_size, kernel_size)
+            if isinstance(kernel_size, tuple) and len(input_shape) >= 3:
+                # Check if kernel size exceeds input dimensions
+                if data_format := params.get('data_format'):
+                    if data_format == 'channels_first':
+                        spatial_dims = input_shape[2:4]
+                    else:
+                        spatial_dims = input_shape[1:3]
+                else:
+                    spatial_dims = input_shape[1:3]  # Default to channels_last
+
+                if len(spatial_dims) >= 2 and len(kernel_size) >= 2:
+                    if kernel_size[0] > spatial_dims[0] or kernel_size[1] > spatial_dims[1]:
+                        raise ValueError(f"Conv2D kernel size {kernel_size} exceeds input dimensions {spatial_dims}")
+
+            # Check if stride is positive
+            stride = params.get('stride')
+            if isinstance(stride, dict):
+                if 'value' in stride:
+                    stride = stride['value']
+            if stride is not None and isinstance(stride, (int, float)) and stride <= 0:
+                raise ValueError(f"Conv2D stride must be a positive integer, got {stride}")
+
+        elif layer_type == 'Dense':
+            # Check if units parameter exists and is positive
+            if 'units' not in params:
+                raise ValueError(f"Dense layer requires units parameter")
+
+            units = params.get('units')
+            if isinstance(units, dict):
+                if 'value' in units:
+                    units = units['value']
+            if units is not None and isinstance(units, (int, float)) and units <= 0:
+                raise ValueError(f"Dense units must be a positive integer, got {units}")
+
+            # Check if input shape is valid for Dense layer (2D)
+            if len(input_shape) > 2:
+                raise ValueError(f"Dense layer expects 2D input (batch, features), got {len(input_shape)}D: {input_shape}")
+
+        elif layer_type == 'MaxPooling2D':
+            # Check if pool_size parameter exists
+            if 'pool_size' not in params:
+                raise ValueError(f"MaxPooling2D layer requires pool_size parameter")
+
+            # Check if pool_size is valid
+            pool_size = params.get('pool_size')
+            if isinstance(pool_size, dict):
+                if 'value' in pool_size:
+                    pool_size = pool_size['value']
+            if isinstance(pool_size, int):
+                pool_size = (pool_size, pool_size)
+            if isinstance(pool_size, tuple) and len(input_shape) >= 3:
+                # Check if pool_size exceeds input dimensions
+                if data_format := params.get('data_format'):
+                    if data_format == 'channels_first':
+                        spatial_dims = input_shape[2:4]
+                    else:
+                        spatial_dims = input_shape[1:3]
+                else:
+                    spatial_dims = input_shape[1:3]  # Default to channels_last
+
+                if len(spatial_dims) >= 2 and len(pool_size) >= 2:
+                    if pool_size[0] > spatial_dims[0] or pool_size[1] > spatial_dims[1]:
+                        raise ValueError(f"MaxPooling2D pool_size {pool_size} exceeds input dimensions {spatial_dims}")
+
+            # Check if stride is positive
+            stride = params.get('stride')
+            if isinstance(stride, dict):
+                if 'value' in stride:
+                    stride = stride['value']
+            if stride is not None and isinstance(stride, (int, float)) and stride <= 0:
+                raise ValueError(f"MaxPooling2D stride must be a positive integer, got {stride}")
+
+        elif layer_type == 'Output':
+            # Check if units parameter exists and is positive
+            if 'units' not in params:
+                raise ValueError(f"Output layer requires units parameter")
+
+            units = params.get('units')
+            if isinstance(units, dict):
+                if 'value' in units:
+                    units = units['value']
+            if units is not None and isinstance(units, (int, float)) and units <= 0:
+                raise ValueError(f"Output units must be a positive integer, got {units}")
+
+            # Check if input shape is valid for Output layer (2D)
+            if len(input_shape) > 2:
+                raise ValueError(f"Output layer expects 2D input (batch, features), got {len(input_shape)}D: {input_shape}")
 
 ####################################################################
 ### Shape propagation through 2 Dimensional Convolutional Layers ###
@@ -454,6 +651,68 @@ class ShapePropagator:
         else:
             return (units,)
 
+    def _handle_globalaveragepooling2d(self, input_shape, params):
+        print(f"DEBUG: _handle_globalaveragepooling2d - input_shape: {input_shape}, params: {params}")
+        data_format = params.get('data_format', 'channels_last')
+
+        # For GlobalAveragePooling2D, we reduce the spatial dimensions and keep only batch and channels
+        if data_format == 'channels_last':
+            # TensorFlow: input_shape = (batch, height, width, channels)
+            if len(input_shape) >= 4:
+                return (input_shape[0], input_shape[3])
+            else:
+                print(f"DEBUG: _handle_globalaveragepooling2d - Invalid input shape: {input_shape}, using default")
+                return (input_shape[0], input_shape[-1] if len(input_shape) > 1 else 1)
+        else:
+            # PyTorch: input_shape = (batch, channels, height, width)
+            if len(input_shape) >= 4:
+                return (input_shape[0], input_shape[1])
+            else:
+                print(f"DEBUG: _handle_globalaveragepooling2d - Invalid input shape: {input_shape}, using default")
+                return (input_shape[0], input_shape[1] if len(input_shape) > 1 else 1)
+
+    def _handle_upsampling2d(self, input_shape, params):
+        print(f"DEBUG: _handle_upsampling2d - input_shape: {input_shape}, params: {params}")
+        data_format = params.get('data_format', 'channels_last')
+        size = params.get('size', (2, 2))
+
+        # Handle size parameter
+        if isinstance(size, int):
+            size = (size, size)
+        elif isinstance(size, dict):
+            # If it's a dictionary with a 'value' key, use that value
+            if 'value' in size:
+                size_value = size['value']
+                if isinstance(size_value, int):
+                    size = (size_value, size_value)
+                else:
+                    size = (2, 2)  # Default value
+            # Otherwise, use a default value
+            else:
+                print(f"DEBUG: _handle_upsampling2d - size is a dict without 'value' key: {size}, using default")
+                size = (2, 2)  # Default value
+
+        print(f"DEBUG: _handle_upsampling2d - size after processing: {size}")
+
+        # Calculate new spatial dimensions
+        if data_format == 'channels_last':
+            # TensorFlow: input_shape = (batch, height, width, channels)
+            if len(input_shape) >= 4:
+                new_height = input_shape[1] * size[0]
+                new_width = input_shape[2] * size[1]
+                return (input_shape[0], new_height, new_width, input_shape[3])
+            else:
+                print(f"DEBUG: _handle_upsampling2d - Invalid input shape: {input_shape}, using default")
+                return input_shape
+        else:
+            # PyTorch: input_shape = (batch, channels, height, width)
+            if len(input_shape) >= 4:
+                new_height = input_shape[2] * size[0]
+                new_width = input_shape[3] * size[1]
+                return (input_shape[0], input_shape[1], new_height, new_width)
+            else:
+                print(f"DEBUG: _handle_upsampling2d - Invalid input shape: {input_shape}, using default")
+                return input_shape
 
     # Handle default helper
     def _handle_default(self, input_shape, params):
@@ -551,11 +810,199 @@ class ShapePropagator:
             template='plotly_white'
         )
 
+        # Detect shape issues and optimization opportunities
+        self.issues = detect_shape_issues(self.shape_history)
+        self.optimizations = suggest_optimizations(self.shape_history)
+
         return {
             'dot_graph': self.dot,
             'plotly_chart': fig,
-            'shape_history': self.shape_history
+            'shape_history': self.shape_history,
+            'issues': self.issues,
+            'optimizations': self.optimizations
         }
+
+    def get_shape_data(self):
+        """Returns shape history as JSON."""
+        import json
+        return json.dumps([
+            {"layer": layer[0], "output_shape": layer[1]}
+            for layer in self.shape_history
+        ])
+
+    def get_layer_documentation(self, layer_type):
+        """Get documentation for a specific layer type.
+
+        Args:
+            layer_type: Type of layer to get documentation for
+
+        Returns:
+            Dictionary with layer documentation
+        """
+        return get_layer_documentation(layer_type)
+
+    def format_layer_documentation(self, layer_type):
+        """Format documentation for a specific layer type as a readable string.
+
+        Args:
+            layer_type: Type of layer to format documentation for
+
+        Returns:
+            Formatted documentation string
+        """
+        return format_layer_documentation(layer_type)
+
+    def detect_issues(self):
+        """Detect potential issues in the model architecture.
+
+        Returns:
+            List of detected issues
+        """
+        self.issues = detect_shape_issues(self.shape_history)
+        return self.issues
+
+    def suggest_optimizations(self):
+        """Suggest optimizations for the model architecture.
+
+        Returns:
+            List of optimization suggestions
+        """
+        self.optimizations = suggest_optimizations(self.shape_history)
+        return self.optimizations
+
+    def generate_interactive_visualization(self):
+        """Generate an interactive HTML visualization of the model architecture.
+
+        Returns:
+            Plotly figure object
+        """
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+
+        # Create figure with subplots
+        fig = make_subplots(rows=2, cols=1,
+                            subplot_titles=("Tensor Dimensions", "Memory Usage"),
+                            specs=[[{"type": "scatter"}], [{"type": "bar"}]])
+
+        # Add tensor dimension trace
+        layer_names = [layer[0] for layer in self.shape_history]
+        tensor_sizes = [np.prod([dim for dim in shape if dim is not None])
+                       for _, shape in self.shape_history]
+
+        fig.add_trace(
+            go.Scatter(x=layer_names, y=tensor_sizes, mode='lines+markers', name='Tensor Size'),
+            row=1, col=1
+        )
+
+        # Add memory usage trace
+        memory_usage = [calculate_memory_usage(shape) / (1024 * 1024)
+                       for _, shape in self.shape_history]
+
+        fig.add_trace(
+            go.Bar(x=layer_names, y=memory_usage, name='Memory (MB)'),
+            row=2, col=1
+        )
+
+        # Update layout
+        fig.update_layout(height=800, title_text="Model Shape Analysis")
+
+        return fig
+
+    def export_visualization(self, format='html'):
+        """Export visualization to various formats.
+
+        Args:
+            format: Output format ('html', 'png', or 'mermaid')
+
+        Returns:
+            Visualization in the specified format
+        """
+        if format == 'html':
+            fig = self.generate_interactive_visualization()
+            return fig.to_html()
+        elif format == 'png':
+            fig = self.generate_interactive_visualization()
+            return fig.to_image(format='png')
+        elif format == 'mermaid':
+            # Generate mermaid.js flowchart
+            mermaid = "graph TD\n"
+            for i, (layer_name, shape) in enumerate(self.shape_history):
+                mermaid += f"  L{i}[{layer_name}<br>{shape}]\n"
+
+            for from_id, to_id in self.layer_connections:
+                mermaid += f"  L{from_id} --> L{to_id}\n"
+
+            return mermaid
+        else:
+            raise ValueError(f"Unsupported format: {format}")
+
+    def propagate_model(self, input_shapes, model_def):
+        """Propagate shapes through a complete model with multiple inputs/outputs.
+
+        Args:
+            input_shapes: Dictionary mapping input names to shapes
+            model_def: Model definition with layers, inputs, and outputs
+
+        Returns:
+            Dictionary mapping output names to shapes
+        """
+        # Track shapes by layer name for reference by other layers
+        shape_map = {input_name: shape for input_name, shape in input_shapes.items()}
+
+        # Process each layer in topological order
+        for layer in model_def.get('layers', []):
+            layer_name = layer.get('name')
+            if not layer_name:
+                continue
+
+            # Get input shapes (could be multiple)
+            layer_input = layer.get('input')
+            if isinstance(layer_input, list):
+                input_shapes = [shape_map[input_name] for input_name in layer_input
+                              if input_name in shape_map]
+
+                # Handle merging of inputs based on layer type
+                if layer['type'] == 'Concatenate':
+                    input_shape = handle_concatenate(input_shapes, layer.get('params', {}))
+                elif layer['type'] == 'Add':
+                    input_shape = handle_add(input_shapes, layer.get('params', {}))
+                else:
+                    # Default to first input shape if we don't know how to merge
+                    input_shape = input_shapes[0] if input_shapes else None
+            else:
+                input_shape = shape_map.get(layer_input)
+
+            if input_shape is None:
+                continue
+
+            # Propagate through this layer
+            output_shape = self.propagate(input_shape, layer, model_def.get('framework', 'tensorflow'))
+
+            # Store output shape
+            shape_map[layer_name] = output_shape
+
+            # Add to shape history
+            self._visualize_layer(layer['type'], output_shape)
+
+            # Add connection if we have previous layers
+            if isinstance(layer_input, list):
+                for input_name in layer_input:
+                    if input_name in shape_map:
+                        # Find the index of the input layer in shape_history
+                        for i, (hist_name, _) in enumerate(self.shape_history):
+                            if hist_name == input_name:
+                                self._create_connection(i, len(self.shape_history) - 1)
+                                break
+            elif layer_input in shape_map:
+                # Find the index of the input layer in shape_history
+                for i, (hist_name, _) in enumerate(self.shape_history):
+                    if hist_name == layer_input:
+                        self._create_connection(i, len(self.shape_history) - 1)
+                        break
+
+        # Return shapes for all output layers
+        return {output: shape_map[output] for output in model_def.get('outputs', [])
+               if output in shape_map}
 
     def _log_shape(self, shape, stage):
         if self.debug:
@@ -622,12 +1069,6 @@ def get_framework_params(framework):
     return FRAMEWORK_DEFAULTS.get(framework.lower(), FRAMEWORK_DEFAULTS['tensorflow'])
 
 ### Real-Time Shape Visualization ###
-def get_shape_data(self):
-        """Returns shape history as JSON."""
-        return json.dumps([
-        {"layer": layer[0], "output_shape": layer[1]}
-        for layer in self.shape_history
-    ])
 
 def _calculate_shape(self, input_shape, layer):
     if layer["type"] == "Dense":

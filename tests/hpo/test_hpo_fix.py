@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 from neural.code_generation.code_generator import generate_optimized_dsl
 
 class TestHPOFix:
-    
+
     def test_generate_optimized_dsl_with_dict(self):
         """Test HPO parameter replacement when the parameter is a dictionary."""
         config = """
@@ -35,12 +35,12 @@ class TestHPOFix:
 
         # Verify the output contains the network name
         assert "DictTest" in optimized
-        
+
         # Verify HPO expressions were replaced
         assert "HPO(choice(64, 128, 256))" not in optimized
         assert "HPO(range(0.3, 0.7, step=0.1))" not in optimized
         assert "HPO(log_range(1e-4, 1e-2))" not in optimized
-        
+
         # Verify the dictionary value was properly handled
         assert "{'value': 128}" in optimized or '{"value": 128}' in optimized
         assert "0.5" in optimized

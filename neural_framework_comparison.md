@@ -66,7 +66,7 @@ class MNISTClassifier(nn.Module):
         self.fc1 = nn.Linear(32 * 13 * 13, 128)
         self.dropout = nn.Dropout(0.5)
         self.fc2 = nn.Linear(128, 10)
-        
+
     def forward(self, x):
         x = self.pool(torch.relu(self.conv(x)))
         x = self.flatten(x)
@@ -143,7 +143,7 @@ def build_model(hp):
     model.add(keras.layers.Dropout(
         hp.Float('dropout', 0.3, 0.7, step=0.1)))
     model.add(keras.layers.Dense(10, activation='softmax'))
-    
+
     model.compile(
         optimizer=keras.optimizers.Adam(
             hp.Float('learning_rate', 1e-4, 1e-2, sampling='log')),
@@ -166,7 +166,7 @@ def objective(trial):
     units = trial.suggest_categorical('units', [128, 256])
     dropout_rate = trial.suggest_float('dropout_rate', 0.3, 0.7, step=0.1)
     lr = trial.suggest_float('lr', 1e-4, 1e-2, log=True)
-    
+
     # Create model with hyperparameters
     model = nn.Sequential(
         nn.Flatten(),
@@ -176,9 +176,9 @@ def objective(trial):
         nn.Linear(units, 10),
         nn.Softmax(dim=1)
     )
-    
+
     # Training code...
-    
+
     return accuracy
 
 study = optuna.create_study(direction='maximize')
