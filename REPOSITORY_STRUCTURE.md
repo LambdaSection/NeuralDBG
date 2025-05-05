@@ -19,6 +19,7 @@ Neural/
 │   ├── shape_propagation/ # Shape propagation and validation
 │   └── visualization/     # Visualization tools
 ├── neuralpaper/           # NeuralPaper.ai implementation
+├── Aquarium/              # Specialized IDE for neural network development
 ├── profiler/              # Performance profiling tools
 └── tests/                 # Test suite
 ```
@@ -110,6 +111,14 @@ NeuralPaper.ai implementation:
 - **Frontend**: Next.js frontend for NeuralPaper.ai
 - **Shared**: Shared code between backend and frontend
 
+### `Aquarium/`
+
+Specialized IDE for neural network development:
+
+- **src**: Frontend code for the Aquarium IDE
+- **src-tauri**: Rust backend for the Aquarium IDE
+- **README.md**: Documentation for the Aquarium IDE
+
 ### `profiler/`
 
 Performance profiling tools:
@@ -146,6 +155,7 @@ The Neural project follows a modular development approach, with each component h
 3. **Code Generation**: The code generator converts the model representation into code for the target backend
 4. **Execution**: The generated code is executed using the target backend
 5. **Debugging**: NeuralDbg provides tools for debugging and visualizing the model
+6. **Visual Development**: Aquarium IDE provides a visual interface for designing and debugging neural networks
 
 ## Performance Optimization
 

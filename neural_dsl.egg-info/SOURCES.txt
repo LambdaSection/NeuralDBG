@@ -33,6 +33,13 @@ setup.py
 ./neural/hacky/hacky.py
 ./neural/hpo/__init__.py
 ./neural/hpo/hpo.py
+./neural/hpo/parameter_importance.py
+./neural/hpo/strategies.py
+./neural/hpo/visualization.py
+./neural/metrics/__init__.py
+./neural/metrics/metrics_collector.py
+./neural/metrics/model_trainer.py
+./neural/metrics/real_metrics.py
 ./neural/neural_chat/__init__.py
 ./neural/neural_chat/neural_chat.py
 ./neural/no_code/__init__.py
@@ -45,7 +52,13 @@ setup.py
 ./neural/research_generation/research_paper.py
 ./neural/shape_propagation/__init__.py
 ./neural/shape_propagation/data_to_dashboard.py
+./neural/shape_propagation/layer_docs.py
+./neural/shape_propagation/layer_handlers.py
 ./neural/shape_propagation/shape_propagator.py
+./neural/shape_propagation/utils.py
+./neural/tracking/__init__.py
+./neural/tracking/experiment_tracker.py
+./neural/tracking/integrations.py
 ./neural/training/__init__.py
 ./neural/training/device.py
 ./neural/training/training.py

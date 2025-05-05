@@ -1,5 +1,74 @@
 # Neural DSL Documentation
 
+## What's New in v0.2.9
+
+### Key Improvements
+- **Aquarium IDE (Early Preview)**: Added an early preview of a specialized IDE for neural network development with basic visual design tools.
+- **Basic Shape Calculation**: View tensor dimensions for each layer in your network.
+- **Simple Neural DSL Code Generation**: Generate basic Neural DSL code from your visual design.
+- **Code Quality Improvements**: Fixed trailing whitespace and missing newlines at end of files across the codebase.
+
+### Current Limitations
+- Only supports a small set of layer types (Input, Conv2D, MaxPooling2D, Flatten, Dense, Output)
+- Limited parameter configuration options
+- Basic shape calculation that may not handle all edge cases
+- Simple code generation without advanced features
+- No support for complex network architectures (e.g., multi-input/output, skip connections)
+- Limited error checking and validation
+
+### Example: Using Aquarium IDE (Early Preview)
+
+Aquarium IDE provides a basic visual interface for designing simple neural networks:
+
+1. **Install and Launch Aquarium**:
+   ```bash
+   # Clone the Neural repository if you haven't already
+   git clone https://github.com/Lemniscate-world/Neural.git
+   cd Neural
+
+   # Update submodules to get Aquarium
+   git submodule update --init --recursive
+
+   # Install Rust if you don't have it already
+   # https://www.rust-lang.org/tools/install
+
+   # Install Tauri CLI
+   cargo install tauri-cli
+
+   # Navigate to the Aquarium directory
+   cd Aquarium
+
+   # Install Node.js dependencies
+   npm install
+
+   # Run the development server (this may take a few minutes the first time)
+   cargo tauri dev
+   ```
+
+2. **Try the Basic Features**:
+   - Add layers using the buttons in the left panel
+   - Configure basic parameters in the properties panel
+   - View tensor shapes in the shape tab
+   - See generated Neural DSL code in the code tab
+
+3. **Export to Neural DSL**:
+   - Copy the generated code from the code tab
+   - Save it to a .neural file
+   - Use the Neural CLI to compile and run the model
+
+### Example: Generated Neural DSL Code
+
+```yaml
+# Neural DSL Model
+
+Input(shape=[28, 28, 1])
+Conv2D(filters=32, kernel_size=[3, 3], padding="same", activation="relu")
+MaxPooling2D(pool_size=[2, 2])
+Flatten()
+Dense(units=128, activation="relu")
+Output(units=10, activation="softmax")
+```
+
 ## What's New in v0.2.8
 
 ### Key Improvements
@@ -12,7 +81,7 @@
 
 ```python
 # Install Neural DSL in your Colab notebook
-!pip install neural-dsl==0.2.8
+!pip install neural-dsl==0.2.9
 
 # Import the cloud module
 from neural.cloud.cloud_execution import CloudExecutor
@@ -192,6 +261,7 @@ optimizer: SGD(
 ```
 
 ## Table of Contents
+- [What's New in v0.2.9](#whats-new-in-v029)
 - [What's New in v0.2.8](#whats-new-in-v028)
 - [What's New in v0.2.7](#whats-new-in-v027)
 - [What's New in v0.2.6](#whats-new-in-v026)
@@ -202,6 +272,7 @@ optimizer: SGD(
 - [CLI Reference](#cli-reference)
 - [Error Handling](#error-handling)
 - [Examples](#examples)
+- [Aquarium IDE (v0.2.9+)](#aquarium-ide-v029)
 - [Cloud Integration (v0.2.8+)](#cloud-integration-v028)
 - [Enhanced HPO Support (v0.2.7+)](#enhanced-hpo-support-v027)
 - [Enhanced Dashboard UI (v0.2.6+)](#enhanced-dashboard-ui-v026)
@@ -743,6 +814,106 @@ neural debug my_model.neural --theme light
 - **Shape Propagation**: Interactive visualization of tensor shapes
 
 ---
+
+## Aquarium IDE (v0.2.9+)
+
+Neural v0.2.9 introduces an early preview of Aquarium IDE, a new development environment for neural network design. In this initial version, it provides a basic visual interface for designing simple neural networks and viewing tensor shapes.
+
+### Current Features
+
+- **Basic Visual Designer**: Simple interface for adding and configuring common layer types
+- **Shape Calculation**: View tensor dimensions for each layer in your network
+- **Neural DSL Code Generation**: Generate basic Neural DSL code from your visual design
+- **Parameter Estimation**: Basic calculation of parameter counts for each layer
+
+### Technology Stack
+
+- **Frontend**: Tauri with JavaScript/HTML/CSS for cross-platform compatibility
+- **Backend**: Rust components for shape calculation
+- **Neural Integration**: Integration with Neural's shape propagator for tensor dimension calculations
+
+### Current Limitations
+
+- Only supports a small set of layer types (Input, Conv2D, MaxPooling2D, Flatten, Dense, Output)
+- Limited parameter configuration options
+- Basic shape calculation that may not handle all edge cases
+- Simple code generation without advanced features
+- No support for complex network architectures (e.g., multi-input/output, skip connections)
+- Limited error checking and validation
+
+### Trying Aquarium IDE
+
+1. **Install and Launch**:
+   ```bash
+   # Clone the Neural repository if you haven't already
+   git clone https://github.com/Lemniscate-world/Neural.git
+   cd Neural
+
+   # Update submodules to get Aquarium
+   git submodule update --init --recursive
+
+   # Install Rust if you don't have it already
+   # https://www.rust-lang.org/tools/install
+
+   # Install Tauri CLI
+   cargo install tauri-cli
+
+   # Navigate to the Aquarium directory
+   cd Aquarium
+
+   # Install Node.js dependencies
+   npm install
+
+   # Run the development server (this may take a few minutes the first time)
+   cargo tauri dev
+   ```
+
+2. **Try the Basic Features**:
+   - Add layers using the buttons in the left panel
+   - Configure basic parameters in the properties panel
+   - View tensor shapes in the shape tab
+   - See generated Neural DSL code in the code tab
+
+### Shape Calculation
+
+The current version calculates basic tensor dimensions for each layer in your network:
+
+```
+Layer         | Input Shape      | Output Shape     | Parameters
+--------------|------------------|------------------|------------
+Input Layer   | -                | [null,28,28,1]   | 0
+Conv2D        | [null,28,28,1]   | [null,28,28,32]  | 320
+MaxPooling2D  | [null,28,28,32]  | [null,14,14,32]  | 0
+Flatten       | [null,14,14,32]  | [null,6272]      | 0
+Dense         | [null,6272]      | [null,128]       | 802,944
+Output        | [null,128]       | [null,10]        | 1,290
+```
+
+### Basic Code Generation
+
+The current version generates simple Neural DSL code from your visual design:
+
+```yaml
+# Neural DSL Model
+
+Input(shape=[28, 28, 1])
+Conv2D(filters=32, kernel_size=[3, 3], padding="same", activation="relu")
+MaxPooling2D(pool_size=[2, 2])
+Flatten()
+Dense(units=128, activation="relu")
+Output(units=10, activation="softmax")
+```
+
+### Roadmap
+
+Aquarium IDE is in very early development, and we have a long roadmap ahead. Some of the features we're planning to work on:
+
+- **Support for More Layer Types**: Add support for additional layer types beyond the basic ones
+- **Improved Shape Propagation**: More accurate and detailed shape calculations
+- **Better Error Handling**: Provide more helpful error messages and validation
+- **Visual Connections**: Allow creating connections between layers visually
+- **Save/Load Functionality**: Save and load network designs
+- **Export to Multiple Formats**: Export to different backends and formats
 
 ## Blog Support (v0.2.6+)
 

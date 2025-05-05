@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.2.9] - 05-05-2025
+
+### Added
+- **Aquarium IDE Integration**: Added a specialized IDE for neural network development.
+  - Created initial Tauri-based application structure with Rust backend
+  - Implemented basic UI with network designer, shape propagator, and code editor
+  - Added real-time shape propagation visualization
+  - Integrated with Neural's shape propagator for tensor dimension calculations
+  - Created comprehensive documentation and development plan
+
+### Fixed
+- **Code Quality**: Fixed trailing whitespace and missing newlines at end of files across the codebase.
+  - Improved code consistency and adherence to style guidelines
+  - Enhanced readability and maintainability of the codebase
+  - Fixed potential issues with Git diff and merge conflicts
+
+### Improved
+- **Repository Organization**:
+  - Added Aquarium IDE as a Git submodule for better separation of concerns
+  - Enhanced project structure with clear separation between Neural core and IDE
+  - Updated documentation to reflect new repository organization
+
+### Technical Debt and Future Improvements
+- **Aquarium IDE Development**: Continue development of Aquarium IDE with more advanced features.
+  - Enhance shape propagation visualization with more detailed information
+  - Add support for more layer types and configurations
+  - Implement drag-and-drop connections between layers
+  - Create a more interactive canvas for network design
+- **Integration Testing**: Add comprehensive tests for Aquarium IDE integration with Neural.
+
+---
+
 ## [0.2.8] - 30-04-2025
 
 ### Added

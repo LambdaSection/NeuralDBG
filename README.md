@@ -15,7 +15,7 @@
   <a href="https://www.producthunt.com/posts/neural-2?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-neural&#0045;2" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=945073&theme=dark&t=1742808173867" alt="Neural - DSL for defining, training, debugging neural networks | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </div>
 
-> ⚠️ **BETA STATUS**: Neural-dsl v0.2.8 is under active development—bugs may exist, feedback welcome! Not yet recommended for production use.
+> ⚠️ **BETA STATUS**: Neural-dsl v0.2.9 is under active development—bugs may exist, feedback welcome! Not yet recommended for production use.
 
 ![Neural Demo](https://github.com/user-attachments/assets/ecbcce19-73df-4696-ace2-69e32d02709f)
 
@@ -67,6 +67,7 @@ Help us improve Neural DSL! Share your feedback: [Typeform link](https://form.ty
 ![Peek06-04-202517-00-ezgif com-speed](https://github.com/user-attachments/assets/5c4f51b5-e40f-47b3-872d-445f71c6582f)
 - **Enhanced HPO Support**: Added HPO tracking for Conv2D kernel_size and improved ExponentialDecay parameter handling (v0.2.7).
 - **Automated Issue Management**: Improved GitHub workflows for automatically creating and closing issues based on test results (v0.2.8).
+- **Aquarium IDE**: Specialized IDE for neural network development with visual design and real-time shape propagation (v0.2.9).
 - **Enhanced Dashboard UI**: Improved NeuralDbg dashboard with a more aesthetic dark theme design (#452).
 - **Blog Support**: Infrastructure for blog content with markdown support and Dev.to integration (#445).
 - **NeuralPaper.ai**: Interactive model visualization platform with annotation capabilities (in development).
@@ -110,7 +111,7 @@ NeuralDbg provides **real-time execution tracing, profiling, and debugging**, al
 pip install neural-dsl
 
 # Or specify a version
-pip install neural-dsl==0.2.8  # Latest version with enhanced HPO support and parser improvements
+pip install neural-dsl==0.2.9  # Latest version with Aquarium IDE integration
 ```
 
 ### Option 2: Install from Source
@@ -245,7 +246,7 @@ In your Kaggle notebook or Google Colab:
 
 ```python
 # Install Neural DSL
-!pip install neural-dsl==0.2.8
+!pip install neural-dsl==0.2.9
 
 # Import the cloud module
 from neural.cloud.cloud_execution import CloudExecutor
@@ -402,6 +403,7 @@ The Neural repository is organized into the following main directories:
   - **`neural/hpo/`**: Hyperparameter optimization
   - **`neural/cloud/`**: Cloud integration (Kaggle, Colab, SageMaker)
 - **`neuralpaper/`**: NeuralPaper.ai implementation
+- **`Aquarium/`**: Specialized IDE for neural network development
 - **`profiler/`**: Performance profiling tools
 - **`tests/`**: Test suite
 
@@ -418,6 +420,7 @@ Each directory contains its own README with detailed documentation:
 - [neural/hpo](neural/hpo/README.md): Hyperparameter optimization
 - [neural/cloud](neural/cloud/README.md): Cloud integration
 - [neuralpaper](neuralpaper/README.md): NeuralPaper.ai implementation
+- [Aquarium](Aquarium/README.md): Specialized IDE for neural network development
 - [profiler](profiler/README.md): Performance profiling tools
 - [docs](docs/README.md): Documentation
 - [examples](examples/README.md): Example models

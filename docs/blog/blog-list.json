@@ -1,5 +1,12 @@
 [
   {
+    "title": "Neural DSL v0.2.9: Early Preview of Aquarium IDE for Visual Neural Network Design",
+    "date": "2025-05-05",
+    "excerpt": "We're pleased to announce the release of Neural DSL v0.2.9, which includes an early preview of Aquarium IDE, a new development environment for neural network design. This initial release provides basic visual tools for network design and integrates with Neural's shape propagation system.",
+    "filename": "website_v0.2.9_release.md",
+    "url": "website_v0.2.9_release.html"
+  },
+  {
     "title": "Neural DSL v0.2.8: Cloud Integration & Automated Issue Management",
     "date": "2025-04-27",
     "excerpt": "We're excited to announce the release of Neural DSL v0.2.8, which brings significant improvements to cloud integration capabilities, interactive shell features for cloud platforms, and enhanced GitHub...",

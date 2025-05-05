@@ -11,6 +11,7 @@ import logging
 import hashlib
 import shutil
 import time
+import json
 import numpy as np
 from pathlib import Path
 from typing import Optional
@@ -40,6 +41,7 @@ from .lazy_imports import (
     tensor_flow as tensor_flow_module,
     hpo as hpo_module,
     code_generator as code_generator_module,
+    experiment_tracker as experiment_tracker_module,
     get_module,
     tensorflow, torch, jax, optuna
 )
@@ -497,6 +499,323 @@ def version(ctx):
 def cloud(ctx):
     """Commands for cloud integration."""
     pass
+
+@cli.group()
+@click.pass_context
+def track(ctx):
+    """Commands for experiment tracking."""
+    pass
+
+@track.command('init')
+@click.argument('experiment_name', required=False)
+@click.option('--base-dir', default='neural_experiments', help='Base directory for storing experiment data')
+@click.option('--integration', type=click.Choice(['mlflow', 'wandb', 'tensorboard']), help='External tracking tool to use')
+@click.option('--project-name', default='neural', help='Project name for W&B')
+@click.option('--tracking-uri', default=None, help='MLflow tracking URI')
+@click.option('--log-dir', default='runs/neural', help='TensorBoard log directory')
+@click.pass_context
+def track_init(ctx, experiment_name, base_dir, integration, project_name, tracking_uri, log_dir):
+    """Initialize experiment tracking."""
+    print_command_header("track init")
+
+    try:
+        # Import experiment tracker
+        ExperimentManager = get_module(experiment_tracker_module).ExperimentManager
+        create_integration = get_module(experiment_tracker_module).create_integration
+
+        # Create experiment manager
+        manager = ExperimentManager(base_dir=base_dir)
+
+        # Create experiment
+        experiment = manager.create_experiment(experiment_name=experiment_name)
+
+        # Create integration if requested
+        if integration:
+            if integration == 'mlflow':
+                integration_instance = create_integration('mlflow', experiment_name=experiment.experiment_name, tracking_uri=tracking_uri)
+            elif integration == 'wandb':
+                integration_instance = create_integration('wandb', experiment_name=experiment.experiment_name, project_name=project_name)
+            elif integration == 'tensorboard':
+                integration_instance = create_integration('tensorboard', experiment_name=experiment.experiment_name, log_dir=log_dir)
+
+            # Store integration info in experiment metadata
+            experiment.metadata['integration'] = {
+                'type': integration,
+                'config': {
+                    'project_name': project_name if integration == 'wandb' else None,
+                    'tracking_uri': tracking_uri if integration == 'mlflow' else None,
+                    'log_dir': log_dir if integration == 'tensorboard' else None
+                }
+            }
+            experiment._save_metadata()
+
+        # Save experiment ID to a file for easy access
+        with open('.neural_experiment', 'w') as f:
+            f.write(experiment.experiment_id)
+
+        print_success(f"Initialized experiment: {experiment.experiment_name} (ID: {experiment.experiment_id})")
+        print(f"\n{Colors.CYAN}Experiment Information:{Colors.ENDC}")
+        print(f"  {Colors.BOLD}Name:{Colors.ENDC}      {experiment.experiment_name}")
+        print(f"  {Colors.BOLD}ID:{Colors.ENDC}        {experiment.experiment_id}")
+        print(f"  {Colors.BOLD}Directory:{Colors.ENDC} {experiment.experiment_dir}")
+        if integration:
+            print(f"  {Colors.BOLD}Integration:{Colors.ENDC} {integration}")
+
+    except Exception as e:
+        print_error(f"Failed to initialize experiment tracking: {str(e)}")
+        sys.exit(1)
+
+@track.command('log')
+@click.option('--experiment-id', default=None, help='Experiment ID (defaults to the current experiment)')
+@click.option('--hyperparameters', '-p', help='Hyperparameters as JSON string')
+@click.option('--hyperparameters-file', '-f', type=click.Path(exists=True), help='Path to JSON file with hyperparameters')
+@click.option('--metrics', '-m', help='Metrics as JSON string')
+@click.option('--metrics-file', type=click.Path(exists=True), help='Path to JSON file with metrics')
+@click.option('--step', type=int, default=None, help='Step or epoch number for metrics')
+@click.option('--artifact', type=click.Path(exists=True), help='Path to artifact file')
+@click.option('--artifact-name', help='Name for the artifact (defaults to filename)')
+@click.option('--model', type=click.Path(exists=True), help='Path to model file')
+@click.option('--framework', default='unknown', help='Framework used for the model')
+@click.pass_context
+def track_log(ctx, experiment_id, hyperparameters, hyperparameters_file, metrics, metrics_file, step, artifact, artifact_name, model, framework):
+    """Log data to an experiment."""
+    print_command_header("track log")
+
+    try:
+        # Get experiment ID from file if not provided
+        if not experiment_id and os.path.exists('.neural_experiment'):
+            with open('.neural_experiment', 'r') as f:
+                experiment_id = f.read().strip()
+
+        if not experiment_id:
+            print_error("No experiment ID provided and no current experiment found")
+            print_info("Initialize an experiment first with 'neural track init'")
+            sys.exit(1)
+
+        # Import experiment tracker
+        ExperimentManager = get_module(experiment_tracker_module).ExperimentManager
+
+        # Get experiment
+        manager = ExperimentManager()
+        experiment = manager.get_experiment(experiment_id)
+
+        if not experiment:
+            print_error(f"Experiment not found: {experiment_id}")
+            sys.exit(1)
+
+        # Log hyperparameters
+        if hyperparameters or hyperparameters_file:
+            if hyperparameters_file:
+                with open(hyperparameters_file, 'r') as f:
+                    hyperparams = json.load(f)
+            else:
+                hyperparams = json.loads(hyperparameters)
+
+            experiment.log_hyperparameters(hyperparams)
+            print_success(f"Logged {len(hyperparams)} hyperparameters")
+
+        # Log metrics
+        if metrics or metrics_file:
+            if metrics_file:
+                with open(metrics_file, 'r') as f:
+                    metrics_data = json.load(f)
+            else:
+                metrics_data = json.loads(metrics)
+
+            experiment.log_metrics(metrics_data, step=step)
+            print_success(f"Logged {len(metrics_data)} metrics" + (f" at step {step}" if step is not None else ""))
+
+        # Log artifact
+        if artifact:
+            experiment.log_artifact(artifact, artifact_name=artifact_name)
+            print_success(f"Logged artifact: {artifact}")
+
+        # Log model
+        if model:
+            experiment.log_model(model, framework=framework)
+            print_success(f"Logged {framework} model: {model}")
+
+    except Exception as e:
+        print_error(f"Failed to log data: {str(e)}")
+        sys.exit(1)
+
+@track.command('list')
+@click.option('--base-dir', default='neural_experiments', help='Base directory for experiments')
+@click.option('--format', '-f', type=click.Choice(['table', 'json']), default='table', help='Output format')
+@click.pass_context
+def track_list(ctx, base_dir, format):
+    """List all experiments."""
+    print_command_header("track list")
+
+    try:
+        # Import experiment tracker
+        ExperimentManager = get_module(experiment_tracker_module).ExperimentManager
+
+        # List experiments
+        manager = ExperimentManager(base_dir=base_dir)
+        experiments = manager.list_experiments()
+
+        if not experiments:
+            print_warning("No experiments found")
+            return
+
+        if format == 'json':
+            import json
+            print(json.dumps(experiments, indent=2))
+        else:
+            print(f"\n{Colors.CYAN}Experiments:{Colors.ENDC}")
+            print(f"  {Colors.BOLD}{'Name':<20} {'ID':<10} {'Status':<10} {'Start Time':<20}{Colors.ENDC}")
+            print(f"  {'-' * 60}")
+            for exp in experiments:
+                name = exp['experiment_name'][:18] + '..' if len(exp['experiment_name']) > 20 else exp['experiment_name']
+                status = exp['status']
+                status_color = Colors.GREEN if status == 'completed' else Colors.YELLOW if status == 'running' else Colors.RED if status == 'failed' else Colors.ENDC
+                start_time = exp['start_time'].split('T')[0] + ' ' + exp['start_time'].split('T')[1][:8] if 'T' in exp['start_time'] else exp['start_time']
+                print(f"  {name:<20} {exp['experiment_id']:<10} {status_color}{status:<10}{Colors.ENDC} {start_time:<20}")
+
+    except Exception as e:
+        print_error(f"Failed to list experiments: {str(e)}")
+        sys.exit(1)
+
+@track.command('show')
+@click.argument('experiment_id')
+@click.option('--base-dir', default='neural_experiments', help='Base directory for experiments')
+@click.option('--format', '-f', type=click.Choice(['table', 'json']), default='table', help='Output format')
+@click.pass_context
+def track_show(ctx, experiment_id, base_dir, format):
+    """Show details of an experiment."""
+    print_command_header("track show")
+
+    try:
+        # Import experiment tracker
+        ExperimentManager = get_module(experiment_tracker_module).ExperimentManager
+
+        # Get experiment
+        manager = ExperimentManager(base_dir=base_dir)
+        experiment = manager.get_experiment(experiment_id)
+
+        if not experiment:
+            print_error(f"Experiment not found: {experiment_id}")
+            sys.exit(1)
+
+        # Generate summary
+        summary_path = experiment.save_experiment_summary()
+
+        # Load summary
+        with open(summary_path, 'r') as f:
+            summary = json.load(f)
+
+        if format == 'json':
+            print(json.dumps(summary, indent=2))
+        else:
+            print(f"\n{Colors.CYAN}Experiment Details:{Colors.ENDC}")
+            print(f"  {Colors.BOLD}Name:{Colors.ENDC}      {summary['experiment_name']}")
+            print(f"  {Colors.BOLD}ID:{Colors.ENDC}        {summary['experiment_id']}")
+            print(f"  {Colors.BOLD}Status:{Colors.ENDC}    {summary['metadata']['status']}")
+            print(f"  {Colors.BOLD}Start Time:{Colors.ENDC} {summary['metadata']['start_time']}")
+            if 'end_time' in summary['metadata']:
+                print(f"  {Colors.BOLD}End Time:{Colors.ENDC}   {summary['metadata']['end_time']}")
+
+            if summary['hyperparameters']:
+                print(f"\n{Colors.CYAN}Hyperparameters:{Colors.ENDC}")
+                for name, value in summary['hyperparameters'].items():
+                    print(f"  {Colors.BOLD}{name}:{Colors.ENDC} {value}")
+
+            if summary['metrics']['latest']:
+                print(f"\n{Colors.CYAN}Latest Metrics:{Colors.ENDC}")
+                for name, value in summary['metrics']['latest'].items():
+                    print(f"  {Colors.BOLD}{name}:{Colors.ENDC} {value}")
+
+            if summary['metrics']['best']:
+                print(f"\n{Colors.CYAN}Best Metrics:{Colors.ENDC}")
+                for name, info in summary['metrics']['best'].items():
+                    print(f"  {Colors.BOLD}{name}:{Colors.ENDC} {info['value']} (step {info['step']})")
+
+            if summary['artifacts']:
+                print(f"\n{Colors.CYAN}Artifacts:{Colors.ENDC}")
+                for artifact in summary['artifacts']:
+                    print(f"  - {artifact}")
+
+    except Exception as e:
+        print_error(f"Failed to show experiment details: {str(e)}")
+        sys.exit(1)
+
+@track.command('plot')
+@click.argument('experiment_id')
+@click.option('--base-dir', default='neural_experiments', help='Base directory for experiments')
+@click.option('--metrics', '-m', multiple=True, help='Metrics to plot (plots all if not specified)')
+@click.option('--output', '-o', default='metrics.png', help='Output file path')
+@click.pass_context
+def track_plot(ctx, experiment_id, base_dir, metrics, output):
+    """Plot metrics from an experiment."""
+    print_command_header("track plot")
+
+    try:
+        # Import experiment tracker
+        ExperimentManager = get_module(experiment_tracker_module).ExperimentManager
+
+        # Get experiment
+        manager = ExperimentManager(base_dir=base_dir)
+        experiment = manager.get_experiment(experiment_id)
+
+        if not experiment:
+            print_error(f"Experiment not found: {experiment_id}")
+            sys.exit(1)
+
+        # Plot metrics
+        metrics_list = list(metrics) if metrics else None
+        fig = experiment.plot_metrics(metric_names=metrics_list)
+
+        # Save figure
+        fig.savefig(output)
+
+        print_success(f"Metrics plot saved to {output}")
+
+    except Exception as e:
+        print_error(f"Failed to plot metrics: {str(e)}")
+        sys.exit(1)
+
+@track.command('compare')
+@click.argument('experiment_ids', nargs=-1, required=True)
+@click.option('--base-dir', default='neural_experiments', help='Base directory for experiments')
+@click.option('--metrics', '-m', multiple=True, help='Metrics to compare (compares all if not specified)')
+@click.option('--output-dir', '-o', default='comparison_plots', help='Output directory for plots')
+@click.pass_context
+def track_compare(ctx, experiment_ids, base_dir, metrics, output_dir):
+    """Compare multiple experiments."""
+    print_command_header("track compare")
+
+    try:
+        # Import experiment tracker
+        ExperimentManager = get_module(experiment_tracker_module).ExperimentManager
+
+        # Create output directory
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Get experiments
+        manager = ExperimentManager(base_dir=base_dir)
+
+        # Compare experiments
+        metrics_list = list(metrics) if metrics else None
+        plots = manager.compare_experiments(experiment_ids, metric_names=metrics_list)
+
+        if not plots:
+            print_warning("No plots generated")
+            return
+
+        # Save plots
+        for name, fig in plots.items():
+            output_path = os.path.join(output_dir, f"{name}.png")
+            fig.savefig(output_path)
+
+        print_success(f"Comparison plots saved to {output_dir}/")
+        print(f"Generated {len(plots)} plots:")
+        for name in plots.keys():
+            print(f"  - {name}.png")
+
+    except Exception as e:
+        print_error(f"Failed to compare experiments: {str(e)}")
+        sys.exit(1)
 
 @cloud.command('run')
 @click.option('--setup-tunnel', is_flag=True, help='Set up an ngrok tunnel for remote access')

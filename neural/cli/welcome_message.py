@@ -22,6 +22,14 @@ Here are some commands to get you started:
   {Colors.BOLD}neural no-code{Colors.ENDC}              - Launch the no-code interface
   {Colors.BOLD}neural clean{Colors.ENDC}                - Clean generated files
 
+{Colors.CYAN}Experiment Tracking:{Colors.ENDC}
+  {Colors.BOLD}neural track init{Colors.ENDC}           - Initialize experiment tracking
+  {Colors.BOLD}neural track log{Colors.ENDC}            - Log metrics and artifacts
+  {Colors.BOLD}neural track list{Colors.ENDC}           - List all experiments
+  {Colors.BOLD}neural track show <id>{Colors.ENDC}      - Show experiment details
+  {Colors.BOLD}neural track plot <id>{Colors.ENDC}      - Plot experiment metrics
+  {Colors.BOLD}neural track compare <id1> <id2>{Colors.ENDC} - Compare experiments
+
 For more information, run {Colors.BOLD}neural --help{Colors.ENDC} or {Colors.BOLD}neural <command> --help{Colors.ENDC}
 
 {Colors.YELLOW}Happy neural network building!{Colors.ENDC}
