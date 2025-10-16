@@ -15,6 +15,28 @@
   <a href="https://www.producthunt.com/posts/neural-2?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-neural&#0045;2" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=945073&theme=dark&t=1742808173867" alt="Neural - DSL for defining, training, debugging neural networks | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </div>
 
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-welcome-brightgreen.svg)](#contributing)
+
+### Quick commands (end-to-end)
+
+```
+# Compile DSL to TensorFlow/PyTorch code
+neural compile examples/mnist.neural --backend tensorflow --output mnist_tensorflow.py
+
+# Run the generated script
+python mnist_tensorflow.py
+
+# Generate docs (Markdown, optional PDF with --pdf)
+neural docs examples/mnist.neural --output model.md
+
+# Visualize architecture & shapes
+neural visualize examples/mnist.neural --format png
+
+# Clean generated artifacts (dry-run by default; add --yes to apply)
+neural clean --yes --all
+```
+
+
 > ⚠️ **BETA STATUS**: Neural-dsl v0.2.9 is under active development—bugs may exist, feedback welcome! Not yet recommended for production use.
 
 ![Neural Demo](https://github.com/user-attachments/assets/ecbcce19-73df-4696-ace2-69e32d02709f)
@@ -525,3 +547,81 @@ Join our growing community of developers and researchers:
   <img src="https://github.com/user-attachments/assets/9edd42b3-dd23-4f4a-baad-422e690d687c" alt="Neural Logo" width="150"/>
   <p><em>Building the future of neural network development, one line of DSL at a time.</em></p>
 </div>
+
+
+## Contributing
+
+Thank you for your interest in improving Neural. This section outlines a minimal, fast local workflow to lint, type‑check, test, and audit changes before opening a PR.
+
+### 1) Environment setup (Windows PowerShell)
+
+- Create and activate a virtual environment
+
+```
+python -m venv .venv
+.\.venv\Scripts\Activate
+```
+
+- Install the project (editable) and dev tools used by CI
+
+```
+pip install -e .
+pip install ruff mypy pip-audit pytest
+```
+
+### 2) Common checks (fast)
+
+- Lint (Ruff)
+
+```
+python -m ruff check .
+```
+
+- Type check (mypy)
+
+Fast, scoped type check for currently‑hardened modules:
+```
+python -m mypy neural/code_generation neural/utils
+```
+Full project type check (may show many findings; tighten gradually):
+```
+python -m mypy .
+```
+
+- Tests (targeted and full)
+
+Run fast, targeted tests:
+```
+python -m pytest -q tests/test_seed.py tests/code_generator/test_policy_and_parity.py tests/code_generator/test_policy_helpers.py -rA
+```
+Run full test suite (may require optional deps such as torch/tensorflow/onnx):
+```
+python -m pytest -q -rA
+```
+
+- Supply‑chain audit
+
+```
+python -m pip_audit -l --progress-spinner off
+```
+
+### 3) Commit & PR hygiene
+
+- Keep PRs small and focused; include context in the description.
+- Run lint, type check (scoped or full), tests, and pip‑audit locally before pushing.
+- Do not commit secrets/keys. Use environment variables; keep .env or credentials out of Git.
+- Follow the shape/policy rules in codegen; add or update tests for any policy changes.
+
+### 4) Optional dependencies
+
+Install only what you need for the tests you are running (examples):
+```
+# PyTorch backend
+your-shell> pip install torch
+# TensorFlow backend
+your-shell> pip install tensorflow
+# ONNX export
+your-shell> pip install onnx
+```
+
+If you have questions or want guidance on tightening typing or adding new policy checks, open a discussion or draft PR.

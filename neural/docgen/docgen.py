@@ -10,10 +10,11 @@ def _shape_to_str(shape: Tuple[Optional[int], ...]) -> str:
 
 def generate_markdown(model_data: Dict[str, Any]) -> str:
     """
-    Generate a simple Markdown report for a Neural model with per-layer math and shapes.
+    Generate a Markdown report (DocGen v1.1) for a Neural model with math and shapes.
 
-    - Uses ShapePropagator to compute shapes
-    - Emits compact math for common layers (Dense/Output)
+    - Uses ShapePropagator to compute shapes (tolerant to errors)
+    - Emits compact math for common layers (Dense/Output/Flatten/Conv2D)
+    - Adds a Summary section and records shape propagation warnings
     """
     assert isinstance(model_data, dict) and 'input' in model_data and 'layers' in model_data
 
@@ -22,11 +23,16 @@ def generate_markdown(model_data: Dict[str, Any]) -> str:
 
     # Intro and input
     input_shape = tuple(model_data['input']['shape'])
-    lines.append(f"- Input shape: `{input_shape}`\n")
 
-    # Shape propagation
+    # Shape propagation (collect warnings)
     propagator = ShapePropagator(debug=False)
     current_shape: Tuple[Optional[int], ...] = (None,) + tuple(input_shape)
+    warnings: List[str] = []
+
+    # Summary
+    lines.append("\n## Summary\n")
+    lines.append(f"- Input shape: `{input_shape}`\n")
+    lines.append(f"- Layers: {len(model_data['layers'])}\n")
 
     lines.append("\n## Layers\n")
 
@@ -38,7 +44,6 @@ def generate_markdown(model_data: Dict[str, Any]) -> str:
         if ltype in ("Dense", "Output"):
             units = params.get('units', 10)
             act = params.get('activation', 'softmax' if ltype == 'Output' else None)
-            # y = softmax(Wx + b) or y = σ(Wx + b)
             if act == 'softmax':
                 math = "y = softmax(Wx + b)"
             elif act in ('relu', 'tanh'):
@@ -48,7 +53,6 @@ def generate_markdown(model_data: Dict[str, Any]) -> str:
         elif ltype == "Flatten":
             math = "x' = reshape(x, (B, -1))"
         elif ltype == "Conv2D":
-            # Keep compact for MVP
             k = params.get('kernel_size', 3)
             f = params.get('filters', 32)
             math = f"y[h,w,c_out] = conv_{k}(x) + b, filters={f}"
@@ -58,7 +62,7 @@ def generate_markdown(model_data: Dict[str, Any]) -> str:
             current_shape = propagator.propagate(current_shape, layer)
         except Exception as e:
             # Do not fail the docgen; record the issue and continue
-            current_shape = current_shape
+            warnings.append(str(e))
             math = (math + "  ") if math else ""
             math += f"[shape propagation warning: {str(e)}]"
         after = _shape_to_str(current_shape)
@@ -67,6 +71,14 @@ def generate_markdown(model_data: Dict[str, Any]) -> str:
         if math:
             lines.append(f"  - Math: `{math}`\n")
         lines.append(f"  - Shape: {before} → {after}\n")
+
+    # Warnings section (if any)
+    if warnings:
+        lines.append("\n## Warnings\n")
+        for w in warnings[:10]:
+            lines.append(f"- {w}\n")
+        if len(warnings) > 10:
+            lines.append(f"- ...and {len(warnings) - 10} more\n")
 
     # Tools availability
     lines.append("\n## Export\n")

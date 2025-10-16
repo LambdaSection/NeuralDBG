@@ -46,3 +46,16 @@
   - Added tests/tests/code_generator/test_policy_helpers.py
 
 
+
+- Docs:
+  - README: added a Contributing section with local dev workflow (venv, install, lint/type/test, pip-audit)
+
+- CLI:
+  - Hardened `neural clean`: safe patterns only; dry-run by default; `--yes` to apply; `--all` removes caches
+- DocGen:
+  - Upgraded to v1.1: added Summary section and warnings capture; preserved math + shapes
+- Docs:
+  - README top: added Contributions badge and end-to-end quick commands
+- Tests:
+  - Added tests/cli/test_clean_command.py for clean behavior
+  - Added tests/docgen/test_docgen_v11.py for DocGen v1.1

@@ -470,47 +470,79 @@ def visualize(ctx, file: str, format: str, cache: bool):
             print_warning(f"Failed to cache visualization: {str(e)}")
 
 @cli.command()
+@click.option('--yes', is_flag=True, help='Apply deletions; otherwise perform a dry run')
+@click.option('--all', 'clean_all', is_flag=True, help='Also remove caches and artifact directories')
 @click.pass_context
-def clean(ctx):
-    """Remove generated files (e.g., .py, .png, .svg, .html, cache)."""
+def clean(ctx, yes: bool, clean_all: bool):
+    """Remove generated artifacts safely (dry-run by default).
+
+    - Targets only known generated files:
+      *_tensorflow.py, *_pytorch.py, *_onnx.py, architecture.(svg|png), shape_propagation.html, tensor_flow.html
+    - With --all: also removes .neural_cache/ and comparison_plots/
+    - Pass --yes to actually delete; otherwise prints what would be removed.
+    """
     print_command_header("clean")
-    print_info("Cleaning up generated files...")
 
-    extensions = ['.py', '.png', '.svg', '.html']
-    removed_files = []
+    patterns = [
+        "*_tensorflow.py",
+        "*_pytorch.py",
+        "*_onnx.py",
+        "architecture.svg",
+        "architecture.png",
+        "shape_propagation.html",
+        "tensor_flow.html",
+    ]
 
+    dirs = [".neural_cache", "comparison_plots"] if clean_all else []
+
+    # Collect matches
+    to_remove = []
+    for p in patterns:
+        for match in Path('.').glob(p):
+            if match.is_file():
+                to_remove.append(match)
+    for d in dirs:
+        if Path(d).exists():
+            to_remove.append(Path(d))
+
+    if not to_remove:
+        print_warning("No generated artifacts found to clean")
+        return
+
+    # Dry-run summary
+    print_info("Items to remove:" if yes else "Dry run: would remove these items:")
+    preview = 0
+    for item in to_remove:
+        print(f"  - {item}")
+        preview += 1
+        if preview >= 10 and len(to_remove) > 10:
+            print(f"  - ...and {len(to_remove) - 10} more")
+            break
+
+    if not yes:
+        print_warning("Pass --yes to apply deletions")
+        return
+
+    # Apply deletions
+    removed = 0
     try:
-        with Spinner("Scanning for generated files") as spinner:
+        with Spinner("Removing artifacts") as spinner:
             if ctx.obj.get('NO_ANIMATIONS'):
                 spinner.stop()
-            for file in os.listdir('.'):
-                if any(file.endswith(ext) for ext in extensions):
-                    os.remove(file)
-                    removed_files.append(file)
-    except (PermissionError, OSError) as e:
-        print_error(f"Failed to remove files: {str(e)}")
+            for item in to_remove:
+                try:
+                    if item.is_dir():
+                        shutil.rmtree(item)
+                    else:
+                        item.unlink(missing_ok=True)
+                    removed += 1
+                except (PermissionError, OSError) as e:
+                    print_warning(f"Skip {item}: {e}")
+    except Exception as e:
+        print_error(f"Cleanup failed: {e}")
         sys.exit(1)
 
-    if removed_files:
-        print_success(f"Removed {len(removed_files)} generated files")
-        for file in removed_files[:5]:
-            print(f"  - {file}")
-        if len(removed_files) > 5:
-            print(f"  - ...and {len(removed_files) - 5} more")
-
-    if os.path.exists(".neural_cache"):
-        try:
-            with Spinner("Removing cache directory") as spinner:
-                if ctx.obj.get('NO_ANIMATIONS'):
-                    spinner.stop()
-                shutil.rmtree(".neural_cache")
-            print_success("Removed cache directory")
-        except (PermissionError, OSError) as e:
-            print_error(f"Failed to remove cache directory: {str(e)}")
-            sys.exit(1)
-
-    if not removed_files and not os.path.exists(".neural_cache"):
-        print_warning("No files to clean")
+    print_success(f"Removed {removed} item(s)")
 
 @cli.command()
 @click.pass_context
