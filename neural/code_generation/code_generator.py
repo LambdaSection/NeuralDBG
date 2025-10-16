@@ -18,6 +18,62 @@ def to_number(x: str) -> Union[int, float]:
     except ValueError:
         return float(x)
 
+
+# --- Policy helpers (extracted for clarity and testing) ---
+
+def _policy_ensure_2d_before_dense_tf(
+    rank_non_batch: int,
+    auto_flatten_output: bool,
+    propagator: ShapePropagator,
+    current_input_shape,
+):
+    """Ensure 2D input for Dense/Output in TF.
+
+    Returns (insert_code, updated_shape). insert_code is a string to append to the TF code.
+    Raises ValueError when higher-rank input is not allowed and auto_flatten_output is False.
+    """
+    if rank_non_batch > 1:
+        if auto_flatten_output:
+            # Insert Flatten layer and propagate shape safely
+            insert = "x = layers.Flatten()(x)\n"
+            try:
+                current_input_shape = propagator.propagate(current_input_shape, {"type": "Flatten"})
+            except Exception as e:
+                logger.warning(f"Shape propagation warning (auto-flatten): {e}")
+            return insert, current_input_shape
+        raise ValueError(
+            "Layer 'Output' expects 2D input (batch, features) but got higher-rank. "
+            "Insert a Flatten/GAP before it or pass auto_flatten_output=True."
+        )
+    return "", current_input_shape
+
+
+def _policy_ensure_2d_before_dense_pt(
+    rank_non_batch: int,
+    auto_flatten_output: bool,
+    forward_code_body,
+    propagator: ShapePropagator,
+    current_input_shape,
+):
+    """Ensure 2D input for Dense/Output in PyTorch.
+
+    Mutates forward_code_body when flatten is inserted and returns the updated shape.
+    Raises ValueError when higher-rank input is not allowed and auto_flatten_output is False.
+    """
+    if rank_non_batch > 1:
+        if auto_flatten_output:
+            forward_code_body.append("x = x.view(x.size(0), -1)  # Flatten input")
+            try:
+                current_input_shape = propagator.propagate(current_input_shape, {"type": "Flatten"})
+            except Exception as e:
+                logger.warning(f"Shape propagation warning (auto-flatten): {e}")
+            return current_input_shape
+        raise ValueError(
+            "Layer 'Output' expects 2D input (batch, features) but got higher-rank. "
+            "Insert a Flatten/GAP before it or pass auto_flatten_output=True."
+        )
+    return current_input_shape
+
 def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optional[Dict[str, Any]] = None, auto_flatten_output: bool = False) -> str:
     if not isinstance(model_data, dict) or 'layers' not in model_data or 'input' not in model_data:
         raise ValueError("Invalid model_data format: must be a dict with 'layers' and 'input' keys")
@@ -67,25 +123,16 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
             layer_type = layer['type']
             params = layer.get('params', {})
 
-            # Policy: Dense/Output require 2D input (batch, features). If higher-rank and
-            # auto_flatten_output is enabled, insert a Flatten before applying the layer.
-            # Otherwise, raise a clear error.
+            # Policy: Dense/Output require 2D input (batch, features). Use helper for TF policy.
             try:
                 rank_non_batch = max(0, len(current_input_shape) - 1)
             except Exception:
                 rank_non_batch = 0
-            if backend == "tensorflow" and layer_type in ("Dense", "Output") and rank_non_batch > 1:
-                if auto_flatten_output:
-                    code += "x = layers.Flatten()(x)\n"
-                    try:
-                        current_input_shape = propagator.propagate(current_input_shape, {"type": "Flatten"})
-                    except Exception as e:
-                        logger.warning(f"Shape propagation warning (auto-flatten): {e}")
-                else:
-                    raise ValueError(
-                        f"Layer '{layer_type}' expects 2D input (batch, features) but got rank {rank_non_batch+1}. "
-                        f"Insert a Flatten/GAP before it or pass auto_flatten_output=True."
-                    )
+            if backend == "tensorflow" and layer_type in ("Dense", "Output"):
+                insert_code, current_input_shape = _policy_ensure_2d_before_dense_tf(
+                    rank_non_batch, auto_flatten_output, propagator, current_input_shape
+                )
+                code += insert_code
 
             if layer_type == "Residual":
                 code += "# Residual block\n"
@@ -158,7 +205,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
         code += f"{indent}{indent}super(NeuralNetworkModel, self).__init__()\n"
 
         layers_code = []
-        forward_code_body = []
+        forward_code_body: list[str] = []
         layer_counts = {}
 
         for i, layer in enumerate(expanded_layers):
@@ -169,25 +216,15 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
             else:
                 params = {}
 
-            # Policy: Dense/Output require 2D input (batch, features). If higher-rank and
-            # auto_flatten_output is enabled, insert a Flatten (view) before applying the layer.
+            # Policy: Dense/Output require 2D input (batch, features). Use helper for PT policy.
             try:
                 rank_non_batch = max(0, len(current_input_shape) - 1)
             except Exception:
                 rank_non_batch = 0
-            if layer_type in ("Dense", "Output") and rank_non_batch > 1:
-                if auto_flatten_output:
-                    # Insert a runtime flatten in forward pass
-                    forward_code_body.append("x = x.view(x.size(0), -1)  # Flatten input")
-                    try:
-                        current_input_shape = propagator.propagate(current_input_shape, {"type": "Flatten"})
-                    except Exception as e:
-                        logger.warning(f"Shape propagation warning (auto-flatten): {e}")
-                else:
-                    raise ValueError(
-                        f"Layer '{layer_type}' expects 2D input (batch, features) but got rank {rank_non_batch+1}. "
-                        f"Insert a Flatten/GAP before it or pass auto_flatten_output=True."
-                    )
+            if layer_type in ("Dense", "Output"):
+                current_input_shape = _policy_ensure_2d_before_dense_pt(
+                    rank_non_batch, auto_flatten_output, forward_code_body, propagator, current_input_shape
+                )
 
             if layer_type not in layer_counts:
                 layer_counts[layer_type] = 0

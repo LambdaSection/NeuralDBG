@@ -35,4 +35,14 @@
 - Tests:
   - Added tests/code_generator/test_policy_and_parity.py for flatten policy and TF/PT parity
   - Adjusted tests to expect ValueError when auto_flatten_output=False (strict policy)
+- Security and CI:
+  - Installed ruff, mypy, pip-audit locally and ran scans
+  - Resolved pip-audit findings by upgrading setuptools; environment now clean
+  - Enhanced Dependabot to also track github-actions updates
+- Docs:
+  - README: added Optional Dependencies section with guidance
+- Codegen:
+  - Extracted Dense/Output 2D policy into helper functions for TF/PT
+  - Added tests/tests/code_generator/test_policy_helpers.py
+
 

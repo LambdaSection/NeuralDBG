@@ -444,6 +444,38 @@ set_seed(42)
 This sets Python's random, NumPy, PyTorch (including CUDA if present), and TensorFlow seeds.
 
 
+## Optional Dependencies
+
+These packages enable optional features and backends. Install only what you need:
+
+- torch: PyTorch backend for code generation and execution
+- tensorflow: TensorFlow backend for code generation and execution
+- onnx: Export or interop with ONNX
+- jax: Experimental backend and numerical utilities
+- optuna: Hyperparameter optimization
+- dash, flask: Dashboard and API/visualization components
+- scikit-learn: Metrics, datasets, and HPO utilities
+
+Examples:
+
+```bash
+# PyTorch backend
+pip install torch
+
+# TensorFlow backend
+pip install tensorflow
+
+# ONNX export support
+pip install onnx
+
+# HPO and metrics utilities
+pip install optuna scikit-learn
+
+# Dashboard/visualization
+pip install dash flask
+```
+
+
 
 
 ---
