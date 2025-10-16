@@ -338,7 +338,7 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
 
 
         lambda_: "Lambda" "(" STRING ")"
-        wrapper: TIMEDISTRIBUTED "(" ( layer | NAME "(" [param_style1] ")" ) ["," param_style1] ")" [layer_block]
+        wrapper: TIMEDISTRIBUTED "(" ( layer | NAME "(" [param_style1 ("," param_style1)*] ")" ) ["," param_style1] ")" [layer_block]
 
         // Alias for tests/grammar dependency introspection
         dense: DENSE "(" [param_style1] ")"
@@ -718,6 +718,15 @@ class ModelTransformer(lark.Transformer):
             raise DSLValidationError(msg, severity, line, col)
         return {"warning": msg, "line": line, "column": col}  # Return for warnings
 
+    def _shift_if_token(self, items):
+        """If the first element is a Token (layer name), drop it and return the remainder."""
+        try:
+            if items and isinstance(items[0], Token):
+                return items[1:]
+        except Exception:
+            pass
+        return items
+
     def _extract_layer_def(self, layer_item):
 
         if layer_item is None:
@@ -914,9 +923,16 @@ class ModelTransformer(lark.Transformer):
             try:
                 # Pass raw_params as a single-item list to match method signature
                 layer_info = getattr(self, method_name)([raw_params])
-                # Ensure 'sublayers' and 'params' are always present
-                layer_info['sublayers'] = sublayers if sublayers else layer_info.get('sublayers', [])
-                layer_info['params'] = layer_info.get('params', {})  # Default to {} if None
+                # Ensure 'sublayers' is present, but do not clobber existing values
+                if 'sublayers' not in layer_info:
+                    layer_info['sublayers'] = sublayers or []
+                elif sublayers:
+                    # If parsed sublayers exist for this layer instance, prefer them
+                    layer_info['sublayers'] = sublayers
+
+                # Preserve None for params when a layer legitimately has no params
+                if 'params' not in layer_info:
+                    layer_info['params'] = None
                 if device is not None:
                     layer_info['device'] = device  # Store device at the layer level
                 return layer_info
@@ -953,10 +969,12 @@ class ModelTransformer(lark.Transformer):
 
 
     def device_spec(self, items):
-        """Process device specification correctly."""
-        if len(items) > 1 and isinstance(items[1], Token) and items[1].type == "STRING":
-            return items[1].value.strip('"')
-        return self._extract_value(items[0])
+        """Process device specification correctly (e.g., @ "cuda:0")."""
+        # Expect pattern: AT STRING (or AT NAME in future grammar). Extract the second element.
+        if len(items) > 1:
+            return self._extract_value(items[1])
+        # Fallback: nothing usable
+        return None
     def params(self, items):
         return [self._extract_value(item) for item in items]
     def param(self, items):
@@ -1022,11 +1040,15 @@ class ModelTransformer(lark.Transformer):
         return result
 
     def flatten(self, items):
+        # Support both alias rule call (items[0] is Token) and basic_layer call
+        items = self._shift_if_token(items)
         params = self._extract_value(items[0]) if items else None
         return {'type': 'Flatten', 'params': params}
 
     def dropout(self, items):
-        param_style = self._extract_value(items[0])
+        # Support both alias rule call (items[0] is Token) and basic_layer call
+        items = self._shift_if_token(items)
+        param_style = self._extract_value(items[0]) if items else None
         params = {}
 
         if isinstance(param_style, list):
@@ -1118,10 +1140,12 @@ class ModelTransformer(lark.Transformer):
 
     @pysnooper.snoop()
     def dense(self, items):
+        # Support both alias rule call (items[0] is Token) and basic_layer call
+        items = self._shift_if_token(items)
         params = {}
         # Check if items[0] is None, which means Dense() was called with no parameters
         if not items or items[0] is None:
-            self.raise_validation_error("Dense layer requires 'units' parameter", items[0])
+            self.raise_validation_error("Dense layer requires 'units' parameter", items[0] if items else None)
             return {'type': 'Dense', 'params': None, 'sublayers': []}
 
         param_node = items[0]  # From param_style1
@@ -1226,12 +1250,14 @@ class ModelTransformer(lark.Transformer):
         return {'type': 'Conv1D', 'params': params}
 
     def conv2d(self, items):
-        param_style = items[0]
+        # Support both alias rule call (items[0] is Token) and basic_layer call
+        items = self._shift_if_token(items)
+        param_style = items[0] if items else None
 
         # Check if param_style is None, which means Conv2D() was called with no parameters
         if param_style is None:
             # Use the exact error message expected by the test
-            self.raise_validation_error("Conv2D layer requires 'filters' parameter", items[0], Severity.ERROR)
+            self.raise_validation_error("Conv2D layer requires 'filters' parameter", items[0] if items else None, Severity.ERROR)
             return {'type': 'Conv2D', 'params': None}
 
         raw_params = self._extract_value(param_style)
@@ -1755,7 +1781,9 @@ class ModelTransformer(lark.Transformer):
         return {'type': 'MaxPooling1D', 'params': params}
 
     def maxpooling2d(self, items):
-        param_style = self._extract_value(items[0])
+        # Support both alias rule call (items[0] is Token) and basic_layer call
+        items = self._shift_if_token(items)
+        param_style = self._extract_value(items[0]) if items else None
         params = {}
         if isinstance(param_style, list):
             ordered_params = [p for p in param_style if not isinstance(p, dict)]
@@ -1876,6 +1904,8 @@ class ModelTransformer(lark.Transformer):
 
 
     def batch_norm(self, items):
+        # Support both alias rule call (items[0] is Token) and basic_layer call
+        items = self._shift_if_token(items)
         raw_params = self._extract_value(items[0]) if items and items[0] is not None else None
         params = None  # Default to None for empty parameters
 
@@ -1934,6 +1964,8 @@ class ModelTransformer(lark.Transformer):
 
 
     def lstm(self, items):
+        # Support both alias rule call (items[0] is Token) and basic_layer call
+        items = self._shift_if_token(items)
         params = {}
         if items and items[0] is not None:
             param_node = items[0]  # From param_style1

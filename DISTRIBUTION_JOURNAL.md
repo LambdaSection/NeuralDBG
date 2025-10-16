@@ -59,3 +59,11 @@
 - Tests:
   - Added tests/cli/test_clean_command.py for clean behavior
   - Added tests/docgen/test_docgen_v11.py for DocGen v1.1
+
+
+- Parser hardening:
+  - Fixed architectural mismatch between `basic_layer` and layer methods by introducing a token-shift helper that removes leading layer tokens when present.
+  - Updated Dense, Conv2D, Dropout, Flatten, MaxPooling2D, LSTM, and BatchNormalization methods to accept both direct grammar calls and basic_layer-dispatched calls.
+  - Preserved `params: None` for layers without parameters (e.g., Flatten(), BatchNormalization()) and avoided clobbering by `basic_layer`.
+  - Improved device spec extraction for `@ "cuda:0"` syntax.
+  - Targeted tests will be (re)run next to validate fixes across parser layer suite.
