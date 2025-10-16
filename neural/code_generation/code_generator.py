@@ -18,7 +18,7 @@ def to_number(x: str) -> Union[int, float]:
     except ValueError:
         return float(x)
 
-def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optional[Dict[str, Any]] = None) -> str:
+def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optional[Dict[str, Any]] = None, auto_flatten_output: bool = False) -> str:
     if not isinstance(model_data, dict) or 'layers' not in model_data or 'input' not in model_data:
         raise ValueError("Invalid model_data format: must be a dict with 'layers' and 'input' keys")
 
@@ -58,7 +58,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
         code += f"from tensorflow.keras.optimizers import {optimizer_type}\n\n"
 
         # Add input shape handling
-        input_shape = tuple(dim for dim in model_data['input']['shape'][1:])  # Remove batch dimension
+        input_shape = tuple(model_data['input']['shape'])  # Use model-defined shape (no batch dim here)
         code += f"# Input layer with shape {input_shape}\n"
         code += f"inputs = layers.Input(shape={input_shape})\n"
         code += "x = inputs\n\n"
@@ -66,6 +66,26 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
         for layer in expanded_layers:
             layer_type = layer['type']
             params = layer.get('params', {})
+
+            # Policy: Dense/Output require 2D input (batch, features). If higher-rank and
+            # auto_flatten_output is enabled, insert a Flatten before applying the layer.
+            # Otherwise, raise a clear error.
+            try:
+                rank_non_batch = max(0, len(current_input_shape) - 1)
+            except Exception:
+                rank_non_batch = 0
+            if backend == "tensorflow" and layer_type in ("Dense", "Output") and rank_non_batch > 1:
+                if auto_flatten_output:
+                    code += "x = layers.Flatten()(x)\n"
+                    try:
+                        current_input_shape = propagator.propagate(current_input_shape, {"type": "Flatten"})
+                    except Exception as e:
+                        logger.warning(f"Shape propagation warning (auto-flatten): {e}")
+                else:
+                    raise ValueError(
+                        f"Layer '{layer_type}' expects 2D input (batch, features) but got rank {rank_non_batch+1}. "
+                        f"Insert a Flatten/GAP before it or pass auto_flatten_output=True."
+                    )
 
             if layer_type == "Residual":
                 code += "# Residual block\n"
@@ -75,12 +95,18 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
                     sub_params = sub_layer.get('params', {})
                     layer_code = generate_tensorflow_layer(sub_type, sub_params)
                     if layer_code:
-                        code += f"x = {layer_code}\n"
+                        if ('\n' in layer_code) or ('x =' in layer_code):
+                            code += layer_code + "\n"
+                        else:
+                            code += f"x = {layer_code}(x)\n"
                 code += "x = layers.Add()([x, residual_input])\n"
             else:
                 layer_code = generate_tensorflow_layer(layer_type, params)
                 if layer_code:
-                    code += f"x = {layer_code}\n"
+                    if ('\n' in layer_code) or ('x =' in layer_code):
+                        code += layer_code + "\n"
+                    else:
+                        code += f"x = {layer_code}(x)\n"
             try:
                 current_input_shape = propagator.propagate(current_input_shape, layer)
             except Exception as e:
@@ -142,6 +168,26 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
                 params = params.copy()
             else:
                 params = {}
+
+            # Policy: Dense/Output require 2D input (batch, features). If higher-rank and
+            # auto_flatten_output is enabled, insert a Flatten (view) before applying the layer.
+            try:
+                rank_non_batch = max(0, len(current_input_shape) - 1)
+            except Exception:
+                rank_non_batch = 0
+            if layer_type in ("Dense", "Output") and rank_non_batch > 1:
+                if auto_flatten_output:
+                    # Insert a runtime flatten in forward pass
+                    forward_code_body.append("x = x.view(x.size(0), -1)  # Flatten input")
+                    try:
+                        current_input_shape = propagator.propagate(current_input_shape, {"type": "Flatten"})
+                    except Exception as e:
+                        logger.warning(f"Shape propagation warning (auto-flatten): {e}")
+                else:
+                    raise ValueError(
+                        f"Layer '{layer_type}' expects 2D input (batch, features) but got rank {rank_non_batch+1}. "
+                        f"Insert a Flatten/GAP before it or pass auto_flatten_output=True."
+                    )
 
             if layer_type not in layer_counts:
                 layer_counts[layer_type] = 0

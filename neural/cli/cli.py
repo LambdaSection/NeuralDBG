@@ -133,8 +133,9 @@ def help(ctx):
 @click.option('--output', '-o', default=None, help='Output file path (defaults to <file>_<backend>.py)')
 @click.option('--dry-run', is_flag=True, help='Preview generated code without writing to file')
 @click.option('--hpo', is_flag=True, help='Enable hyperparameter optimization')
+@click.option('--auto-flatten-output', is_flag=True, help='Auto-insert Flatten before Dense/Output when input is rank>2')
 @click.pass_context
-def compile(ctx, file: str, backend: str, dataset: str, output: Optional[str], dry_run: bool, hpo: bool):
+def compile(ctx, file: str, backend: str, dataset: str, output: Optional[str], dry_run: bool, hpo: bool, auto_flatten_output: bool):
     """Compile a .neural or .nr file into an executable Python script."""
     print_command_header("compile")
     print_info(f"Compiling {file} for {backend} backend")
@@ -201,7 +202,7 @@ def compile(ctx, file: str, backend: str, dataset: str, output: Optional[str], d
         with Spinner(f"Generating {backend} code") as spinner:
             if ctx.obj.get('NO_ANIMATIONS'):
                 spinner.stop()
-            code = generate_code(model_data, backend)
+            code = generate_code(model_data, backend, auto_flatten_output=auto_flatten_output)
     except Exception as e:
         print_error(f"Code generation failed: {str(e)}")
         sys.exit(1)
@@ -231,6 +232,58 @@ def compile(ctx, file: str, backend: str, dataset: str, output: Optional[str], d
         except (PermissionError, IOError) as e:
             print_error(f"Failed to write to {output_file}: {str(e)}")
             sys.exit(1)
+@cli.command()
+@click.argument('file', type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.option('--output', '-o', default='model.md', help='Output Markdown file')
+@click.option('--pdf', is_flag=True, help='Also export to PDF via Pandoc if available')
+@click.pass_context
+def docs(ctx, file: str, output: str, pdf: bool):
+    """Generate Markdown (and optionally PDF) documentation with math and shapes."""
+    print_command_header("docs")
+    print_info(f"Generating documentation for {file}")
+
+    # Parse the Neural DSL file (same start rule detection as compile)
+    ext = os.path.splitext(file)[1].lower()
+    start_rule = 'network' if ext in ['.neural', '.nr'] else 'research' if ext == '.rnr' else None
+    if not start_rule:
+        print_error(f"Unsupported file type: {ext}. Supported: .neural, .nr, .rnr")
+        sys.exit(1)
+
+    try:
+        from neural.parser.parser import create_parser, ModelTransformer
+        parser_instance = create_parser(start_rule=start_rule)
+        with open(file, 'r') as f:
+            content = f.read()
+        tree = parser_instance.parse(content)
+        model_data = ModelTransformer().transform(tree)
+    except Exception as e:
+        print_error(f"Parsing failed: {str(e)}")
+        sys.exit(1)
+
+    try:
+        from neural.docgen.docgen import generate_markdown
+        md = generate_markdown(model_data)
+        with open(output, 'w', encoding='utf-8') as f:
+            f.write(md)
+        print_success(f"Wrote Markdown to {output}")
+
+        if pdf:
+            import shutil as _shutil
+            pandoc = _shutil.which('pandoc')
+            if not pandoc:
+                print_warning("Pandoc not found; skipping PDF export")
+            else:
+                pdf_out = os.path.splitext(output)[0] + '.pdf'
+                try:
+                    subprocess.run([pandoc, output, '-o', pdf_out], check=True)
+                    print_success(f"Wrote PDF to {pdf_out}")
+                except subprocess.CalledProcessError as e:
+                    print_warning(f"Pandoc failed with exit code {e.returncode}")
+    except Exception as e:
+        print_error(f"Doc generation failed: {str(e)}")
+        sys.exit(1)
+
+
 
 #### RUN COMMAND #####
 
