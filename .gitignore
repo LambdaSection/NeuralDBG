@@ -56,3 +56,7 @@ ENV/
 
 # Social media content
 social_media/
+
+
+# Project-local roadmap (not for distribution)
+ROADMAP.md
