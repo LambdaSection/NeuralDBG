@@ -1,0 +1,4 @@
+# file: c:\Users\itsni\Desktop\Neural\neural\parser\learning_rate_schedules.py
+# hypothesis_version: 6.142.1
+
+[0.0, 'decay_rate', 'decay_steps']

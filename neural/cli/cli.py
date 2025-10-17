@@ -16,7 +16,13 @@ import numpy as np
 from pathlib import Path
 from typing import Optional
 from lark import exceptions
-import pysnooper
+# Optional debugging dependency
+try:
+    import pysnooper
+    _HAS_PYSNOOPER = True
+except ImportError:
+    pysnooper = None
+    _HAS_PYSNOOPER = False
 
 # Import CLI aesthetics
 from .cli_aesthetics import (
@@ -294,7 +300,6 @@ def docs(ctx, file: str, output: str, pdf: bool):
 @click.option('--hpo', is_flag=True, help='Enable HPO for .neural files')
 @click.option('--device', '-d', default='auto', help='Device to use (auto, cpu, gpu)', type=click.Choice(['auto', 'cpu', 'gpu'], case_sensitive=False))
 @click.pass_context
-@pysnooper.snoop()
 def run(ctx, file: str, backend: str, dataset: str, hpo: bool, device: str):
     """Run a compiled model or optimize and run a .neural file."""
     print_command_header("run")

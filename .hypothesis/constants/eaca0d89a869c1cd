@@ -1,0 +1,4 @@
+# file: c:\Users\itsni\Desktop\Neural\neural\pretrained_models\pretrained.py
+# hypothesis_version: 6.142.1
+
+['.', 'Conv2D', 'bert-base', 'bert-base.pth', 'bias', 'blocked', 'converter', 'custom/repo', 'custom_kernel', 'dynamic_pruning', 'efficientnet-b4', 'filename', 'fused_conv2d_bn', 'fused_conv_bn', 'hf_repo', 'kernel_fusion', 'layers', 'mixed_precision', 'neural', 'nlp', 'optimized_kernels', 'params', 'pytorch/vision', 'quantized', 'resnet50', 'resnet50.pth', 'sparse_attention', 'sparse_format', 'type', 'vision', 'weight']

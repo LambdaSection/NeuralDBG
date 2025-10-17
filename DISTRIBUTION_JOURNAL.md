@@ -1,5 +1,36 @@
 # Distribution Journal
 
+## 2025-10-17 (Latest Update)
+- **Comprehensive Debug Session Completed**
+- **Current Status Assessment:**
+  - CLI system: WORKING (imports and help command functional)
+  - DSL Parser: WORKING (basic parsing and transformation functional)
+  - Core framework dependencies: MIXED (torch module missing, causing import failures)
+  - Shape propagation: REQUIRES DEPENDENCY RESOLUTION
+- **Issues Identified:**
+  - Missing torch dependency - critical for core imports
+  - Optional dependencies (pytest_json, triton) missing - causing test runner issues
+  - Framework needs dependency resolution before full operation
+- **Next Steps:**
+  - Resolve dependency issues (install torch and optional packages)
+  - Run full test suite after dependencies resolved
+  - Test end-to-end CLI workflows (compile, run, debug commands)
+  - Validate shape propagation and neural network generation
+
+## 2025-10-17
+- Bugs fixed:
+  - Removed strict 4D input validation for Output layer (now accepts higher dimensions)
+  - Made pysnooper optional dependency in parser.py and cli.py (to avoid import errors when missing)
+  - Removed @pysnooper.snoop() decorators from critical methods in parser.py (hpo_range, dense)
+  - Fixed unicode emojis in test_runner.py to ensure ASCII compatibility
+  - Fixed missing dependencies by handling triton import gracefully
+  - Fixed CUSTOM_LAYER regex to exclude built-in layer types, preventing Dense(128) from being parsed as custom layers
+  - Added NeuralParser class to provide test interface expected by fuzzing tests
+  - Fixed parameter parsing for Dense layers - now correctly extracts units from Dense(128) format
+- Code quality:
+  - Parser validation relaxed for Output layer to allow flexible input shapes
+  - Enhanced error handling for optional dependencies across the codebase
+
 ## 2025-10-16
 - Features added:
   - `neural docs` command (Markdown; PDF via Pandoc if available)

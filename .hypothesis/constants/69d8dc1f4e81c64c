@@ -1,0 +1,4 @@
+# file: c:\Users\itsni\Desktop\Neural\neural\parser\__init__.py
+# hypothesis_version: 6.142.1
+
+['DSLValidationError', 'ModelTransformer', 'NeuralParser', 'create_parser', 'error_handling', 'layer_parser', 'network_parser', 'research_parser', 'validation']

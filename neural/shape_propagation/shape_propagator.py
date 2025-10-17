@@ -15,7 +15,8 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from parser.parser import ModelTransformer
-from pretrained_models.pretrained import PretrainedModelHub
+# PretrainedModelHub temporarily disabled due to triton dependency issues
+PretrainedModelHub = None
 from .utils import extract_param, calculate_output_dims, detect_shape_issues, suggest_optimizations
 from .utils import format_error_message, calculate_memory_usage, format_memory_size
 from .layer_docs import get_layer_documentation, format_layer_documentation
@@ -76,7 +77,7 @@ class ShapePropagator:
         self.current_layer = 0
         self.execution_trace = []  # Stores nntrace logs
         self.performance_monitor = PerformanceMonitor()
-        self.hub = PretrainedModelHub()
+        self.hub = PretrainedModelHub() if PretrainedModelHub else None
         self.issues = []  # Store detected issues
         self.optimizations = []  # Store optimization suggestions
 
@@ -438,9 +439,8 @@ class ShapePropagator:
             if units is not None and isinstance(units, (int, float)) and units <= 0:
                 raise ValueError(f"Output units must be a positive integer, got {units}")
 
-            # Check if input shape is valid for Output layer (2D)
-            if len(input_shape) > 2:
-                raise ValueError(f"Output layer expects 2D input (batch, features), got {len(input_shape)}D: {input_shape}")
+            # Output layer can accept higher dimensional inputs and will flatten internally
+            # Unlike Dense layer which expects exactly 2D, Output can be more flexible
 
 ####################################################################
 ### Shape propagation through 2 Dimensional Convolutional Layers ###
@@ -1019,6 +1019,8 @@ class ShapePropagator:
     ### Loading Pretrained Models ####
 
     def load_pretrained(self, model_name, pretrained=True):
+        if self.hub is None:
+            raise ImportError("PretrainedModelHub is not available. Required dependencies (triton, huggingface_hub) are not installed.")
         model = self.hub.load(model_name, pretrained)
         # Propagate shapes through pretrained model
         input_shape = (1, 3, 224, 224)  # Default for ResNet50

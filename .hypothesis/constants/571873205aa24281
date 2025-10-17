@@ -1,0 +1,4 @@
+# file: c:\Users\itsni\Desktop\Neural\neural\shape_propagation\layer_handlers.py
+# hypothesis_version: 6.142.1
+
+[128, 'axis', 'channels_last', 'cropping', 'data_format', 'filters', 'kernel_size', 'padding', 'pattern', 'return_sequences', 'same', 'stride', 'target_shape', 'units']

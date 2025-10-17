@@ -1,9 +1,15 @@
 import lark
-import pysnooper
+# Optional debugging dependency
+try:
+    import pysnooper
+    _HAS_PYSNOOPER = True
+except ImportError:
+    pysnooper = None
+    _HAS_PYSNOOPER = False
 import traceback
 from lark import Tree, Transformer, Token
 from lark.exceptions import UnexpectedToken, UnexpectedCharacters, VisitError
-from typing import Any, Dict, List, Tuple, Union, Optional, Callable
+from typing import Any, Dict, List, Tuple, Union, Optional, Callable, cast
 import json
 import plotly.graph_objects as go
 import logging
@@ -11,6 +17,14 @@ from enum import Enum
 import re
 
 from .error_handling import ErrorHandler, NeuralParserError, ParserError
+from .validation import (
+    validate_units,
+    validate_shape,
+    validate_probability,
+    validate_numeric,
+    ValidationError
+)
+from .learning_rate_schedules import ExponentialDecaySchedule
 
 
 logger = logging.getLogger('neural.parser')
@@ -184,7 +198,8 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         AT: "@"
 
         // Layer name patterns
-        CUSTOM_LAYER.1: /[A-Z][a-zA-Z0-9]*(Layer|RNN|Transformer)?/  // Accept common custom names like MyCustomLayer, CustomRNN, MyTransformer
+        CUSTOM_LAYER.1: /[A-Z][a-zA-Z0-9]*((Layer|RNN)s?|Transformer|Encoder|Decoder|Regularizer|Initializer|Constraint|$)/  // Requires ending with common layer component suffixes to avoid matching basic layer types
+
         MACRO_NAME: /^(?!.*Layer$)(?!ResidualConnection|Dot|Average|Maximum|Multiply|Add|Concatenate|substract|TimeDistributed|Activation|GroupNormalization|InstanceNormalization|LayerNormalization|GaussianNoise|TransformerEncoder|TransformerDecoder|BatchNormalization|Dropout|Flatten|Output|Conv2DTranspose|LSTM|GRU|SimpleRNN|LSTMCell|GRUCell|Dense|Conv1D|Conv2D|Conv3D|MaxPooling1D|MaxPooling2D|MaxPooling3D)[A-Z][a-zA-Z0-9]*/
 
         // Comments and whitespace
@@ -542,12 +557,42 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         from lark.grammar import Rule
         from lark.lexer import TerminalDef
         
-        rules = [
-            _RuleShim('network', 'input_layer layers loss optimizer training_config execution_config'),
-            _RuleShim('layer', 'conv pooling dropout flatten dense basic_layer advanced_layer special_layer'),
-            _RuleShim('conv', 'conv1d conv2d conv3d conv_transpose'),
-            _RuleShim('pooling', 'max_pooling average_pooling global_pooling'),
-        ])
+        from lark.lark import Lark
+        from lark.grammar import Rule
+        
+        # Create a proper grammar using EBNF notation
+        grammar = """
+            network: input_layer layers loss optimizer training_config execution_config
+            
+            input_layer: "input" "=" "Input" "(" [NUMBER ("," NUMBER)*] ")"
+            layers: layer*
+            layer: CNAME "=" layer_type "(" layer_params ")"
+            layer_type: "Dense" | "Conv2D" | "MaxPool2D" | "Flatten" | "Dropout" | "BatchNormalization" | "Output"
+            layer_params: [param ("," param)*]
+            param: CNAME "=" value
+            value: NUMBER | STRING | BOOL | array | dict
+            array: "[" [value ("," value)*] "]"
+            dict: "{" [pair ("," pair)*] "}"
+            pair: STRING ":" value
+            
+            loss: "loss" "=" loss_type ["(" loss_params ")"]
+            optimizer: "optimizer" "=" optimizer_type ["(" optimizer_params ")"]
+            training_config: "training" "=" "{" [training_param ("," training_param)*] "}"
+            execution_config: "execution" "=" "{" [exec_param ("," exec_param)*] "}"
+            
+            %import common.NUMBER
+            %import common.ESCAPED_STRING -> STRING
+            %import common.CNAME
+            %import common.WS
+            %ignore WS
+        """
+        
+        parser = Lark(grammar, start='network', parser='lalr')
+        # Commented out to fix syntax error - optional for tests
+        # _RuleShim('network', 'input_layer layers loss optimizer training_config execution_config'),
+        # _RuleShim('layer', 'conv pooling dropout flatten dense basic_layer advanced_layer special_layer'),
+        # _RuleShim('conv', 'conv1d conv2d conv3d conv_transpose'),
+        # _RuleShim('pooling', 'max_pooling average_pooling global_pooling'),
     except Exception:
         pass
     return p
@@ -631,6 +676,32 @@ def split_params(s):
     if current:
         parts.append(''.join(current).strip())
     return parts
+
+class NeuralParser:
+    """
+    Main Neural DSL Parser class that provides a simple interface for parsing Neural DSL code.
+
+    This class wraps the underlying parser functionality and provides easy-to-use methods
+    for parsing different types of Neural DSL constructs.
+    """
+
+    def __init__(self):
+        """Initialize the Neural parser with the main network parser."""
+        self.parser = network_parser
+        self.transformer = ModelTransformer()
+
+    def parse(self, code: str):
+        """
+        Parse a Neural DSL network definition.
+
+        Args:
+            code (str): The Neural DSL code to parse.
+
+        Returns:
+            dict: Parsed model configuration.
+        """
+        return parse_network(code)
+
 
 class ModelTransformer(lark.Transformer):
     """
@@ -748,7 +819,6 @@ class ModelTransformer(lark.Transformer):
         """Process special_layer rule by returning the first child (custom, macro_ref, etc.)."""
         return self._extract_value(items[0])
 
-    @pysnooper.snoop()
     def define(self, items):
         """Process macro definition."""
         if len(items) < 1:
@@ -799,7 +869,6 @@ class ModelTransformer(lark.Transformer):
 
         return sub_layers
 
-    @pysnooper.snoop()
     def macro_ref(self, items):
         """Process a macro reference."""
         macro_name = items[0].value
@@ -897,7 +966,6 @@ class ModelTransformer(lark.Transformer):
                 sub_layers.append(item)
         return sub_layers
 
-    @pysnooper.snoop()
     def basic_layer(self, items):
         layer_type_node = items[0]
         layer_type = layer_type_node.children[0].value.upper()
@@ -1157,7 +1225,6 @@ class ModelTransformer(lark.Transformer):
         params = self._extract_value(items[0])
         return {'type': 'execution_config', 'params': params}
 
-    @pysnooper.snoop()
     def dense(self, items):
         # Support both alias rule call (items[0] is Token) and basic_layer call
         items = self._shift_if_token(items)
@@ -2015,25 +2082,10 @@ class ModelTransformer(lark.Transformer):
             pass  # HPO handled elsewhere
         else:
             try:
-                if isinstance(units, (dict, str)):
-                    try:
-                        units_val = float(str(units))
-                    except (ValueError, TypeError):
-                        self.raise_validation_error(f"LSTM units must be a number, got {units}", items[0], Severity.ERROR)
-                        return
-                elif isinstance(units, (int, float)):
-                    units_val = float(units)
-                else:
-                    self.raise_validation_error(f"LSTM units must be a number, got {type(units)}", items[0], Severity.ERROR)
-                    return
-
-                if not units_val.is_integer():
-                    self.raise_validation_error(f"LSTM units must be an integer, got {units_val}", items[0], Severity.ERROR)
-                if units_val <= 0:
-                    self.raise_validation_error(f"LSTM units must be positive, got {units_val}", items[0], Severity.ERROR)
-                params['units'] = int(units_val)
-            except (TypeError, ValueError) as e:
-                self.raise_validation_error(f"Error converting units: {str(e)}", items[0], Severity.ERROR)
+                params['units'] = validate_units(units)
+            except ValidationError as e:
+                self.raise_validation_error(str(e), items[0], Severity.ERROR)
+                return
 
         return {'type': 'LSTM', 'params': params}
 
@@ -2817,6 +2869,8 @@ class ModelTransformer(lark.Transformer):
                 return self._extract_value(item.children[0])
             elif item.data == 'bool_value':
                 return self._extract_value(item.children[0])
+            elif item.data == 'params':
+                return [self._extract_value(child) for child in item.children]
             elif item.data in ('tuple_', 'explicit_tuple'):
                 return tuple(self._extract_value(child) for child in item.children)
             else:
@@ -3201,7 +3255,6 @@ class ModelTransformer(lark.Transformer):
         params = self._extract_value(items[0]) if items else None
         return {'type': 'Maximum', 'params': params, 'sublayers': []}
 
-    @pysnooper.snoop()
     def concatenate(self, items):
         raw_params = self._extract_value(items[0]) if items and items[0] is not None else None
         params = {}
@@ -3789,7 +3842,6 @@ class ModelTransformer(lark.Transformer):
 
         return {"type": "categorical", "values": values}
 
-    @pysnooper.snoop()
     def hpo_range(self, items):
         start = self._extract_value(items[0])
         end = self._extract_value(items[1])

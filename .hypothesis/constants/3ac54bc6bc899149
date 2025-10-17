@@ -1,0 +1,4 @@
+# file: c:\Users\itsni\Desktop\Neural\neural\shape_propagation\data_to_dashboard.py
+# hypothesis_version: 6.142.1
+
+[128, 1000, 5001, '/trace', 'Authorization', 'Conv2D', 'Dense', 'Flatten', 'GET', 'MaxPooling2D', 'Output', 'Shape Propagation', '__main__', 'admin', 'auth', 'config.yaml', 'default', 'figure', 'filters', 'interval_component', 'kernel_size', 'layer', 'lightblue', 'lines', 'localhost', 'markers+text', 'n_intervals', 'padding', 'params', 'password', 'pool_size', 'r', 'request_trace_update', 'same', 'shape_graph', 'top center', 'trace_update', 'type', 'units', 'username']
