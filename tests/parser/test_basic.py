@@ -32,11 +32,11 @@ def transformer():
 class TestGrammarStructure:
     def test_rule_dependencies(self, parser):
         """Test that grammar rules have correct dependencies."""
-        rules = {rule.origin.name: rule for rule in parser.grammar.rules}
+        rules = {rule.origin.name: rule for rule in parser.rules}
 
-        # Check essential rule dependencies
+        # Check essential rule dependencies (only required rules)
         dependencies = {
-            'network': ['input_layer', 'layers', 'loss', 'optimizer'],
+            'network': ['input_layer', 'layers'],  # loss and optimizer are optional
             'layer': ['conv', 'pooling', 'dropout', 'flatten', 'dense'],
             'conv': ['conv1d', 'conv2d', 'conv3d'],
             'pooling': ['max_pooling', 'average_pooling', 'global_pooling']

@@ -423,10 +423,12 @@ def visualize(ctx, file: str, format: str, cache: bool):
         shape_history = []
         total_layers = len(model_data['layers'])
         for i, layer in enumerate(model_data['layers']):
+            # Handle different layer structure formats
+            layer_type = layer.get('type', 'Unknown')
             if not ctx.obj.get('NO_ANIMATIONS'):
-                progress_bar(i, total_layers, prefix='Progress:', suffix=f'Layer: {layer["type"]}', length=40)
+                progress_bar(i, total_layers, prefix='Progress:', suffix=f'Layer: {layer_type}', length=40)
             input_shape = propagator.propagate(input_shape, layer, model_data.get('framework', 'tensorflow'))
-            shape_history.append({"layer": layer['type'], "output_shape": input_shape})
+            shape_history.append({"layer": layer_type, "output_shape": input_shape})
         if not ctx.obj.get('NO_ANIMATIONS'):
             progress_bar(total_layers, total_layers, prefix='Progress:', suffix='Complete', length=40)
     except Exception as e:
@@ -441,11 +443,21 @@ def visualize(ctx, file: str, format: str, cache: bool):
             report = propagator.generate_report()
             dot = report['dot_graph']
             dot.format = format if format != 'html' else 'svg'
-            dot.render('architecture', cleanup=True)
+
+            # Try to render the dot graph, but handle gracefully if graphviz is not available
+            try:
+                dot.render('architecture', cleanup=True)
+            except Exception as graphviz_error:
+                print_warning(f"Graphviz rendering failed: {str(graphviz_error)}")
+                print_info("Continuing with other visualizations...")
+
             if format == 'html':
-                report['plotly_chart'].write_html('shape_propagation.html')
-                create_animated_network = get_module(tensor_flow_module).create_animated_network
-                create_animated_network(shape_history).write_html('tensor_flow.html')
+                try:
+                    report['plotly_chart'].write_html('shape_propagation.html')
+                    create_animated_network = get_module(tensor_flow_module).create_animated_network
+                    create_animated_network(shape_history).write_html('tensor_flow.html')
+                except Exception as html_error:
+                    print_warning(f"HTML visualization generation failed: {str(html_error)}")
     except Exception as e:
         print_error(f"Visualization generation failed: {str(e)}")
         sys.exit(1)

@@ -44,14 +44,14 @@ class TestCLIVisualization:
         if os.path.exists(temp_path):
             os.unlink(temp_path)
 
-    @patch('neural.cli.create_parser')
-    @patch('neural.cli.ModelTransformer')
-    @patch('neural.cli.ShapePropagator')
-    @patch('neural.dashboard.tensor_flow.create_animated_network')
-    def test_visualize_command_html(self, mock_create_animated_network, mock_shape_propagator,
-                                   mock_model_transformer, mock_create_parser, runner, sample_neural_file):
+    def test_visualize_command_html(self, runner, sample_neural_file, mocker):
         """Test the visualize command with HTML output."""
         # Setup mocks
+        mock_create_parser = mocker.patch('neural.parser.parser.create_parser')
+        mock_model_transformer = mocker.patch('neural.parser.parser.ModelTransformer')
+        mock_shape_propagator = mocker.patch('neural.shape_propagation.shape_propagator.ShapePropagator')
+        mock_create_animated_network = mocker.patch('neural.dashboard.tensor_flow.create_animated_network')
+
         mock_parser = MagicMock()
         mock_create_parser.return_value = mock_parser
 
@@ -133,13 +133,13 @@ class TestCLIVisualization:
             # Check that the animated network was saved
             mock_animated_fig.write_html.assert_called_once_with('tensor_flow.html')
 
-    @patch('neural.cli.create_parser')
-    @patch('neural.cli.ModelTransformer')
-    @patch('neural.cli.ShapePropagator')
-    def test_visualize_command_png(self, mock_shape_propagator, mock_model_transformer,
-                                  mock_create_parser, runner, sample_neural_file):
+    def test_visualize_command_png(self, runner, sample_neural_file, mocker):
         """Test the visualize command with PNG output."""
         # Setup mocks
+        mock_create_parser = mocker.patch('neural.parser.parser.create_parser')
+        mock_model_transformer = mocker.patch('neural.parser.parser.ModelTransformer')
+        mock_shape_propagator = mocker.patch('neural.shape_propagation.shape_propagator.ShapePropagator')
+
         mock_parser = MagicMock()
         mock_create_parser.return_value = mock_parser
 
@@ -203,11 +203,11 @@ class TestCLIVisualization:
             mock_dot.render.assert_called_once_with('architecture', cleanup=True)
             assert mock_dot.format == 'png'
 
-    @patch('neural.cli.create_parser')
-    @patch('neural.cli.ModelTransformer')
-    @patch('neural.cli.ShapePropagator')
-    def test_visualize_command_with_cache(self, mock_shape_propagator, mock_model_transformer,
-                                         mock_create_parser, runner, sample_neural_file):
+    @patch('neural.shape_propagation.shape_propagator.ShapePropagator')
+    @patch('neural.parser.parser.ModelTransformer')
+    @patch('neural.parser.parser.create_parser')
+    def test_visualize_command_with_cache(self, mock_create_parser, mock_model_transformer,
+                                         mock_shape_propagator, runner, sample_neural_file):
         """Test the visualize command with caching."""
         # Setup mocks
         mock_parser = MagicMock()
@@ -256,7 +256,7 @@ class TestCLIVisualization:
             # Check that the cached file was copied
             assert os.path.exists('architecture.svg')
 
-    @patch('neural.cli.create_parser')
+    @patch('neural.parser.parser.create_parser')
     def test_visualize_command_unsupported_file_type(self, mock_create_parser, runner):
         """Test the visualize command with an unsupported file type."""
         # Create a temporary file with an unsupported extension
@@ -278,9 +278,9 @@ class TestCLIVisualization:
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
 
-    @patch('neural.cli.create_parser')
-    @patch('neural.cli.ModelTransformer')
-    def test_visualize_command_parsing_error(self, mock_model_transformer, mock_create_parser,
+    @patch('neural.parser.parser.ModelTransformer')
+    @patch('neural.parser.parser.create_parser')
+    def test_visualize_command_parsing_error(self, mock_create_parser, mock_model_transformer,
                                            runner, sample_neural_file):
         """Test the visualize command with a parsing error."""
         # Setup mocks

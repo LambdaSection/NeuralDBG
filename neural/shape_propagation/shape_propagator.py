@@ -100,10 +100,20 @@ class ShapePropagator:
         """Processes a layer and logs shape changes for nntrace."""
         # Validate layer has a type
         if "type" not in layer:
-            raise KeyError("Layer must have a 'type' field")
-
-        layer_type = layer["type"]
-        params = layer.get("params", {})
+            # Handle malformed layer structure (e.g., from parser issues)
+            if len(layer) == 1:
+                # Try to extract type from the malformed structure
+                key = next(iter(layer.keys()))
+                if hasattr(key, 'value'):
+                    layer_type = key.value
+                    params = layer[key][0] if layer[key] else {}
+                else:
+                    raise KeyError("Layer must have a 'type' field")
+            else:
+                raise KeyError("Layer must have a 'type' field")
+        else:
+            layer_type = layer["type"]
+            params = layer.get("params", {})
 
         # Debug logging
         print(f"DEBUG: ShapePropagator.propagate - input_shape: {input_shape}, layer_type: {layer_type}")
@@ -138,7 +148,7 @@ class ShapePropagator:
                     kernel_size = (3, 3)  # Default value
             params["kernel_size"] = kernel_size  # Ensure tuple in params
 
-        if layer['type'] == 'TransformerEncoder':
+        if layer_type == 'TransformerEncoder':
             if framework == 'tensorflow':
                 return input_shape  # Shape preserved through self-attention
             elif framework == 'pytorch':
@@ -176,7 +186,7 @@ class ShapePropagator:
         if self.debug:
             print(f"TRACE: {trace_entry}")  # Debugging output
 
-        self._visualize_layer(layer['type'], output_shape)  # Creates node and increments self.current_layer
+        self._visualize_layer(layer_type, output_shape)  # Creates node and increments self.current_layer
         if prev_layer is not None:
             self._create_connection(prev_layer, self.current_layer - 1)  # Connect previous to current
         return output_shape
@@ -191,10 +201,34 @@ class ShapePropagator:
         input_shape = tuple(1 if dim is None else dim for dim in input_shape)
         output_shape = tuple(1 if dim is None else dim for dim in output_shape)
 
+        # Handle malformed layer structure (e.g., from parser issues)
+        if "type" not in layer:
+            if len(layer) == 1:
+                # Try to extract type from the malformed structure
+                key = next(iter(layer.keys()))
+                if hasattr(key, 'value'):
+                    layer_type = key.value
+                else:
+                    layer_type = 'Unknown'
+            else:
+                layer_type = 'Unknown'
+        else:
+            layer_type = layer['type']
+
         # FLOPs calculation (example for Conv2D)
-        if layer['type'] == 'Conv2D':
-            kernel_size = layer['params']['kernel_size']
-            filters = layer['params']['filters']
+        if layer_type == 'Conv2D':
+            # Handle malformed layer structure
+            if "params" not in layer:
+                if len(layer) == 1:
+                    key = next(iter(layer.keys()))
+                    params = layer[key][0] if layer[key] else {}
+                else:
+                    params = {}
+            else:
+                params = layer['params']
+
+            kernel_size = params.get('kernel_size', (3, 3))
+            filters = params.get('filters', 32)
             flops = np.prod(kernel_size) * np.prod(output_shape) * input_shape[-1]
         else:
             flops = 0  # Default for other layers
@@ -275,8 +309,25 @@ class ShapePropagator:
         Returns:
             Output tensor shape
         """
-        layer_type = layer['type']
-        params = self._standardize_params(layer.get('params', {}), layer_type, framework)
+        # Handle malformed layer structure (e.g., from parser issues)
+        if "type" not in layer:
+            if len(layer) == 1:
+                # Try to extract type from the malformed structure
+                key = next(iter(layer.keys()))
+                if hasattr(key, 'value'):
+                    layer_type = key.value
+                    params = layer[key][0] if layer[key] else {}
+                else:
+                    layer_type = 'Unknown'
+                    params = {}
+            else:
+                layer_type = 'Unknown'
+                params = {}
+        else:
+            layer_type = layer['type']
+            params = layer.get('params', {})
+
+        params = self._standardize_params(params, layer_type, framework)
 
         # Check for registered external handlers first
         if layer_type in self.LAYER_HANDLERS:
@@ -796,9 +847,21 @@ class ShapePropagator:
 
         # Add shape dimensions as bar chart
         shapes = [str(s[1]) for s in self.shape_history]
+        # Calculate parameter count, handling None values (batch dimension)
+        param_counts = []
+        for shape in self.shape_history:
+            # Replace None with 1 for calculation, then exclude batch dimension
+            calc_shape = tuple(1 if dim is None else dim for dim in shape[1])
+            if len(calc_shape) > 1:
+                # Exclude batch dimension (first element) for parameter count
+                param_count = np.prod(calc_shape[1:])
+            else:
+                param_count = np.prod(calc_shape)
+            param_counts.append(param_count)
+
         fig.add_trace(go.Bar(
             x=[s[0] for s in self.shape_history],
-            y=[np.prod(s[1]) for s in self.shape_history],
+            y=param_counts,
             text=shapes,
             name='Parameter Count'
         ))

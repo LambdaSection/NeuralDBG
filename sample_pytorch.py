@@ -9,11 +9,13 @@ from torch.utils.data import DataLoader
 class NeuralNetworkModel(nn.Module):
     def __init__(self):
         super(NeuralNetworkModel, self).__init__()
-        self.layer1_dense = nn.Linear(in_features=32, out_features=10)
+        self.layer2_dense = nn.Linear(in_features=64, out_features=128)
+        self.layer3_output = nn.Sequential(nn.Linear(in_features=128, out_features=10), nn.Softmax(dim=1))
 
     # Forward pass
     def forward(self, x):
-        x = self.layer1_dense(x)
+        x = self.layer2_dense(x)
+        x = self.layer3_output(x)
         return x
 
 # Model instantiation
@@ -29,4 +31,4 @@ train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 # Loss function
 loss_fn = nn.CrossEntropyLoss()
 # Optimizer
-optimizer = optim.adam(model.parameters(), )
+optimizer = optim.Adam(model.parameters(), lr=0.001)

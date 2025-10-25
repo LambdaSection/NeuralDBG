@@ -1441,7 +1441,7 @@ class ModelTransformer(lark.Transformer):
                     if isinstance(nested_param_value, dict) and 'hpo' in nested_param_value:
                         self._track_hpo('Conv2D', f"{param_name}.{nested_param_name}", nested_param_value, items[0])
 
-        return {'type': 'Conv2D', 'params': params}  # 'sublayers' added by basic_layer
+        return {'type': 'Conv2D', 'params': params, 'sublayers': []}  # 'sublayers' added by basic_layer
 
     def conv3d(self, items):
         params = self._extract_value(items[0])
