@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="22" time="14.090" timestamp="2025-10-27T15:25:30.373420+00:00" hostname="DESKTOP-HC7QVIM"><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_basic_layer_parsing[dense-basic]" time="0.400" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_basic_layer_parsing[conv2d-basic]" time="0.333" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_basic_layer_parsing[dense-with-activation]" time="0.317" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_basic_layer_parsing[dense-tanh]" time="0.201" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_basic_layer_parsing[dense-named-params]" time="0.543" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_basic_layer_parsing[residual-with-comments]" time="0.374" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_advanced_layer_parsing[conv2d-multiple-params]" time="0.468" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_advanced_layer_parsing[maxpooling2d]" time="0.606"><failure message="AssertionError: Failed for maxpooling2d: expected {'type': 'MaxPooling2D', 'params': {'pool_size': (2, 2)}, 'sublayers': []}, got {'type': 'MaxPooling2D', 'params': {'pool_size': (2, 2)}}&#10;assert {'params': {'...MaxPooling2D'} == {'params': {'...MaxPooling2D'}&#10;  &#10;  Omitting 2 identical items, use -vv to show&#10;  Right contains 1 more item:&#10;  #x1B[0m{#x1B[33m'#x1B[39;49;00m#x1B[33msublayers#x1B[39;49;00m#x1B[33m'#x1B[39;49;00m: []}#x1B[90m#x1B[39;49;00m&#10;  Use -v to get more diff">self = &lt;test_layers.TestLayerParsing object at 0x00000254A3E69E10&gt;
+layer_parser = Lark(open('&lt;deserialized&gt;'), parser='lalr', lexer='contextual', ...)
+transformer = &lt;neural.parser.parser.ModelTransformer object at 0x00000254A449C850&gt;
+layer_string = 'MaxPooling2D((2, 2))'
+expected = {'params': {'pool_size': (2, 2)}, 'sublayers': [], 'type': 'MaxPooling2D'}
+test_id = 'maxpooling2d'
+
+    @pytest.mark.parametrize(
+        "layer_string, expected, test_id",
+        [
+            # Multiple Parameter Tests
+            ('Conv2D(32, (3,3), strides=(2,2), padding="same", activation="relu")',
+             {'type': 'Conv2D', 'params': {
+                 'filters': 32,
+                 'kernel_size': (3,3),
+                 'strides': (2,2),
+                 'padding': 'same',
+                 'activation': 'relu'
+             }, 'sublayers': []},
+             "conv2d-multiple-params"),
+    
+            # Pooling layers
+            ('MaxPooling2D((2, 2))',
+             {'type': 'MaxPooling2D', 'params': {'pool_size': (2, 2)}, 'sublayers': []},
+             "maxpooling2d"),
+    
+            # Dropout layer
+            ('Dropout(0.5)',
+             {'type': 'Dropout', 'params': {'rate': 0.5}, 'sublayers': []},
+             "dropout"),
+    
+            # Flatten layer
+            ('Flatten()',
+             {'type': 'Flatten', 'params': None, 'sublayers': []},
+             "flatten"),
+    
+            # Batch normalization
+            ('BatchNormalization()',
+             {'type': 'BatchNormalization', 'params': None, 'sublayers': []},
+             "batchnorm"),
+    
+            # RNN layers
+            ('LSTM(64, return_sequences=true)',
+             {'type': 'LSTM', 'params': {'units': 64, 'return_sequences': True}, 'sublayers': []},
+             "lstm-return"),
+        ],
+        ids=["conv2d-multiple-params", "maxpooling2d", "dropout", "flatten", "batchnorm", "lstm-return"]
+    )
+    def test_advanced_layer_parsing(self, layer_parser, transformer, layer_string, expected, test_id):
+        tree = layer_parser.parse(layer_string)
+        result = transformer.transform(tree)
+&gt;       assert result == expected, f"Failed for {test_id}: expected {expected}, got {result}"
+E       AssertionError: Failed for maxpooling2d: expected {'type': 'MaxPooling2D', 'params': {'pool_size': (2, 2)}, 'sublayers': []}, got {'type': 'MaxPooling2D', 'params': {'pool_size': (2, 2)}}
+E       assert {'params': {'...MaxPooling2D'} == {'params': {'...MaxPooling2D'}
+E         
+E         Omitting 2 identical items, use -vv to show
+E         Right contains 1 more item:
+E         #x1B[0m{#x1B[33m'#x1B[39;49;00m#x1B[33msublayers#x1B[39;49;00m#x1B[33m'#x1B[39;49;00m: []}#x1B[90m#x1B[39;49;00m
+E         Use -v to get more diff
+
+tests\parser\test_layers.py:175: AssertionError</failure></testcase><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_advanced_layer_parsing[dropout]" time="0.418" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_advanced_layer_parsing[flatten]" time="0.364" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_advanced_layer_parsing[batchnorm]" time="0.221" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_advanced_layer_parsing[lstm-return]" time="0.350" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_edge_case_layer_parsing[dense-empty-params]" time="0.530" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_edge_case_layer_parsing[dense-extra-whitespace]" time="0.320" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_edge_case_layer_parsing[dense-lowercase]" time="0.337" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_edge_case_layer_parsing[lstm-boolean-true]" time="0.314" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_edge_case_layer_parsing[dense-scientific-notation]" time="0.196" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_comment_parsing[single-line-comment]" time="0.360" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_comment_parsing[nested-comment]" time="0.336" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_invalid_layer_parsing[conv2d-missing-filters]" time="0.319" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_invalid_layer_parsing[dense-string-units]" time="0.393" /><testcase classname="tests.parser.test_layers.TestLayerParsing" name="test_invalid_layer_parsing[dense-negative-units]" time="0.357" /></testsuite></testsuites>

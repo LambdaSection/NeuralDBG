@@ -374,7 +374,7 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
 
         conv: conv1d | conv2d | conv3d | conv_transpose | depthwise_conv2d | separable_conv2d
         conv1d: CONV1D "(" param_style1 ")"
-        conv2d: CONV2D "(" param_style1 ")"
+        conv2d: CONV2D "(" [param_style1] ")"
         conv3d: CONV3D "(" param_style1 ")"
         conv_transpose: conv1d_transpose | conv2d_transpose | conv3d_transpose
         conv1d_transpose: "Conv1DTranspose" "(" param_style1 ")"
@@ -556,14 +556,14 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         # Create a proper Grammar instance instead of direct assignment
         from lark.grammar import Rule
         from lark.lexer import TerminalDef
-        
+
         from lark.lark import Lark
         from lark.grammar import Rule
-        
+
         # Create a proper grammar using EBNF notation
         grammar = """
             network: input_layer layers loss optimizer training_config execution_config
-            
+
             input_layer: "input" "=" "Input" "(" [NUMBER ("," NUMBER)*] ")"
             layers: layer*
             layer: CNAME "=" layer_type "(" layer_params ")"
@@ -574,19 +574,19 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
             array: "[" [value ("," value)*] "]"
             dict: "{" [pair ("," pair)*] "}"
             pair: STRING ":" value
-            
+
             loss: "loss" "=" loss_type ["(" loss_params ")"]
             optimizer: "optimizer" "=" optimizer_type ["(" optimizer_params ")"]
             training_config: "training" "=" "{" [training_param ("," training_param)*] "}"
             execution_config: "execution" "=" "{" [exec_param ("," exec_param)*] "}"
-            
+
             %import common.NUMBER
             %import common.ESCAPED_STRING -> STRING
             %import common.CNAME
             %import common.WS
             %ignore WS
         """
-        
+
         parser = Lark(grammar, start='network', parser='lalr')
         # Commented out to fix syntax error - optional for tests
         # _RuleShim('network', 'input_layer layers loss optimizer training_config execution_config'),
@@ -1215,10 +1215,10 @@ class ModelTransformer(lark.Transformer):
 
     def parse_execution_config(self, items):
         """Parse execution configuration parameters.
-        
+
         Args:
             items: List of parse tree items
-            
+
         Returns:
             Dict containing execution config parameters
         """
@@ -1229,9 +1229,8 @@ class ModelTransformer(lark.Transformer):
         # Support both alias rule call (items[0] is Token) and basic_layer call
         items = self._shift_if_token(items)
         params = {}
-        # Check if items[0] is None, which means Dense() was called with no parameters
+        # If called with no parameters, allow empty Dense() and return params=None
         if not items or items[0] is None:
-            self.raise_validation_error("Dense layer requires 'units' parameter", items[0] if items else None)
             return {'type': 'Dense', 'params': None, 'sublayers': []}
 
         param_node = items[0]  # From param_style1
@@ -1288,15 +1287,18 @@ class ModelTransformer(lark.Transformer):
                 params['units'] = self._extract_value(hpo_config)
                 self._track_hpo('Dense', 'units', hpo_config, items[0])
         else:
+            # Disallow string units explicitly
+            if isinstance(units, str):
+                self.raise_validation_error("Dense units must be a number", items[0], Severity.ERROR)
             try:
-                units_val = float(units) if isinstance(units, (int, float, str)) else None
+                units_val = float(units) if isinstance(units, (int, float)) else None
                 if units_val is None or not isinstance(units_val, (int, float)):
-                    self.raise_validation_error(f"Dense units must be a number, got {units}", items[0], Severity.ERROR)
+                    self.raise_validation_error("Dense units must be a number", items[0], Severity.ERROR)
                 if units_val <= 0:
-                    self.raise_validation_error(f"Dense units must be a positive integer, got {units}", items[0], Severity.ERROR)
+                    self.raise_validation_error("Dense units must be a positive integer", items[0], Severity.ERROR)
                 params['units'] = int(units_val)  # Convert to int if applicable
             except (TypeError, ValueError):
-                self.raise_validation_error(f"Dense units must be a number, got {units}", items[0], Severity.ERROR)
+                self.raise_validation_error("Dense units must be a number", items[0], Severity.ERROR)
 
         if 'activation' in params:
             activation = params['activation']
@@ -1916,10 +1918,15 @@ class ModelTransformer(lark.Transformer):
                 self._track_hpo('MaxPooling2D', param_name, param_value, items[0])
 
         return {'type': 'MaxPooling2D', 'params': params}
+    def max_pooling2d(self, items):
+        """Alias handler that delegates to maxpooling2d for consistency."""
+        return self.maxpooling2d(items)
+
 
     def maxpooling3d(self, items):
         param_nodes = items[0].children
         params = {}
+
         param_vals = [self._extract_value(child) for child in param_nodes]
         if all(isinstance(p, dict) for p in param_vals):
             for p in param_vals:
