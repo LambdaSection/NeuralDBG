@@ -1,0 +1,187 @@
+Traceback (most recent call last):
+  File "C:\Users\itsni\Desktop\Neural\.venv\Lib\site-packages\lark\lexer.py", line 684, in lex
+    yield lexer.next_token(lexer_state, parser_state)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\itsni\Desktop\Neural\.venv\Lib\site-packages\lark\lexer.py", line 617, in next_token
+    raise UnexpectedCharacters(lex_state.text.text, line_ctr.char_pos, line_ctr.line, line_ctr.column,
+lark.exceptions.UnexpectedCharacters: No terminal matches '@' in the current parser context, at line 5 col 35
+
+        Conv2D(32, (3,3), "relu") @ "cuda:0"
+                                  ^
+Expected one of: 
+	* GAUSSIANNOISE
+	* DENSE
+	* CONV2D
+	* STAR
+	* NAME
+	* MULTIPLY
+	* SIMPLERNN
+	* RBRACE
+	* DOT
+	* RPAR
+	* LSTM
+	* LSTMCELL
+	* CONV1D
+	* LAYERNORMALIZATION
+	* ADD
+	* TRANSFORMER_ENCODER
+	* ACTIVATION
+	* INSTANCENORMALIZATION
+	* AVERAGE
+	* COMMA
+	* CONCATENATE
+	* GLOBALAVERAGEPOOLING1D
+	* SUBSTRACT
+	* MACRO_NAME
+	* DROPOUT
+	* OUTPUT
+	* MAXPOOLING3D
+	* RESIDUALCONNECTION
+	* CONV2DTRANSPOSE
+	* MAXPOOLING2D
+	* BATCHNORMALIZATION
+	* GRUCELL
+	* GRU
+	* TRANSFORMER_DECODER
+	* GLOBALAVERAGEPOOLING2D
+	* CUSTOM_LAYER
+	* SIMPLE_RNN_DROPOUT_WRAPPER
+	* GROUPNORMALIZATION
+	* TIMEDISTRIBUTED
+	* TRANSFORMER
+	* MAXIMUM
+	* FLATTEN
+	* MAXPOOLING1D
+	* CONV3D
+
+Previous tokens: Token('RPAR', ')')
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\itsni\Desktop\Neural\neural\parser\parser.py", line 601, in safe_parse
+    tree = parser.parse(text)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\itsni\Desktop\Neural\.venv\Lib\site-packages\lark\lark.py", line 676, in parse
+    return self.parser.parse(text, start=start, on_error=on_error)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\itsni\Desktop\Neural\.venv\Lib\site-packages\lark\parser_frontends.py", line 123, in parse
+    return self.parser.parse(stream, chosen_start, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\itsni\Desktop\Neural\.venv\Lib\site-packages\lark\parsers\lalr_parser.py", line 42, in parse
+    return self.parser.parse(lexer, start)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\itsni\Desktop\Neural\.venv\Lib\site-packages\lark\parsers\lalr_parser.py", line 88, in parse
+    return self.parse_from_state(parser_state)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\itsni\Desktop\Neural\.venv\Lib\site-packages\lark\parsers\lalr_parser.py", line 111, in parse_from_state
+    raise e
+  File "C:\Users\itsni\Desktop\Neural\.venv\Lib\site-packages\lark\parsers\lalr_parser.py", line 100, in parse_from_state
+    for token in state.lexer.lex(state):
+  File "C:\Users\itsni\Desktop\Neural\.venv\Lib\site-packages\lark\lexer.py", line 693, in lex
+    raise UnexpectedToken(token, e.allowed, state=parser_state, token_history=[last_token], terminals_by_name=self.root_lexer.terminals_by_name)
+lark.exceptions.UnexpectedToken: Unexpected token Token('AT', '@') at line 5, column 35.
+Expected one of: 
+	* GLOBALMAXPOOLING2D
+	* NAME
+	* ADAPTIVEAVERAGEPOOLING1D
+	* GRAPHCONV
+	* INSTANCENORMALIZATION
+	* QUANTUMLAYER
+	* GLOBALAVERAGEPOOLING1D
+	* LOSS
+	* ADAPTIVEMAXPOOLING1D
+	* RESIDUALCONNECTION
+	* GRUCELL
+	* ATTENTION
+	* TRANSFORMER_DECODER
+	* GROUPNORMALIZATION
+	* CONV3D
+	* GAUSSIANNOISE
+	* DOT
+	* LSTM
+	* CUSTOM_SHAPE
+	* ADD
+	* INCEPTION
+	* OPTIMIZER
+	* ACTIVATION
+	* "Dropout"
+	* CONCATENATE
+	* SUBSTRACT
+	* SEPARABLECONV2D
+	* "GlobalAveragePooling1D"
+	* MAXPOOLING3D
+	* AVERAGEPOOLING3D
+	* CUSTOM_LAYER
+	* TRANSFORMER
+	* MAXIMUM
+	* FLATTEN
+	* SQUEEZEEXCITATION
+	* LAMBDA
+	* "GlobalAveragePooling2D"
+	* STAR
+	* ADAPTIVEAVERAGEPOOLING2D
+	* RBRACE
+	* SIMPLERNN
+	* GLOBALMAXPOOLING3D
+	* ADAPTIVEMAXPOOLING3D
+	* EMBEDDING
+	* CONV1D
+	* LAYERNORMALIZATION
+	* AVERAGE
+	* DROPOUT
+	* OUTPUT
+	* ADAPTIVEAVERAGEPOOLING3D
+	* CONV2DTRANSPOSE
+	* MAXPOOLING2D
+	* "Flatten"
+	* AVERAGEPOOLING2D
+	* TRAIN
+	* TIMEDISTRIBUTED
+	* ADAPTIVEMAXPOOLING2D
+	* GLOBALAVERAGEPOOLING3D
+	* DEPTHWISECONV2D
+	* DENSE
+	* CONV2D
+	* MULTIPLY
+	* CONV3DTRANSPOSE
+	* GRAPHATTENTION
+	* LSTMCELL
+	* TRANSFORMER_ENCODER
+	* EXECUTE
+	* DYNAMICLAYER
+	* CONV1DTRANSPOSE
+	* MACRO_NAME
+	* AVERAGEPOOLING1D
+	* GRU
+	* BATCHNORMALIZATION
+	* GLOBALAVERAGEPOOLING2D
+	* SIMPLE_RNN_DROPOUT_WRAPPER
+	* MAXPOOLING1D
+	* GLOBALMAXPOOLING1D
+	* CAPSULELAYER
+Previous tokens: [Token('RPAR', ')')]
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\itsni\Desktop\Neural\neural\parser\parser.py", line 3894, in parse_network
+    parse_result = safe_parse(network_parser, config)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\itsni\Desktop\Neural\neural\parser\parser.py", line 613, in safe_parse
+    custom_error_handler(e)
+  File "C:\Users\itsni\Desktop\Neural\neural\parser\parser.py", line 108, in custom_error_handler
+    raise DSLValidationError(msg, severity, error.line, error.column)
+neural.parser.parser.DSLValidationError: ERROR at line 5, column 35: Unexpected end of input - Check for missing closing braces
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\itsni\Desktop\Neural\tools\tmp_parse_check.py", line 22, in <module>
+    parsed = t.parse_network(dsl)
+             ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\itsni\Desktop\Neural\neural\parser\parser.py", line 3899, in parse_network
+    raise DSLValidationError(f"Failed to parse network: {str(e)}", Severity.ERROR)
+neural.parser.parser.DSLValidationError: ERROR: Failed to parse network: ERROR at line 5, column 35: Unexpected end of input - Check for missing closing braces

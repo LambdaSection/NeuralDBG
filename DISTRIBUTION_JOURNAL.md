@@ -34,3 +34,12 @@
 #### Targeted Verification
 - Manual checks confirm `MaxPooling2D((2, 2))` now yields `{type: MaxPooling2D, params: {pool_size: (2, 2)}}`.
 - Next steps: run full parser suite, then shape propagation and codegen, fixing failures sequentially.
+
+
+#### Parser Network Fixes (today)
+- Optimizer params merging: fixed `.optimizer()` to merge list/dict forms from the grammar; resolves `'list' object has no attribute 'items'` error on Adam/SGD with schedules and HPO.
+- Device placement parsing: reordered grammar alternative so `basic_layer` (which supports `@ "device"`) parses first; enables `Conv2D(...) @ "cuda:0"` across all concrete layers without duplicating grammar.
+- Params normalization: `ResidualConnection` and `Concatenate` now return `params: None` when no parameters are provided, matching tests.
+
+#### Next Actions
+- Re-run `tests/parser/test_networks.py` and fix any remaining failures (wrapper/device interactions, schedule edge-cases) sequentially.
