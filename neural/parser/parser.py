@@ -358,11 +358,11 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         wrapper: TIMEDISTRIBUTED "(" ( layer | NAME "(" [param_style1 ("," param_style1)*] ")" ) ["," param_style1] ")" [layer_block]
 
         // Alias for tests/grammar dependency introspection
-        dense: DENSE "(" [param_style1] ")"
+        dense: DENSE "(" [param_style1] ")" [device_spec]
 
         dropout: "Dropout" "(" dropout_params ")"
         dropout_params: FLOAT | param_style1
-        flatten: "Flatten" "(" [param_style1] ")"
+        flatten: "Flatten" "(" [param_style1] ")" [device_spec]
 
 
         regularization: spatial_dropout1d | spatial_dropout2d | spatial_dropout3d | activity_regularization | l1 | l2 | l1_l2
@@ -373,9 +373,9 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         output: OUTPUT "(" param_style1 ")"
 
         conv: conv1d | conv2d | conv3d | conv_transpose | depthwise_conv2d | separable_conv2d
-        conv1d: CONV1D "(" param_style1 ")"
-        conv2d: CONV2D "(" [param_style1] ")"
-        conv3d: CONV3D "(" param_style1 ")"
+        conv1d: CONV1D "(" param_style1 ")" [device_spec]
+        conv2d: CONV2D "(" [param_style1] ")" [device_spec]
+        conv3d: CONV3D "(" param_style1 ")" [device_spec]
         conv_transpose: conv1d_transpose | conv2d_transpose | conv3d_transpose
         conv1d_transpose: "Conv1DTranspose" "(" param_style1 ")"
         conv2d_transpose: CONV2DTRANSPOSE "(" param_style1 ")"
@@ -385,9 +385,9 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
 
         pooling: max_pooling | average_pooling | global_pooling | adaptive_pooling
         max_pooling: max_pooling1d | max_pooling2d | max_pooling3d
-        max_pooling1d: MAXPOOLING1D "(" param_style1 ")"
-        max_pooling2d: MAXPOOLING2D "(" param_style1 ")"
-        max_pooling3d: MAXPOOLING3D "(" param_style1 ")"
+        max_pooling1d: MAXPOOLING1D "(" param_style1 ")" [device_spec]
+        max_pooling2d: MAXPOOLING2D "(" param_style1 ")" [device_spec]
+        max_pooling3d: MAXPOOLING3D "(" param_style1 ")" [device_spec]
         pool_size: "pool_size" "=" value
         average_pooling: average_pooling1d | average_pooling2d | average_pooling3d
         average_pooling1d: "AveragePooling1D" "(" param_style1 ")"
@@ -602,15 +602,18 @@ def safe_parse(parser, text):
         logger.debug("Parse successful, tree generated.")
         return {"result": tree, "warnings": warnings}
     except (lark.UnexpectedCharacters, lark.UnexpectedToken) as e:
-        log_by_severity(Severity.ERROR, f"Syntax error at line {e.line}, column {e.column}")
-        error_msg = f"Syntax error at line {e.line}, column {e.column}"
-        details = ""
+        # Use enhanced error handler for better error messages
         if isinstance(e, lark.UnexpectedToken):
-            details = f"Unexpected {e.token}, expected one of: {', '.join(sorted(e.expected))}"
-        elif isinstance(e, lark.UnexpectedCharacters):
-            details = f"Unexpected character '{e.char}', expected one of: {', '.join(sorted(e.allowed))}"
-        warnings.append({"message": error_msg, "line": e.line, "column": e.column, "details": details})
-        custom_error_handler(e)
+            parser_error = ErrorHandler.handle_unexpected_token(e, text)
+        else:
+            parser_error = ErrorHandler.handle_unexpected_char(e, text)
+        
+        # Format and log the enhanced error
+        formatted_error = ErrorHandler.format_error(parser_error)
+        log_by_severity(Severity.ERROR, formatted_error)
+        
+        # Raise with enhanced message
+        raise DSLValidationError(parser_error.message, Severity.ERROR, parser_error.line, parser_error.column)
         # This line will never be reached because custom_error_handler raises an exception
         return {"result": None, "warnings": warnings}
     except DSLValidationError as e:
@@ -1283,7 +1286,22 @@ class ModelTransformer(lark.Transformer):
                         items[0]
                     )
 
-        return {"type": "Dense", "params": params, 'sublayers': []}
+        # Extract device_spec if present (last item in items list)
+        device = None
+        if len(items) > 1:
+            device_node = items[-1]  # device_spec is the last item
+            device = self._extract_value(device_node) if device_node else None
+            # Validate device if provided
+            if device is not None:
+                valid_device_prefixes = ['cpu', 'cuda', 'gpu', 'tpu', 'xla']
+                is_valid = any(device.startswith(prefix) for prefix in valid_device_prefixes)
+                if not is_valid:
+                    self.raise_validation_error(f"Invalid device specification: '{device}'. Valid devices are: {', '.join(valid_device_prefixes)}", device_node)
+        
+        result = {"type": "Dense", "params": params, 'sublayers': []}
+        if device is not None:
+            result['device'] = device
+        return result
 
     def conv(self, items):
         return items[0]
@@ -1407,7 +1425,22 @@ class ModelTransformer(lark.Transformer):
                     if isinstance(nested_param_value, dict) and 'hpo' in nested_param_value:
                         self._track_hpo('Conv2D', f"{param_name}.{nested_param_name}", nested_param_value, items[0])
 
-        return {'type': 'Conv2D', 'params': params, 'sublayers': []}  # 'sublayers' added by basic_layer
+        # Extract device_spec if present (last item in items list)
+        device = None
+        if len(items) > 1:
+            device_node = items[-1]  # device_spec is the last item
+            device = self._extract_value(device_node) if device_node else None
+            # Validate device if provided
+            if device is not None:
+                valid_device_prefixes = ['cpu', 'cuda', 'gpu', 'tpu', 'xla']
+                is_valid = any(device.startswith(prefix) for prefix in valid_device_prefixes)
+                if not is_valid:
+                    self.raise_validation_error(f"Invalid device specification: '{device}'. Valid devices are: {', '.join(valid_device_prefixes)}", device_node)
+        
+        result = {'type': 'Conv2D', 'params': params, 'sublayers': []}  # 'sublayers' added by basic_layer
+        if device is not None:
+            result['device'] = device
+        return result
 
     def conv3d(self, items):
         params = self._extract_value(items[0])
@@ -1890,7 +1923,22 @@ class ModelTransformer(lark.Transformer):
             if isinstance(param_value, dict) and 'hpo' in param_value:
                 self._track_hpo('MaxPooling2D', param_name, param_value, items[0])
 
-        return {'type': 'MaxPooling2D', 'params': params, 'sublayers': []}
+        # Extract device_spec if present (last item in items list)
+        device = None
+        if len(items) > 1:
+            device_node = items[-1]  # device_spec is the last item
+            device = self._extract_value(device_node) if device_node else None
+            # Validate device if provided
+            if device is not None:
+                valid_device_prefixes = ['cpu', 'cuda', 'gpu', 'tpu', 'xla']
+                is_valid = any(device.startswith(prefix) for prefix in valid_device_prefixes)
+                if not is_valid:
+                    self.raise_validation_error(f"Invalid device specification: '{device}'. Valid devices are: {', '.join(valid_device_prefixes)}", device_node)
+        
+        result = {'type': 'MaxPooling2D', 'params': params, 'sublayers': []}
+        if device is not None:
+            result['device'] = device
+        return result
     def max_pooling2d(self, items):
         """Alias handler that delegates to maxpooling2d for consistency."""
         return self.maxpooling2d(items)
@@ -3776,21 +3824,21 @@ class ModelTransformer(lark.Transformer):
             parsed = [self._parse_hpo_value(p) for p in parts]
 
             # Validate log_range parameters
-            start, end = parsed[0], parsed[1]
+            min_val, max_val = parsed[0], parsed[1]
 
-            if start <= 0:
-                self.raise_validation_error(f"Log range start value must be positive, got start={start}", item)
+            if min_val <= 0:
+                self.raise_validation_error(f"Log range min value must be positive, got min={min_val}", item)
 
-            if end <= start:
-                self.raise_validation_error(f"Log range end value must be greater than start value, got start={start}, end={end}", item)
+            if max_val <= min_val:
+                self.raise_validation_error(f"Log range max value must be greater than min value, got min={min_val}, max={max_val}", item)
 
             return {
                 'hpo': {
                     'type': 'log_range',
-                    'start': start,
-                    'end': end,
-                    'original_start': parts[0],  # Store original strings
-                    'original_end': parts[1]
+                    'min': min_val,
+                    'max': max_val,
+                    'original_min': parts[0],  # Store original strings
+                    'original_max': parts[1]
                 }
             }
         self.raise_validation_error(f"Invalid HPO expression: {hpo_str}", item, Severity.ERROR)
@@ -3849,17 +3897,17 @@ class ModelTransformer(lark.Transformer):
         return {"type": "range", "start": start, "end": end, "step": step}
 
     def hpo_log_range(self, items):
-        start = self._extract_value(items[0])
-        end = self._extract_value(items[1])
+        min_val = self._extract_value(items[0])
+        max_val = self._extract_value(items[1])
 
         # Validate log_range parameters
-        if start <= 0:
-            self.raise_validation_error(f"Log range start value must be positive, got start={start}", items[0])
+        if min_val <= 0:
+            self.raise_validation_error(f"Log range min value must be positive, got min={min_val}", items[0])
 
-        if end <= start:
-            self.raise_validation_error(f"Log range end value must be greater than start value, got start={start}, end={end}", items[1])
+        if max_val <= min_val:
+            self.raise_validation_error(f"Log range max value must be greater than min value, got min={min_val}, max={max_val}", items[1])
 
-        return {"type": "log_range", "start": start, "end": end}
+        return {"type": "log_range", "min": min_val, "max": max_val}
 
     def layer_choice(self, items):
         return {"hpo_type": "layer_choice", "options": [self._extract_value(item) for item in items]}
@@ -3894,6 +3942,19 @@ class ModelTransformer(lark.Transformer):
                 parse_result = safe_parse(network_parser, config)
                 tree = parse_result["result"]
                 warnings.extend(parse_result.get("warnings", []))
+            except (lark.UnexpectedToken, lark.UnexpectedCharacters) as e:
+                # Use enhanced error handler for better error messages
+                if isinstance(e, lark.UnexpectedToken):
+                    parser_error = ErrorHandler.handle_unexpected_token(e, config)
+                else:
+                    parser_error = ErrorHandler.handle_unexpected_char(e, config)
+                
+                # Format and log the enhanced error
+                formatted_error = ErrorHandler.format_error(parser_error)
+                log_by_severity(Severity.ERROR, formatted_error)
+                
+                # Raise with enhanced message
+                raise DSLValidationError(parser_error.message, Severity.ERROR, parser_error.line, parser_error.column)
             except Exception as e:
                 log_by_severity(Severity.ERROR, f"Error during parsing: {str(e)}")
                 raise DSLValidationError(f"Failed to parse network: {str(e)}", Severity.ERROR)

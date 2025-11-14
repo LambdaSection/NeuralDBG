@@ -1,7 +1,13 @@
 import logging
 import json
 import time
-import torch
+# Make torch optional - allows tests to run without torch installed
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    torch = None
+    TORCH_AVAILABLE = False
 import numpy as np
 import psutil
 import plotly.graph_objects as go
@@ -36,7 +42,8 @@ class PerformanceMonitor:
         cpu_usage = psutil.cpu_percent()
         memory_usage = psutil.virtual_memory().percent
         gpu_memory = 0
-        if torch.cuda.is_available():
+        # Check if torch is available and CUDA is available before accessing GPU memory
+        if TORCH_AVAILABLE and torch is not None and torch.cuda.is_available():
             gpu_memory = torch.cuda.memory_allocated() / (1024 ** 3)  # GB
         io_counters = psutil.disk_io_counters()
         io_usage = (io_counters.read_bytes + io_counters.write_bytes) / (1024 ** 2)  # MB
@@ -1185,6 +1192,9 @@ def register_gradient_hooks(model):
 #####################################
 def detect_dead_neurons(layer, input, output):
     """Detects inactive neurons (dead neurons)."""
+    # Return early if torch is not available
+    if not TORCH_AVAILABLE or torch is None:
+        return {"layer": layer.__class__.__name__, "dead_ratio": 0.0, "error": "torch not available"}
     dead_neurons = (output.detach() == 0).sum().item()
     total_neurons = output.numel()
     dead_ratio = dead_neurons / total_neurons
@@ -1196,8 +1206,17 @@ def detect_dead_neurons(layer, input, output):
 ######################################
 def detect_activation_anomalies(layer, input, output):
     """Flags NaNs, extremely high activations, or overflows."""
+    # Return early if torch is not available
+    if not TORCH_AVAILABLE or torch is None:
+        return {
+            "layer": layer.__class__.__name__,
+            "mean_activation": 0.0,
+            "anomaly": False,
+            "error": "torch not available"
+        }
     mean_activation = output.detach().abs().mean().item()
-    has_nan = torch.isnan(output).sum().item() > 0
+    # torch is guaranteed to be available here due to the check above
+    has_nan = torch.isnan(output).sum().item() > 0 if torch is not None else False
     is_exploding = mean_activation > 1000  # Arbitrary threshold for huge activations
 
     return {

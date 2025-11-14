@@ -1,0 +1,89 @@
+name: Automated Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      skip_tests:
+        description: 'Skip running tests'
+        required: false
+        default: false
+        type: boolean
+      draft:
+        description: 'Create draft release'
+        required: false
+        default: false
+        type: boolean
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine pytest
+          pip install -e .
+      
+      - name: Run tests
+        if: ${{ !inputs.skip_tests || github.event_name == 'push' }}
+        run: |
+          python -m pytest tests/ -v --tb=short
+      
+      - name: Generate blog posts
+        run: |
+          python scripts/automation/blog_generator.py
+        continue-on-error: true
+      
+      - name: Validate examples
+        run: |
+          python scripts/automation/example_validator.py
+        continue-on-error: true
+      
+      - name: Bump version and create release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/automation/release_automation.py \
+            --version-type ${{ inputs.version_type }} \
+            --skip-tests ${{ inputs.skip_tests }} \
+            --draft ${{ inputs.draft }}
+      
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            docs/blog/*.md
+            examples_validation_report.md
+            test_report.md
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

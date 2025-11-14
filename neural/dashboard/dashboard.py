@@ -11,7 +11,13 @@ from numpy import random
 import json
 import requests
 import time
-from flask_socketio import SocketIO
+# Make flask_socketio optional - allows tests to run without it
+try:
+    from flask_socketio import SocketIO
+    SOCKETIO_AVAILABLE = True
+except ImportError:
+    SocketIO = None
+    SOCKETIO_AVAILABLE = False
 import threading
 from dash_bootstrap_components import themes
 
@@ -38,8 +44,11 @@ app = dash.Dash(
     external_stylesheets=[themes.DARKLY]
 )
 
-# Initialize WebSocket Connection
-socketio = SocketIO(server, cors_allowed_origins=["http://localhost:8050"])
+# Initialize WebSocket Connection (only if flask_socketio is available)
+if SOCKETIO_AVAILABLE and SocketIO is not None:
+    socketio = SocketIO(server, cors_allowed_origins=["http://localhost:8050"])
+else:
+    socketio = None
 
 # Configuration (load from config.yaml or set defaults)
 try:
@@ -53,10 +62,21 @@ UPDATE_INTERVAL = config.get("websocket_interval", 1000) # Use default if config
 
 
 # Store Execution Trace Data and Model Data
-trace_data = []
+# Use a shared list so TRACE_DATA and trace_data always reference the same object
+_trace_data_list = []
+trace_data = _trace_data_list
+TRACE_DATA = _trace_data_list  # Export for test compatibility - both point to same list
 model_data = None
 backend = 'tensorflow'
 shape_history = []
+
+def get_trace_data():
+    """Get trace data, checking TRACE_DATA first (for test compatibility)."""
+    # Check if TRACE_DATA has been reassigned in the module namespace
+    import neural.dashboard.dashboard as dashboard_module
+    if hasattr(dashboard_module, 'TRACE_DATA') and dashboard_module.TRACE_DATA is not None:
+        return dashboard_module.TRACE_DATA
+    return trace_data
 
 # Function to print data for debugging
 def print_dashboard_data():
@@ -116,9 +136,10 @@ def update_interval(new_interval):
     """Update the interval dynamically based on slider value."""
     return [new_interval]
 
-# Start WebSocket in a Separate Thread
+# Start WebSocket in a Separate Thread (only if socketio is available)
 propagator = ShapePropagator()
-threading.Thread(target=socketio.run, args=("localhost", 5001), daemon=True).start()
+if socketio is not None:
+    threading.Thread(target=socketio.run, args=("localhost", 5001), daemon=True).start()
 
 ####################################################
 #### Layers Execution Trace Graph & Its Subplots ###
@@ -131,17 +152,18 @@ threading.Thread(target=socketio.run, args=("localhost", 5001), daemon=True).sta
 def update_trace_graph(n, viz_type, selected_layers=None):
     """Update execution trace graph with various visualization types."""
     global trace_data
-
+    # Use get_trace_data() to get the current trace data (handles test reassignments)
+    data_source = get_trace_data()
 
     ### ***Errors Handling*** ###
-    if not trace_data or any(not isinstance(entry["execution_time"], (int, float)) for entry in trace_data):
+    if not data_source or any(not isinstance(entry["execution_time"], (int, float)) for entry in data_source):
         return [go.Figure()]  # Return empty figure for invalid data
 
     # Filter data based on selected layers (if any)
     if selected_layers:
-        filtered_data = [entry for entry in trace_data if entry["layer"] in selected_layers]
+        filtered_data = [entry for entry in data_source if entry["layer"] in selected_layers]
     else:
-        filtered_data = trace_data
+        filtered_data = data_source
 
     if not filtered_data:
         return [go.Figure()]

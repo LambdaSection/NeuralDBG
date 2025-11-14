@@ -58,7 +58,8 @@ ENV/
 social_media/
 
 
-# Project-local roadmap (not for distribution)
+# Project-local roadmap and vision (not for distribution)
 ROADMAP.md
+VISION.md
 .continue/rules/new-rule-1.md
 .continue/rules/new-rule.md

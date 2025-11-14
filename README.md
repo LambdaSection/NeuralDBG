@@ -82,6 +82,7 @@ Help us improve Neural DSL! Share your feedback: [Typeform link](https://form.ty
 
 ## Features
 
+- **🤖 AI-Powered Development**: Build models using natural language! Describe what you want in any language, and Neural generates the DSL code automatically. [Learn more](docs/ai_integration_guide.md)
 - **YAML-like Syntax**: Define models intuitively without framework boilerplate.
 - **Shape Propagation**: Catch dimension mismatches *before* runtime.
   - ✅ Interactive shape flow diagrams included.
@@ -98,6 +99,7 @@ Help us improve Neural DSL! Share your feedback: [Typeform link](https://form.ty
 - **Visual Debugging**: Render interactive 3D architecture diagrams.
 - **Extensible**: Add custom layers/losses via Python plugins.
 - **NeuralDbg**: Built-in Neural Network Debugger and Visualizer.
+- **🔄 Fully Automated**: Automated releases, blog posts, tests, and maintenance. [Learn more](AUTOMATION_GUIDE.md)
 - **No-Code Interface**: Quick Prototyping for researchers and an educational, accessible tool for beginners.
 
 ---
@@ -369,10 +371,15 @@ Ready-to-use notebooks are available for:
 
 ##  Documentation
 
+### Core Documentation
 - [DSL Documentation](docs/dsl.md)
+- [AI Integration Guide](docs/ai_integration_guide.md) - 🤖 **NEW!** Natural language to DSL
+- [Automation Guide](AUTOMATION_GUIDE.md) - 🔄 **NEW!** Automated releases and blog posts
+- [Contributing Guide](CONTRIBUTING.md) - **NEW!** How to contribute
+- [What's New](WHATS_NEW.md) - **NEW!** Latest updates
 - [Blog](docs/blog/README.md)
 
-Explore advanced features:
+### Explore advanced features:
 - [Custom Layers Guide](docs/examples/custom_layers.md) (Coming soon)
 - [ONNX Export Tutorial](docs/examples/onnx_export.md) (Coming soon)
 - [Training Configuration](docs/examples/training_config.md) (Coming soon)
@@ -551,7 +558,28 @@ Join our growing community of developers and researchers:
 
 ## Contributing
 
-Thank you for your interest in improving Neural. This section outlines a minimal, fast local workflow to lint, type‑check, test, and audit changes before opening a PR.
+We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for detailed information on how to get started.
+
+**Quick Start:**
+1. Fork and clone the repository
+2. Install in development mode: `pip install -e .`
+3. Run tests: `python -m pytest tests/ -v`
+4. Make your changes and submit a pull request!
+
+**Areas to Contribute:**
+- 🤖 AI Integration enhancements
+- 📝 Documentation improvements
+- 🐛 Bug fixes
+- ✨ New features (see [ROADMAP.md](ROADMAP.md) for priorities)
+- 📚 More examples
+
+For detailed contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+### Development Workflow (Legacy)
+
+This section outlines a minimal, fast local workflow to lint, type‑check, test, and audit changes before opening a PR.
 
 ### 1) Environment setup (Windows PowerShell)
 

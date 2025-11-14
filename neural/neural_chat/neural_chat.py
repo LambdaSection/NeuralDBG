@@ -3,17 +3,46 @@ from neural.parser.parser import create_parser, ModelTransformer
 from neural.code_generation.code_generator import generate_code
 import re
 
+# Try to import AI assistant (optional)
+try:
+    from neural.ai.ai_assistant import NeuralAIAssistant
+    AI_AVAILABLE = True
+except ImportError:
+    AI_AVAILABLE = False
+    NeuralAIAssistant = None
+
 class NeuralChat:
-    def __init__(self):
+    def __init__(self, use_ai: bool = True):
         self.parser = create_parser("network")
         self.transformer = ModelTransformer()
         self.config = "network MyNet {\n    input: (28, 28, 1)\n    layers:\n"
         self.backend = "tensorflow"
+        
+        # Initialize AI assistant if available
+        self.ai_assistant = None
+        if use_ai and AI_AVAILABLE:
+            try:
+                self.ai_assistant = NeuralAIAssistant(use_llm=False)  # Start with rule-based
+            except Exception as e:
+                click.echo(f"Warning: AI assistant not available: {e}")
 
     def process_command(self, command: str) -> str:
         command = command.lower().strip()
+        
+        # Try AI assistant first if available
+        if self.ai_assistant:
+            try:
+                result = self.ai_assistant.chat(command)
+                if result['success'] and result['dsl_code']:
+                    # If AI generated complete model, update config
+                    if 'network' in result['dsl_code']:
+                        self.config = result['dsl_code']
+                    return result['response']
+            except Exception as e:
+                # Fallback to rule-based if AI fails
+                pass
 
-        # Basic NLP rules
+        # Basic NLP rules (fallback)
         if "create model" in command or "new model" in command:
             name_match = re.search(r"named\s+(\w+)", command)
             name = name_match.group(1) if name_match else "MyNet"

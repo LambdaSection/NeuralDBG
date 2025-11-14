@@ -4,8 +4,15 @@ It provides the data transformation logic that converts Neural DSL model structu
 The model_to_d3_json method specifically creates the nodes and links structure that D3.js uses
 """
 
-import tensorflow as tf
-import keras
+# Make tensorflow optional - allows tests to run without it
+try:
+    import tensorflow as tf
+    import keras
+    TENSORFLOW_AVAILABLE = True
+except ImportError:
+    tf = None
+    keras = None
+    TENSORFLOW_AVAILABLE = False
 from matplotlib import pyplot as plt
 from graphviz import Digraph
 import plotly.graph_objects as go
