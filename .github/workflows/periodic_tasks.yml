@@ -24,7 +24,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
       
-      - name: Run tests
+      - name: Run tests and generate report
         run: |
           python scripts/automation/test_automation.py
         continue-on-error: true
@@ -32,11 +32,6 @@ jobs:
       - name: Validate examples
         run: |
           python scripts/automation/example_validator.py
-        continue-on-error: true
-      
-      - name: Generate test report
-        run: |
-          python scripts/automation/test_automation.py
         continue-on-error: true
       
       - name: Upload reports

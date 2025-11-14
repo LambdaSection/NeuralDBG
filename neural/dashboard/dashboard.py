@@ -95,7 +95,7 @@ def print_dashboard_data():
 # Function to update dashboard data
 def update_dashboard_data(new_model_data=None, new_trace_data=None, new_backend=None):
     """Update the dashboard data with new data from the CLI."""
-    global model_data, trace_data, backend, shape_history
+    global model_data, trace_data, backend, shape_history, _trace_data_list
 
     if new_model_data is not None:
         model_data = new_model_data
@@ -112,7 +112,10 @@ def update_dashboard_data(new_model_data=None, new_trace_data=None, new_backend=
                 else:
                     processed_entry[key] = value
             processed_trace_data.append(processed_entry)
-        trace_data = processed_trace_data
+        # Update the shared list to maintain reference sharing
+        # Clear and extend to preserve the reference that trace_data and TRACE_DATA share
+        _trace_data_list.clear()
+        _trace_data_list.extend(processed_trace_data)
 
     if new_backend is not None:
         backend = new_backend
