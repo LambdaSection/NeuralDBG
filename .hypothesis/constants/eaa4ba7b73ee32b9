@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\exceptions.py
+# hypothesis_version: 6.148.2
+
+[b'\n', b' ', b'^\n', '\n\t* ', ', ', '<EOF>', '?', 'Expecting a list', 'InteractiveParser', 'List[Token]', 'Previous tokens: %r\n', 'T', 'Union[Tree, Token]', '^\n', 'ascii', 'backslashreplace', 'column', 'line', 'start_pos']

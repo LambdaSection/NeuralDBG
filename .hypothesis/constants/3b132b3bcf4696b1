@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\_configs.py
+# hypothesis_version: 6.148.2
+
+['/', 'DASH_APP_NAME', 'DASH_COMPRESS', 'DASH_DEBUG', 'DASH_HOT_RELOAD', 'DASH_PROPS_CHECK', 'DASH_PRUNE_ERRORS', 'DASH_UI', 'HOST', 'PORT', 'false', 'pages', 'true', 'url_base_pathname']

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\resources.py
+# hypothesis_version: 6.148.2
+
+['ResourceType', '_css_dist', '_js_dist', 'absolute_path', 'asset_path', 'async', 'dev_only', 'dev_package_path', 'dynamic', 'eager', 'external_only', 'external_url', 'filepath', 'lazy', 'namespace', 'ts']

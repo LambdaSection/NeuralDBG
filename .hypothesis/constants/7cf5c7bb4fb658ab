@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_pytesttester.py
+# hypothesis_version: 6.148.2
+
+['-', '--cov=', '--doctest-modules', '--pyargs', '-l', '-m', '-q', 'NumPy CPU features: ', 'PytestTester', 'always', 'fast', 'full', 'not slow', 'nothing enabled', 'v']

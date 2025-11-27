@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dcc\ConfirmDialogProvider.py
+# hypothesis_version: 6.148.2
+
+['__init__', '_explicit_args', 'cancel_n_clicks', 'children', 'dash_core_components', 'displayed', 'id', 'message', 'submit_n_clicks']

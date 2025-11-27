@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\utils.py
+# hypothesis_version: 6.148.2
+
+[302, 304, 308, 4294967295, '!#$&+-.^_`|~', '&([^;]+);', '+xml', '.', './', '._', '/', ':', 'AUX', 'CON', 'Content-Disposition', 'Content-Encoding', 'Location', 'NFKD', 'NUL', 'PATH_INFO', 'PRN', 'QUERY_STRING', 'X-Sendfile', '[^A-Za-z0-9_.-]', '_', '_T', '__dict__', '__file__', '__fspath__', '__path__', '_root_path', 'application/sql', 'application/xml', 'application/xml-dtd', 'ascii', 'attachment', 'filename', 'filename*', 'ignore', 'inline', 'nt', 'rb', 'text/', 'text/html', 'x-sendfile']

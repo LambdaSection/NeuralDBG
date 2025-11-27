@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\_plotly_utils\utils.py
+# hypothesis_version: 6.148.2
+
+[-2147483648, -32768, -128, 127, 255, 32767, 65535, 2147483647, 4294967295, '(\\d+)', '+', '+00:00', '-', '-00:00', '-Infinity', '00:00', 'Infinity', 'M', 'NA', 'NaN', 'PIL.Image', 'T', 'T00:00:00', '^', 'ascii', 'bdata', 'dtype', 'f4', 'f8', 'float32', 'float64', 'geojson', 'i1', 'i2', 'i4', 'int16', 'int32', 'int64', 'int8', 'layer', 'layers', 'nan', 'numpy', 'pandas', 'range', 'sage.all', 'shape', 'tolist', 'u1', 'u2', 'u4', 'uint16', 'uint32', 'uint64', 'uint8']

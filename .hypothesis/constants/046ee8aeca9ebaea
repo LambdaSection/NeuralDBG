@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\importlib_metadata\__init__.py
+# hypothesis_version: 6.148.2
+
+[' and ', '"{}"', '#', '%s(%r)', '-', '.', '.dist-info', '.egg', '.egg-info', ':', '; ', '=', '@', 'Distribution', 'DistributionFinder', 'METADATA', 'Name', 'PKG-INFO', 'PackageMetadata', 'PackageNotFoundError', 'RECORD', 'Requires-Dist', 'SOURCES.txt', 'SimplePath', 'Version', '[', '[-_.]+', '[]', '\\w+', ']', '_', '_path', 'direct_url.json', 'dist', 'distribution', 'distributions', 'egg-info', 'entry_points', 'entry_points.txt', 'files', 'find_distributions', 'installed-files.txt', 'metadata', 'path', 'requires', 'requires.txt', 'top_level.txt', 'utf-8', 'version']

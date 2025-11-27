@@ -666,8 +666,14 @@ class NeuralParser:
 
         Returns:
             dict: Parsed model configuration.
+
+        Raises:
+            DSLValidationError: If the code contains validation errors.
+            Exception: For other parsing errors.
         """
-        return parse_network(code)
+        # Delegate to the transformer's parse_network method
+        # which handles parsing, transformation, and validation
+        return self.transformer.parse_network(code)
 
 
 class ModelTransformer(lark.Transformer):

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\urllib3\fields.py
+# hypothesis_version: 6.148.2
+
+['"\\\r\n', '%0A', '%0D', '%22', '; ', 'Content-Disposition', 'Content-Location', 'Content-Type', 'ascii', 'filename', 'form-data', 'name', 'utf-8']

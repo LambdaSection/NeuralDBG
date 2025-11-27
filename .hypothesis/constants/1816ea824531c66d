@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\Documents\Neural\neural\cli\cli_aesthetics.py
+# hypothesis_version: 6.148.2
+
+[0.02, 0.1, 0.2, 100, 101, '\x1b[0m', '\x1b[1m', '\x1b[4m', '\x1b[91m', '\x1b[92m', '\x1b[93m', '\x1b[94m', '\x1b[95m', '\x1b[96m', '-', '1', '1.0.0', 'Complete', 'ERR', 'INFO', 'NEURAL_ASCII', 'NEURAL_NO_ANIMATIONS', 'OK', 'Processing', 'Progress:', 'WARN', '__main__', 'clean', 'compile', 'debug', 'encoding', 'no-code', 'run', 'version', 'visualize', '{0:.1f}', 'ℹ', '→ ', '█', '○', '⚠', '✓', '✗', '⠇', '⠋', '⠏', '⠙', '⠦', '⠧', '⠴', '⠸', '⠹', '⠼']

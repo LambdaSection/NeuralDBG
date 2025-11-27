@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\security.py
+# hypothesis_version: 6.148.2
+
+[132, 1000000, '$', '.', '..', '../', '/', ':', 'pbkdf2', 'scrypt', 'sha256']

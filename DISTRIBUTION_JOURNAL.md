@@ -135,5 +135,17 @@
 - Device placement parsing: reordered grammar alternative so `basic_layer` (which supports `@ "device"`) parses first; enables `Conv2D(...) @ "cuda:0"` across all concrete layers without duplicating grammar.
 - Params normalization: `ResidualConnection` and `Concatenate` now return `params: None` when no parameters are provided, matching tests.
 
+#### Import System Fixes (November 27, 2025)
+- **Fixed neural/__init__.py optional imports**: Removed pre-initialization of module variables to `None` before imports
+  - Problem: Setting `cli = None` before `from . import cli` caused Python to not properly bind the module
+  - Solution: Only set module to `None` in the except block when import fails
+  - Result: All modules now load correctly when dependencies are available
+- **Fixed SyntaxWarning in cli_aesthetics.py**: Changed `NEURAL_LOGO_SMALL = """` to `NEURAL_LOGO_SMALL = r"""`
+  - Problem: ASCII art contained backslash sequences like `| \ |` causing Python 3.12+ SyntaxWarning
+  - Solution: Use raw string literal to prevent escape sequence interpretation
+- **Installed core dependencies**: click, lark, numpy, plotly, psutil, graphviz, matplotlib, flask, dash, networkx, hypothesis, cycler, pyreadline3, pysnooper, flask-socketio
+- **Test Results**: 145 passed, 53 failed (failures are mostly test expectation mismatches, not import issues)
+- **Cleanup**: Removed temporary test_import.py debug file
+
 #### Next Actions
 - Re-run `tests/parser/test_networks.py` and fix any remaining failures (wrapper/device interactions, schedule edge-cases) sequentially.

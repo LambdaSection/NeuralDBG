@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\lib\_twodim_base_impl.py
+# hypothesis_version: 6.148.2
+
+['C', 'diag', 'diagflat', 'eye', 'fliplr', 'flipud', 'histogram2d', 'mask_indices', 'numpy', 'tri', 'tril', 'tril_indices', 'tril_indices_from', 'triu', 'triu_indices', 'triu_indices_from', 'vander']

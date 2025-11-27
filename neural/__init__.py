@@ -3,36 +3,131 @@ Neural DSL - A domain-specific language for neural networks.
 
 This package provides a declarative syntax for defining, training, debugging,
 and deploying neural networks with cross-framework support.
+
+Modules are imported optionally - if a dependency is missing, the module
+is set to None and a warning is emitted. Check module availability before use.
 """
 
-__version__ = "0.3.0.dev0"
-__author__ = "Lemniscate-SHA-256/SENOUVO Jacques-Charles Gad"
-__email__ = "Lemniscate_zero@proton.me"
+# Standard library imports
+import warnings  # For emitting optional dependency warnings
 
-# Core modules
-from . import cli
-from . import parser
-from . import shape_propagation
-from . import code_generation
-from . import visualization
-from . import dashboard
-from . import hpo
-from . import cloud
+# Package metadata - always available
+__version__ = "0.3.0.dev0"  # Current development version
+__author__ = "Lemniscate-SHA-256/SENOUVO Jacques-Charles Gad"  # Package author
+__email__ = "Lemniscate_zero@proton.me"  # Contact email
 
-# Utility modules
-from . import utils
+# Core modules - imported optionally to handle missing dependencies gracefully
+# Each module is wrapped in try/except so the package can be imported
+# even when some dependencies are missing.
+# Modules are set to None if import fails.
 
+# CLI module - requires 'click' package
+try:
+    from . import cli  # Command-line interface using click framework
+except Exception as e:
+    cli = None  # Mark as unavailable
+    warnings.warn(f"CLI module unavailable: {e}. Install 'click' to enable.")
+
+# Parser module - requires 'lark' package
+try:
+    from . import parser  # DSL parser using lark-parser grammar
+except Exception as e:
+    parser = None  # Mark as unavailable
+    warnings.warn(f"Parser module unavailable: {e}. Install 'lark' to enable.")
+
+# Shape propagation module - requires 'numpy' package
+try:
+    from . import shape_propagation  # Tensor shape inference and validation
+except Exception as e:
+    shape_propagation = None  # Mark as unavailable
+    warnings.warn(f"Shape propagation module unavailable: {e}. Install 'numpy' to enable.")
+
+# Code generation module - may require various backends
+try:
+    from . import code_generation  # Generate PyTorch/TensorFlow code from DSL
+except Exception as e:
+    code_generation = None  # Mark as unavailable
+    warnings.warn(f"Code generation module unavailable: {e}")
+
+# Visualization module - requires 'matplotlib' package
+try:
+    from . import visualization  # Network architecture visualization
+except Exception as e:
+    visualization = None  # Mark as unavailable
+    warnings.warn(f"Visualization module unavailable: {e}. Install 'matplotlib' to enable.")
+
+# Dashboard module - requires 'flask' and 'flask-socketio' packages
+try:
+    from . import dashboard  # Real-time training dashboard
+except Exception as e:
+    dashboard = None  # Mark as unavailable
+    warnings.warn(f"Dashboard module unavailable: {e}. Install 'flask' and 'flask-socketio' to enable.")
+
+# HPO module - hyperparameter optimization
+try:
+    from . import hpo  # Hyperparameter optimization utilities
+except Exception as e:
+    hpo = None  # Mark as unavailable
+    warnings.warn(f"HPO module unavailable: {e}")
+
+# Cloud module - cloud execution features
+try:
+    from . import cloud  # Cloud training and deployment
+except Exception as e:
+    cloud = None  # Mark as unavailable
+    warnings.warn(f"Cloud module unavailable: {e}")
+
+# Utility modules - minimal dependencies
+try:
+    from . import utils  # Common utility functions
+except Exception as e:
+    utils = None  # Mark as unavailable
+    warnings.warn(f"Utils module unavailable: {e}")
+
+
+def check_dependencies():
+    """
+    Check which modules are available and return a status dictionary.
+
+    Returns:
+        dict: Module name -> availability status (True/False)
+
+    Example:
+        >>> import neural
+        >>> deps = neural.check_dependencies()
+        >>> if deps['parser']:
+        ...     # Parser is available, can use neural.parser
+        ...     pass
+    """
+    return {
+        "cli": cli is not None,  # CLI available?
+        "parser": parser is not None,  # Parser available?
+        "shape_propagation": shape_propagation is not None,  # Shape prop available?
+        "code_generation": code_generation is not None,  # Code gen available?
+        "visualization": visualization is not None,  # Visualization available?
+        "dashboard": dashboard is not None,  # Dashboard available?
+        "hpo": hpo is not None,  # HPO available?
+        "cloud": cloud is not None,  # Cloud available?
+        "utils": utils is not None,  # Utils available?
+    }
+
+
+# Export list - all public names
 __all__ = [
+    # Metadata
     "__version__",
-    "__author__", 
+    "__author__",
     "__email__",
+    # Modules (may be None if dependencies missing)
     "cli",
-    "parser", 
+    "parser",
     "shape_propagation",
     "code_generation",
     "visualization",
     "dashboard",
     "hpo",
     "cloud",
-    "utils"
+    "utils",
+    # Helper function
+    "check_dependencies",
 ]

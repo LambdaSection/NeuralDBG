@@ -34,17 +34,19 @@ def transformer():
             "validation_split must be between 0 and 1, got 1.5",
             "invalid-validation-split"
         ),
+        # Note: Dense() without params is intentionally allowed (params=None)
+        # Instead, test Dense with string units which should error
         (
             """
-            network MissingUnits {
+            network StringUnits {
                 input: (10,)
-                layers: Dense()
+                layers: Dense("invalid")
                 loss: "mse"
                 optimizer: "sgd"
             }
             """,
-            "Dense layer requires 'units' parameter",
-            "missing-units"
+            "Dense units must be a number",
+            "string-units"
         ),
         (
             """
@@ -59,7 +61,7 @@ def transformer():
             "negative-filters"
         ),
     ],
-    ids=["invalid-validation-split", "missing-units", "negative-filters"]
+    ids=["invalid-validation-split", "string-units", "negative-filters"]
 )
 def test_validation_rules(transformer, network_string, expected_error_msg, test_id):
     with pytest.raises(DSLValidationError) as excinfo:

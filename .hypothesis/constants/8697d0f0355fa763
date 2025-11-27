@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\pyreadline3\modes\vi.py
+# hypothesis_version: 6.148.2
+
+[100, 127, '\x08', '\x1b', '$', '%', '%s', '%s %s', '(', ')', '*', ',', '.', '.py', '/', ';', '<', '<ViMode>', '>', 'BackSpace', 'Control-d', 'Control-n', 'Control-p', 'Control-r', 'Control-z', 'Delete', 'Down', 'EDITOR', 'End', 'Escape', 'Home', 'Left', 'Return', 'Right', 'Tab', 'Up', '[', ']', '^', '_', 'key_%s', 'notepad', 'on', 'r', 'readline-', 'vi', 'vi_action', 'vi_begin', 'vi_end', 'vi_motion', 'vi_motion_argument', 'vi_multi1', 'vi_multi2', 'vi_replace_one', 'vi_search', 'vi_text', 'w', '{', '|', '}', '~']

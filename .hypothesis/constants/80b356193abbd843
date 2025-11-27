@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_array_api_info.py
+# hypothesis_version: 6.148.2
+
+['bool', 'boolean indexing', 'complex floating', 'complex128', 'complex64', 'cpu', 'float32', 'float64', 'indexing', 'int16', 'int32', 'int64', 'int8', 'integral', 'max dimensions', 'numeric', 'numpy', 'real floating', 'signed integer', 'uint16', 'uint32', 'uint64', 'uint8', 'unsigned integer']

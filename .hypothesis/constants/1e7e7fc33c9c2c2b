@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\_internal.py
+# hypothesis_version: 6.148.2
+
+['!', '%d', '&', '(', ')', ',', ', ', ', /, out=()', ', /, out=None', ':', '<', '=', '>', '?', '@', 'B', 'D', 'F', 'G', 'H', 'I', 'L', 'O', 'Q', 'S', 'S1', 'T{', 'U', 'UCS-2 strings', 'USV', 'V', 'X', 'Z', 'Zd', 'Zf', 'Zg', '\\s*,\\s*', '\\s+$', '^', '_ctypes', 'b', 'bitfields', 'c', 'd', 'e', 'f', 'f0', 'f2', 'formats', 'function pointers', 'g', 'h', 'i', 'i2', 'i4', 'i8', 'invalid offset.', 'itemsize', 'l', 'little', 'n', 'names', 'offsets', 'out', 'pointers', 'pypy', 'q', 's', 't', 'titles', 'u', 'u2', 'u4', 'u8', 'w', 'x', '|', '}']

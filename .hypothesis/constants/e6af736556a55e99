@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\shape_base.py
+# hypothesis_version: 6.148.2
+
+[512, 'C', 'C_CONTIGUOUS', 'F', 'F_CONTIGUOUS', '__getitem__', '__wrapped__', 'arrays', 'atleast_1d', 'atleast_2d', 'atleast_3d', 'block', 'hstack', 'numpy', 'same_kind', 'stack', 'unstack', 'vstack']

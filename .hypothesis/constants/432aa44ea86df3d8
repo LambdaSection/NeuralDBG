@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\parsers\earley_forest.py
+# hypothesis_version: 6.148.2
+
+[8421504, 100000000000000000000000000000, 123456789012345678901234567890, '"', '"filled"', '"filled,rounded"', '"{}"', '#{:06x}', '({}, {}, {}, {})', '-inf', 'None', 'TB', '\\"', '_ambig', '_children', '_hash', '_iambig', '_inter', 'data', 'diamond', 'digraph', 'ellipse', 'end', 'filled', 'handles_ambiguity', 'invis', 'is_intermediate', 'left', 'on_cycle', 'parent', 'paths', 'paths_loaded', 'priority', 'pydot', 'rectangle', 'result', 'right', 'rule', 's', 'sort_key', 'start', 'term', 'token', 'visit_packed_node_in', 'visit_symbol_node_in', 'visit_token_node', '{} ::= {}* {}']

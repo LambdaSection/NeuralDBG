@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\tree.py
+# hypothesis_version: 6.148.2
+
+[8421504, 16777215, '#%x', 'LR', 'List[TerminalDef]', 'Token', 'Tree(%r, %r)', 'Tree[_Leaf_T]', '_Leaf_T', '_meta', 'children', 'data', 'digraph', 'filled', 'rich.tree.Tree', 'rule']

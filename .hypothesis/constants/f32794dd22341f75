@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\lib\_format_impl.py
+# hypothesis_version: 6.148.2
+
+[b'\n', b' ', b'\x93NUMPY', 255, 1024, 10000, '<H', '<I', 'C', 'F', 'L', 'array data', 'array header', 'array header length', 'b', 'buffered', 'descr', 'external_loop', 'formats', 'fortran_order', 'itemsize', 'latin1', 'magic string', 'names', 'numpy.lib.format', 'offsets', 'r+', 'ran out of data', 'rb', 'shape', 'titles', 'utf8', 'w', 'w+', 'zerosize_ok', '{', '|O', '}']

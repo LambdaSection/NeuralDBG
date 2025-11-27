@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\jinja2\async_utils.py
+# hypothesis_version: 6.148.2
+
+['V', '__aiter__', '__module__', '__name__', '__qualname__', 't.AsyncIterator[V]', 't.Awaitable[V]', 't.Iterator[V]', 'te.Self']

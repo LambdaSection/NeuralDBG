@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\urllib3\util\wait.py
+# hypothesis_version: 6.148.2
+
+[1000, 'select', 'wait_for_read', 'wait_for_write']

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\matcher.py
+# hypothesis_version: 6.148.2
+
+['/', '/{2,}?', '__werkzeug_']

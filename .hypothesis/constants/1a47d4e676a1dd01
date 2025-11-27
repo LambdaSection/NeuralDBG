@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\html\Img.py
+# hypothesis_version: 6.148.2
+
+['HIDDEN', 'Img', '__init__', '_explicit_args', 'accessKey', 'alt', 'aria-', 'aria-*', 'children', 'className', 'contentEditable', 'crossOrigin', 'dash_html_components', 'data-', 'data-*', 'dir', 'disable_n_clicks', 'draggable', 'height', 'hidden', 'id', 'key', 'lang', 'n_clicks', 'n_clicks_timestamp', 'referrerPolicy', 'role', 'sizes', 'spellCheck', 'src', 'srcSet', 'style', 'tabIndex', 'title', 'useMap', 'width']

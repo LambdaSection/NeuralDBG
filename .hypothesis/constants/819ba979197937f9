@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\einsumfunc.py
+# hypothesis_version: 6.148.2
+
+['\n%4d    %24s %40s', '%6s %24s %40s\n', ',', '-', '->', '.', '.,->', '...', '>', 'A', 'C', 'F', 'Invalid Ellipses.', 'K', 'No input operands', 'casting', 'current', 'dtype', 'einsum', 'einsum_path', 'greedy', 'numpy', 'optimal', 'order', 'out', 'remaining', 'scaling']

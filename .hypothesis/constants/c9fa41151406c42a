@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\pyreadline3\rlmain.py
+# hypothesis_version: 6.148.2
+
+[0.3, '#', '-', '>>> ', 'KBDIRQ', 'Line: %s in file %s', 'STARTING LOG', 'STOPING LOG', '_', 'allow_ctrl_c', 'allow_ctrl_c:%s:%s', 'audible', 'bad set "%s"', 'bell_style', 'bind_exit_key', 'bind_key', 'black', 'blue', 'c', 'complete_filesystem', 'completer_delims', 'cyan', 'darkblue', 'darkcyan', 'darkgreen', 'darkmagenta', 'darkred', 'darkyellow', 'debug_output', 'disable_readline', 'error', 'get_completer', 'gray', 'green', 'history_filename', 'history_length', 'magenta', 'mark_directories', 'mode', 'modes', 'none', 'on', 'on_nologfile', 'parse_and_bind("%s")', 'read_init_file("%s")', 'red', 'returning(%s)', 'set', 'set_completer', 'set_input_color', 'set_mode', 'set_prompt_color', 'un_bind_exit_key', 'un_bind_key', 'version', 'visible', 'white', 'yellow']

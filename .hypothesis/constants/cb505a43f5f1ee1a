@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\parsers\lalr_analysis.py
+# hypothesis_version: 6.148.2
+
+['\n\t- ', ' * %s', '$END', '$root_', 'Reduce', 'Shift', 'State', 'StateT', 'end_states', 'start_states', 'states', 'tokens']

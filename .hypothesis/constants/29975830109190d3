@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\jinja2\utils.py
+# hypothesis_version: 6.148.2
+
+[b'/', 100, '%20', '&', '&gt;', '&lt;', "'", '(', '([)>.,\\n]|&gt;)+$', '(\\s+)', ')', '+', ',', ', ', '.', ':', '<', '>', '@', 'Ellipsis', 'F', 'None', '\\u0026', '\\u0027', '\\u003c', '\\u003e', '^([(<]|&lt;)+', '^\\S+@\\w[\\w.-]*\\.\\w+$', '_Namespace__attrs', '_PassArg', '__class__', '_mapping', '_queue', 'builtins', 'capacity', 'htm', 'html', 'http://', 'https://', 'jinja_pass_arg', 'mailto:', 'missing', 'rb', 'te.Self', 'utf-8', 'www.', 'xml']

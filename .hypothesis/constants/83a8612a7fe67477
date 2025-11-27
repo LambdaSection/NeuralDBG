@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\requests\_internal_utils.py
+# hypothesis_version: 6.148.2
+
+[b'^[^:\\s][^:\\r\\n]*$', b'^\\S[^\\r\\n]*$|^$', '^[^:\\s][^:\\r\\n]*$', '^\\S[^\\r\\n]*$|^$', 'ascii']

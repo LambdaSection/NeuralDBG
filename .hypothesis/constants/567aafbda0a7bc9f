@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dcc\Tooltip.py
+# hypothesis_version: 6.148.2
+
+['Bbox', 'Tooltip', '__init__', '_explicit_args', 'background_color', 'bbox', 'border_color', 'bottom', 'children', 'className', 'dash_core_components', 'direction', 'id', 'left', 'loading_text', 'right', 'show', 'style', 'targetable', 'top', 'x0', 'x1', 'y0', 'y1', 'zindex']

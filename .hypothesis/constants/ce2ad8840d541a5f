@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\common.py
+# hypothesis_version: 6.148.2
+
+['Optional[PostLex]', 'Rule', 'TypeAlias', 'g_regex_flags', 'ignore', 'lexer_type', 'parser_type', 'rules', 'start', 'terminals', 'use_bytes']

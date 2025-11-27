@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\jinja2\defaults.py
+# hypothesis_version: 6.148.2
+
+['#}', '%}', 'compiler.ascii_str', 'cycler', 'dict', 'ext.i18n.trimmed', 'joiner', 'json.dumps_function', 'json.dumps_kwargs', 'lipsum', 'namespace', 'noopener', 'range', 'sort_keys', 'truncate.leeway', 'urlize.extra_schemes', 'urlize.rel', 'urlize.target', '{#', '{%', '{{', '}}']

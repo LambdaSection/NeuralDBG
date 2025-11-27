@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\numerictypes.py
+# hypothesis_version: 6.148.2
+
+['All', 'AllFloat', 'AllInteger', 'BHILQNP', 'Character', 'Complex', 'Datetime', 'FDG', 'Float', 'Integer', 'Mm', 'ScalarType', 'UnsignedInteger', 'bBhHiIlLqQnNpP', 'bhilqnp', 'bool', 'busday_count', 'busday_offset', 'busdaycalendar', 'c', 'complex', 'complex floating', 'complex128', 'complex192', 'complex256', 'complex64', 'datetime_as_string', 'datetime_data', 'efdg', 'efdgFDG', 'float', 'float128', 'float16', 'float32', 'float64', 'float96', 'generic', 'int', 'int16', 'int32', 'int64', 'int8', 'integral', 'is_busday', 'isdtype', 'issubdtype', 'numeric', 'numpy', 'object', 'real floating', 'signed integer', 'typecodes', 'uint', 'uint16', 'uint32', 'uint64', 'uint8', 'unrecognized type', 'unsigned integer']

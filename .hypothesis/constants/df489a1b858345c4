@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\jinja2\environment.py
+# hypothesis_version: 6.148.2
+
+[400, 493, '&', '.', '<template>', '=', 'BaseLoader', 'BytecodeCache', 'CodeGenerator', 'Environment', 'Extension', 'Template', 'TemplateExpression', 'TemplateModule', 'TemplateStream', '__file__', '__jinja_template__', '_env_bound', 'blocks', 'cache_size', 'debug_info', 'deflated', 'enable_async', 'environment', 'exec', 'extensions', 'filter', 'name', 'os.PathLike[str]', 'result', 'root', 'self', 'store', 'strict', 'te.Literal[False]', 'te.Literal[True]', 'te.NoReturn', 'te.Self', 'test', 'utf-8', 'utf8', 'variable', 'w', 'wb', 'weakref.ref[t.Any]', 'writelines']

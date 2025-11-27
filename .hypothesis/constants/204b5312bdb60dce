@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dcc\Loading.py
+# hypothesis_version: 6.148.2
+
+['Loading', '__init__', '_explicit_args', 'auto', 'children', 'circle', 'className', 'color', 'cube', 'custom_spinner', 'dash_core_components', 'debug', 'default', 'delay_hide', 'delay_show', 'display', 'dot', 'fullscreen', 'graph', 'hide', 'id', 'overlay_style', 'parent_className', 'parent_style', 'show', 'show_initially', 'style', 'target_components', 'type']

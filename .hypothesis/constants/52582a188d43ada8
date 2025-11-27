@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\sansio\request.py
+# hypothesis_version: 6.148.2
+
+['+json', '/', ';', 'Accept', 'Accept-Charset', 'Accept-Encoding', 'Accept-Language', 'Authorization', 'Cache-Control', 'Content-Encoding', 'Content-Length', 'Content-MD5', 'Content-Type', 'Cookie', 'Date', 'If-Match', 'If-Modified-Since', 'If-None-Match', 'If-Range', 'If-Unmodified-Since', 'Max-Forwards', 'Origin', 'Pragma', 'Range', 'Referer', 'Transfer-Encoding', 'User-Agent', 'X-Forwarded-For', '_parsed_content_type', 'application/', 'application/json', 'host', 'https', 'werkzeug.url_quote', 'wss']

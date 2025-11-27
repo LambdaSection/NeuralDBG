@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\flask\globals.py
+# hypothesis_version: 6.148.2
+
+['app', 'flask.app_ctx', 'flask.request_ctx', 'g', 'request', 'session']

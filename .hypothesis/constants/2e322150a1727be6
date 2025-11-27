@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\_type_aliases.py
+# hypothesis_version: 6.148.2
+
+['M', 'NPY_', 'a', 'bool', 'bool_', 'bytes', 'bytes_', 'cdouble', 'character', 'clongdouble', 'complex', 'complex128', 'complex64', 'complexfloating', 'csingle', 'double', 'flexible', 'float', 'float16', 'float32', 'float64', 'floating', 'generic', 'half', 'inexact', 'int', 'int_', 'integer', 'intp', 'longdouble', 'm', 'number', 'object', 'object_', 'others', 'signedinteger', 'single', 'str', 'str_', 'uint', 'uintp', 'unicode', 'unsignedinteger']

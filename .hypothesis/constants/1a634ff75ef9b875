@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\wrappers\response.py
+# hypothesis_version: 6.148.2
+
+[100, 200, 204, 206, 304, 412, 'Accept-Ranges', 'Content-Length', 'Content-Location', 'Date', 'GET', 'HEAD', 'HTTP_IF_MATCH', 'HTTP_IF_RANGE', 'HTTP_RANGE', 'Location', 'REQUEST_METHOD', 'bytes', 'close', 'content-length', 'content-location', 'date', 'etag', 'last-modified', 'likely-streamed', 'location', 'streamed', 'utf-8', 'wb+']

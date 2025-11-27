@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\dtypes.py
+# hypothesis_version: 6.148.2
+
+['__slots__', '_cached_categories', '_delayed_categories', 'dtype', 'fields', 'inner', 'ms', 'name', 'ns', 's', 'shape', 'size', 'time_unit', 'time_zone', 'us']

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dcc\Upload.py
+# hypothesis_version: 6.148.2
+
+['Upload', '__init__', '_explicit_args', 'accept', 'children', 'className', 'className_active', 'className_disabled', 'className_reject', 'contents', 'dash_core_components', 'disable_click', 'disabled', 'filename', 'id', 'last_modified', 'max_size', 'min_size', 'multiple', 'style', 'style_active', 'style_disabled', 'style_reject']

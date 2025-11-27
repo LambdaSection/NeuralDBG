@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\datastructures\csp.py
+# hypothesis_version: 6.148.2
+
+['base-uri', 'child-src', 'connect-src', 'default-src', 'font-src', 'form-action', 'frame-ancestors', 'frame-src', 'img-src', 'manifest-src', 'media-src', 'navigate-to', 'object-src', 'plugin-types', 'prefetch-src', 'report-to', 'report-uri', 'sandbox', 'script-src', 'script-src-attr', 'script-src-elem', 'style-src', 'style-src-attr', 'style-src-elem', 'worker-src']

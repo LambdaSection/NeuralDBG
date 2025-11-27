@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\parser_frontends.py
+# hypothesis_version: 6.148.2
+
+['BasicLexer', 'ContextualLexer', 'LALR_Parser', 'LexerThread', '__future_interface__', 'basic', 'complete_lex', 'contextual', 'cyk', 'dynamic', 'dynamic_complete', 'earley', 'forest', 'lalr', 'lexer_conf', 'on_error', 'parser', 'parser_conf', 'resolve', 'utf-8']

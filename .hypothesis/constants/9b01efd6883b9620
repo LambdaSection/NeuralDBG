@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\lark.py
+# hypothesis_version: 6.148.2
+
+[b'\n', '*', '<deserialized>', '<string>', 'Grammar', 'InteractiveParser', 'Lark', 'LarkOptions', 'ParseTree', 'ParsingFrontend', 'Rule', 'Sequence[str]', 'TerminalDef', 'Unknown options: %s', '_T', '_plugins', 'ambiguity', 'auto', 'basic', 'cache', 'cache_grammar', 'contextual', 'cyk', 'data', 'debug', 'dynamic', 'dynamic_complete', 'earley', 'edit_terminals', 'explicit', 'forest', 'g_regex_flags', 'grammar', 'import_paths', 'invert', 'keep_all_tokens', 'lalr', 'lexer', 'lexer_callbacks', 'lexer_conf', 'maybe_placeholders', 'memo', 'normal', 'options', 'ordered_sets', 'parser', 'postlex', 'priority', 'propagate_positions', 'rb', 'regex', 'resolve', 'rules', 'source_path', 'start', 'strict', 'transformer', 'tree_class', 'unknown', 'use_bytes', 'utf8', 'wb']

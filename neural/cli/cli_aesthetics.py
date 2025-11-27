@@ -21,7 +21,9 @@ NEURAL_LOGO = """
 """
 
 # Smaller Neural ASCII Logo
-NEURAL_LOGO_SMALL = """
+# Using raw string (r"...") to avoid invalid escape sequence warnings
+# The backslashes in the ASCII art would otherwise be interpreted as escape sequences
+NEURAL_LOGO_SMALL = r"""
  _   _                      _
 | \ | | ___ _   _ _ __ __ _| |
 |  \| |/ _ \ | | | '__/ _` | |

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\map.py
+# hypothesis_version: 6.148.2
+
+["!$&'()*+,/:;=@", ',', '--', '.', '/', ':', ':443', ':80', '<invalid>', 'GET', 'HTTP_CONNECTION', 'HTTP_UPGRADE', 'PATH_INFO', 'QUERY_STRING', 'REQUEST_METHOD', 'SCRIPT_NAME', 'ascii', 'http', 'https', 'idna', 'upgrade', 'websocket', 'ws', 'wsgi.url_scheme', 'wss']

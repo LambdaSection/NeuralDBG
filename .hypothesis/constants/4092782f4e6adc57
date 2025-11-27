@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\dataframe.py
+# hypothesis_version: 6.148.2
+
+[512, 'DataFrame.group_by', 'DataFrameT', 'IntoDataFrame', 'IntoFrame', 'IntoLazyFrame', 'LazyFrame.group_by', 'LazyFrameT', 'Narwhals DataFrame', 'Narwhals LazyFrame', 'PS', 'R', '_', '_FrameT', '_right', 'anti', 'any', 'b', 'backward', 'cross', 'filter', 'first', 'forward', 'full', 'index', 'inner', 'interchange', 'last', 'lazy', 'left', 'nearest', 'none', 'semi', 'value', 'variable']

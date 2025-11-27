@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\lib\_utils_impl.py
+# hypothesis_version: 6.148.2
+
+['\n\nMethods:\n', '()', ',\n', ', ', '-', '=', '>', 'None', '_', '__class__', '__doc__', '__init__', '__name__', '_core', '_ppimport_attr', '_ppimport_importer', '_ppimport_module', 'aligned: ', 'baseline', 'big', 'byteorder: ', 'byteswap: ', 'class: ', 'contiguous: ', 'formats', 'fortran: ', 'found', 'get_include', 'include', 'info', 'itemsize', 'itemsize: ', 'little', 'names', 'not_found', 'numpy', 'numpy_version', 'offsets', 'python', 'shape: ', 'show_runtime', 'simd_extensions', 'strides: ', 'titles', 'uname', '|']

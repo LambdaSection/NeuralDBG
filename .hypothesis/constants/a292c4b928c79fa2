@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\functions.py
+# hypothesis_version: 6.148.2
+
+['\nSystem:', '1.26.0', 'PYSPARK_CONNECT', 'UNKNOWN', 'all', 'all_horizontal', 'any_horizontal', 'coalesce', 'col', 'concat_str', 'csv', 'diagonal', 'exclude', 'executable', 'horizontal', 'len', 'lit', 'machine', 'max_horizontal', 'mean_horizontal', 'min_horizontal', 'narwhals', 'nth', 'numpy', 'parquet', 'python', 'session', 'sum_horizontal', 'vertical', 'when_then', '{}']

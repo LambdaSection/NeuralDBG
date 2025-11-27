@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\urllib3\util\request.py
+# hypothesis_version: 6.148.2
+
+[',', ',br', ',zstd', '@@@SKIP_HEADER@@@', 'CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'TRACE', 'accept-encoding', 'authorization', 'cache-control', 'connection', 'gzip,deflate', 'host', 'keep-alive', 'no-cache', 'proxy-authorization', 'read', 'seek', 'tell', 'user-agent', 'utf-8']

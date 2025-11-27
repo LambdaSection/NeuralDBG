@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\lib\_version.py
+# hypothesis_version: 6.148.2
+
+['.', '.dev', 'NumpyVersion', '\\d+\\.\\d+\\.\\d+', 'a\\d', 'b\\d', 'final', 'numpy.lib', 'rc\\d']

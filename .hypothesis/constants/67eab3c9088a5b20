@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\html\Option.py
+# hypothesis_version: 6.148.2
+
+['DISABLED', 'HIDDEN', 'Option', 'SELECTED', '__init__', '_explicit_args', 'accessKey', 'aria-', 'aria-*', 'children', 'className', 'contentEditable', 'dash_html_components', 'data-', 'data-*', 'dir', 'disable_n_clicks', 'disabled', 'draggable', 'hidden', 'id', 'key', 'label', 'lang', 'n_clicks', 'n_clicks_timestamp', 'role', 'selected', 'spellCheck', 'style', 'tabIndex', 'title', 'value']

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\grammar.py
+# hypothesis_version: 6.148.2
+
+['%s(%r)', '%s(%r, %r)', '<%s : %s>', 'NonTerminal', 'Rule(%r, %r, %r, %r)', '__type__', '_hash', 'alias', 'empty_indices', 'expand1', 'expansion', 'filter_out', 'keep_all_tokens', 'name', 'options', 'order', 'origin', 'priority', 'template_source']

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\graphviz\backend\execute.py
+# hypothesis_version: 6.148.2
+
+['CalledProcessError', 'ExecutableNotFound', 'capture_output', 'check', 'encoding', 'input', 'run %r', 'run_check', 'startupinfo', 'stderr', 'stdout', 'str']

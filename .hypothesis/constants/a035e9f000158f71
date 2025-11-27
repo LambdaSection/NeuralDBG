@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\parsers\lalr_parser_state.py
+# hypothesis_version: 6.148.2
+
+['ParserState[StateT]', 'callbacks', 'end_state', 'lexer', 'parse_conf', 'parse_table', 'start', 'start_state', 'state_stack', 'states', 'value_stack']

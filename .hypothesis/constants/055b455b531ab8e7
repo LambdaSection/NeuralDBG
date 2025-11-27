@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\lexer.py
+# hypothesis_version: 6.148.2
+
+[b'\n', 0.2, '%s(%r, %r)', '(?%s:%s)', '(?P<%s>%s)', '(?s', '.', '<END-OF-FILE>', 'Lexer', 'LexerConf', 'LexerThread', 'ParserState', 'Scanner', 'Token', 'Token(%r, %r)', '[^', '\\n', '\\s', '_T', '__', '_width', 'char_pos', 'column', 'end_column', 'end_line', 'end_pos', 'flags', 'last_token', 'latin-1', 'line', 'line_ctr', 'line_start_pos', 'name', 'newline_char', 'pattern', 'priority', 'raw', 're', 'start_pos', 'str', 'text', 'type', 'type_', 'value', '|']

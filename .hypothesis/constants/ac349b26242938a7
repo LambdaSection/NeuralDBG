@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\testing\plugin.py
+# hypothesis_version: 6.148.2
+
+['--headless', '--nopercyfinalize', '--pause', '--percy-assets', '--remote', '--remote-url', '--webdriver', 'Chrome', 'Dash', 'Firefox', 'add_hookspecs', 'call', 'dash_br', 'dash_duo', 'dashjl', 'dashr', 'download', 'funcargs', 'headless', 'nopercyfinalize', 'pause', 'percy_assets', 'remote', 'remote_url', 'store', 'store_false', 'store_true', 'tests/assets', 'webdriver']

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_expired_attrs_2_0.py
+# hypothesis_version: 6.148.2
+
+['DataSource', 'Inf', 'Infinity', 'NINF', 'NZERO', 'NaN', 'PINF', 'PZERO', 'Use `-0.0` instead.', 'Use `0.0` instead.', 'add_docstring', 'add_newdoc', 'add_newdoc_ufunc', 'alltrue', 'asfarray', 'byte_bounds', 'cast', 'cfloat', 'clongfloat', 'compare_chararrays', 'complex_', 'deprecate', 'deprecate_with_doc', 'disp', 'fastCopyAndTranspose', 'find_common_type', 'float_', 'format_parser', 'get_array_wrap', 'geterrobj', 'infty', 'issctype', 'issubclass_', 'issubsctype', 'longcomplex', 'longfloat', 'lookfor', 'mat', 'maximum_sctype', 'nbytes', 'obj2sctype', 'recfromcsv', 'recfromtxt', 'round_', 'safe_eval', 'sctype2char', 'sctypes', 'set_numeric_ops', 'set_string_function', 'seterrobj', 'singlecomplex', 'sometrue', 'source', 'string_', 'tracemalloc_domain', 'unicode_', 'who']

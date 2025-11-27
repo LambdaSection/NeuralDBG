@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\Documents\Neural\neural\cli\__init__.py
+# hypothesis_version: 6.148.2
+
+['ModelTransformer', 'ShapePropagator', 'cli', 'create_parser', 'visualize']

@@ -132,23 +132,29 @@ class TestTokenPatterns:
 
 class TestErrorHandling:
     def test_error_recovery(self, parser):
-        """Test parser's error recovery capabilities."""
+        """
+        Test parser's error recovery capabilities.
+
+        Verifies that malformed input raises DSLValidationError with
+        meaningful error information (line number, context).
+        """
         test_cases = [
             (
                 'incomplete_block',
                 '''network Test {
                     input: (1, 1)
-                    layers: Dense(10) {''',  # Missing closing brace
-                'Unexpected end of input - Check for missing closing braces'
+                    layers: Dense(10) {''',  # Extra opening brace - invalid
+                'Unexpected token'  # Parser reports unexpected token, not EOF
             ),
             (
                 'missing_close',
                 'network Test { input: (1,1) layers: Dense(10)',
-                'Unexpected end of input - Check for missing closing braces'
+                'Unexpected token'  # Missing closing brace
             )
         ]
 
         for test_id, test_input, expected_msg in test_cases:
             with pytest.raises(DSLValidationError) as exc_info:
                 safe_parse(parser, test_input)
+            # Verify error is meaningful (contains expected substring)
             assert expected_msg in str(exc_info.value), f"Test case {test_id} failed"

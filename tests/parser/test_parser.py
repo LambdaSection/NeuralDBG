@@ -12,6 +12,49 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from neural.parser.parser import ModelTransformer, create_parser, DSLValidationError, Severity, safe_parse
 
 
+def assert_dict_equal(actual, expected, path=""):
+    """
+    Recursively compare two dictionaries for equality.
+
+    Args:
+        actual: The actual dictionary from parsing.
+        expected: The expected dictionary to compare against.
+        path: Current path in the nested structure (for error messages).
+
+    Raises:
+        AssertionError: If dictionaries differ.
+    """
+    # Handle None cases
+    if expected is None:
+        assert actual is None, f"At {path}: expected None, got {actual}"
+        return
+    if actual is None:
+        assert expected is None, f"At {path}: expected {expected}, got None"
+        return
+
+    # Handle non-dict types
+    if not isinstance(expected, dict):
+        assert actual == expected, f"At {path}: expected {expected}, got {actual}"
+        return
+
+    # Both should be dicts
+    assert isinstance(actual, dict), f"At {path}: expected dict, got {type(actual)}"
+
+    # Check all expected keys exist and match
+    for key, value in expected.items():
+        current_path = f"{path}.{key}" if path else key
+        assert key in actual, f"Missing key: {current_path}"
+        if isinstance(value, dict):
+            assert_dict_equal(actual[key], value, current_path)
+        elif isinstance(value, list):
+            assert isinstance(actual[key], list), f"At {current_path}: expected list"
+            assert len(actual[key]) == len(value), f"At {current_path}: length mismatch"
+            for i, (a, e) in enumerate(zip(actual[key], value)):
+                assert_dict_equal(a, e, f"{current_path}[{i}]")
+        else:
+            assert actual[key] == value, f"At {current_path}: expected {value}, got {actual[key]}"
+
+
 # Fixtures
 @pytest.fixture
 def layer_parser():
@@ -1250,5 +1293,6 @@ def test_learning_rate_schedule():
         'warnings': []
     }
 
-    result = ModelTransformer().transform(config)
+    # Parse and transform the config (use parse_network which handles both)
+    result = ModelTransformer().parse_network(config)
     assert_dict_equal(result, expected)

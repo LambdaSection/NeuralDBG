@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\flask\sessions.py
+# hypothesis_version: 6.148.2
+
+['APPLICATION_ROOT', 'Cookie', 'SECRET_KEY_FALLBACKS', 'SESSION_COOKIE_NAME', 'SESSION_COOKIE_PATH', '_permanent', 'cookie-session', 'digest_method', 'hmac', 'key_derivation']

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\graphviz\backend\unflattening.py
+# hypothesis_version: 6.148.2
+
+['-c', '-f', '-l', 'UNFLATTEN_BINARY', 'unflatten']

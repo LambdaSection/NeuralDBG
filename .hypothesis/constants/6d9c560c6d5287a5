@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\linalg\_linalg.py
+# hypothesis_version: 6.148.2
+
+[0.0, 1e-15, '=', 'D->D', 'D->DD', 'D->Dd', 'D->DdD', 'D->d', 'D->dD', 'DD->D', 'DDd->Ddid', 'K', 'L', 'LinAlgError', 'SVD did not converge', 'Singular matrix', 'U', '__array_wrap__', 'call', 'cholesky', 'complete', 'cond', 'cross', 'd->D', 'd->DD', 'd->d', 'd->dd', 'd->ddd', 'dd->d', 'ddd->ddid', 'det', 'diagonal', 'e', 'economic', 'eig', 'eigh', 'eigvals', 'eigvalsh', 'f', 'fro', 'full', 'ignore', 'inv', 'lstsq', 'matmul', 'matrix_norm', 'matrix_power', 'matrix_rank', 'matrix_transpose', 'multi_dot', 'norm', 'nuc', 'numpy.linalg', 'outer', 'pinv', 'qr', 'r', 'raw', 'reduced', 'slogdet', 'solve', 'svd', 'svdvals', 'tensordot', 'tensorinv', 'tensorsolve', 'trace', 'vecdot', 'vector_norm', '|']

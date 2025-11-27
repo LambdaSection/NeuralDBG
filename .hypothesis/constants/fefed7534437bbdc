@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\__config__.py
+# hypothesis_version: 6.148.2
+
+['0.3.30', '19.44.35219', '3.14', '3.2.1', 'Build Dependencies', 'Compilers', 'False', 'Machine Information', 'Python Information', 'SIMD Extensions', 'True', 'args', 'baseline', 'blas', 'build', 'c', 'c++', 'cl', 'commands', 'cpu', 'cross-compiled', 'cython', 'detection method', 'dicts', 'endian', 'false', 'family', 'found', 'host', 'include directory', 'lapack', 'lib directory', 'link', 'linker', 'linker args', 'little', 'msvc', 'name', 'not found', 'numpy', 'path', 'pc file directory', 'pkgconfig', 'scipy-openblas', 'show_config', 'stdout', 'system', 'version', 'windows', 'x86_64']

@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\stable\v1\dependencies.py
+# hypothesis_version: 6.148.2
+
+['get_cudf', 'get_ibis', 'get_modin', 'get_numpy', 'get_pandas', 'get_polars', 'get_pyarrow', 'is_cudf_dataframe', 'is_cudf_series', 'is_dask_dataframe', 'is_ibis_table', 'is_into_dataframe', 'is_into_series', 'is_modin_dataframe', 'is_modin_series', 'is_narwhals_series', 'is_numpy_array', 'is_pandas_dataframe', 'is_pandas_index', 'is_pandas_series', 'is_polars_dataframe', 'is_polars_lazyframe', 'is_polars_series', 'is_pyarrow_table']

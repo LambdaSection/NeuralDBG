@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dependencies.py
+# hypothesis_version: 6.148.2
+
+['ALL', 'ALLSMALLER', 'MATCH', 'PreventUpdate', '_dashprivate_', 'allow_optional', 'id', 'inputs', 'no_update', 'output', 'prevent_initial_call', 'property', 'state']

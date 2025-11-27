@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\lib\_polynomial_impl.py
+# hypothesis_version: 6.148.2
+
+[0.0, 1e-14, 1.0, '%s %s**%d', '%s**%d', '-', '.0000', '0', 'Cannot set attribute', '\\*\\*([0-9]*)', 'always', 'b', 'coeffs', 'expected deg >= 0', 'f', 'full', 'numpy', 'poly', 'poly1d', 'polyadd', 'polyder', 'polydiv', 'polyfit', 'polyint', 'polymul', 'polysub', 'polyval', 'roots', 'unscaled', 'x']

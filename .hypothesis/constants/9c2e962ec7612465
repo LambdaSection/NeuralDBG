@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\_compliant\namespace.py
+# hypothesis_version: 6.148.2
+
+['CompliantNamespace', 'EagerNamespace', 'LazyNamespace', '_alias_output_names', 'diagonal', 'horizontal', 'literal', 'vertical']

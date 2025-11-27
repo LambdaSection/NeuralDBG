@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\stable\v1\typing.py
+# hypothesis_version: 6.148.2
+
+['DataFrameLike', 'DataFrameT', 'DataFrame[Any]', 'Expr', 'Frame', 'FrameT', 'IntoDataFrame', 'IntoDataFrameT', 'IntoExpr', 'IntoFrame', 'IntoFrameT', 'IntoLazyFrame', 'IntoLazyFrameT', 'IntoSeries', 'IntoSeriesT', 'LazyFrame[Any]', 'NativeDataFrame', 'NativeLazyFrame', 'Series[Any]']

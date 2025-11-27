@@ -1,0 +1,4 @@
+# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\graphviz\_defaults.py
+# hypothesis_version: 6.148.2
+
+['gv', 'set_default_engine', 'set_default_format', 'set_jupyter_format']
