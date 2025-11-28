@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\urllib3\connection.py
-# hypothesis_version: 6.148.2
-
-[b'\n', b'\r\n', b'%x\r\n%b\r\n', b'0\r\n\r\n', b':', b'CONNECT %s:%d HTTP/1.0\r\n', b'CONNECT %s:%d HTTP/1.1\r\n', b'[', b']', 0.0, 443, 2025, 16384, '%', "', '", '.', 'Content-Length', 'HTTP/?', 'Transfer-Encoding', 'User-Agent', '[]', '[^a-z]', '_http_vsn_str', 'accept-encoding', 'ascii', 'before connect', 'chunked', 'content-length', 'h2', 'header line', 'header:', 'host', 'http', 'http.client.connect', 'https', 'idna', 'latin-1', 'load_default_certs', 'record layer failure', 'shutdown', 'transfer-encoding', 'unknown protocol', 'user-agent', 'utf-8', 'wrong version number']

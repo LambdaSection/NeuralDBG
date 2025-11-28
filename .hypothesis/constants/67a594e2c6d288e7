@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\sansio\utils.py
-# hypothesis_version: 6.148.2
-
-["!$&'()*+,/:;=?@%", "!$&'()*+,/:;=@%", '.', '/', ':', '://', ':443', ':80', '?', '[', 'ascii', 'chunked', 'http', 'https', 'idna', 'ws', 'wss']

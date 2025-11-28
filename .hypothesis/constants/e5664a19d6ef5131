@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\urllib3\__init__.py
-# hypothesis_version: 6.148.2
-
-['BaseHTTPResponse', 'HTTPConnectionPool', 'HTTPHeaderDict', 'HTTPResponse', 'HTTPSConnectionPool', 'MIT', 'OpenSSL ', 'PoolManager', 'ProxyManager', 'Retry', 'Timeout', 'add_stderr_logger', 'always', 'connection_from_url', 'default', 'disable_warnings', 'emscripten', 'ignore', 'make_headers', 'proxy_from_url', 'request']

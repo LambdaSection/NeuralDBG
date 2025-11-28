@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\lib\_index_tricks_impl.py
-# hypothesis_version: 6.148.2
-
-[',', 'C', 'axis', 'c', 'c_', 'diag_indices', 'diag_indices_from', 'fill_diagonal', 'index_exp', 'ix_', 'maketuple', 'matrix', 'mgrid', 'multi_index', 'ndenumerate', 'ndindex', 'ndmin', 'numpy', 'ogrid', 'r', 'r_', 'ravel_multi_index', 's_', 'sparse', 'trans1d', 'unravel_index', 'zerosize_ok']

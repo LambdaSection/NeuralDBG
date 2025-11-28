@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\datastructures\cache_control.py
-# hypothesis_version: 6.148.2
-
-['A ``str``,', 'immutable', 'max-age', 'max-stale', 'min-fresh', 'must-revalidate', 'must-understand', 'no-cache', 'no-store', 'no-transform', 'only-if-cached', 'private', 'proxy-revalidate', 'public', 's-maxage', 'stale-if-error']

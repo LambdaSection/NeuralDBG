@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\html\Link.py
-# hypothesis_version: 6.148.2
-
-['HIDDEN', 'Link', '__init__', '_explicit_args', 'accessKey', 'aria-', 'aria-*', 'children', 'className', 'contentEditable', 'crossOrigin', 'dash_html_components', 'data-', 'data-*', 'dir', 'disable_n_clicks', 'draggable', 'hidden', 'href', 'hrefLang', 'id', 'integrity', 'key', 'lang', 'media', 'n_clicks', 'n_clicks_timestamp', 'referrerPolicy', 'rel', 'role', 'sizes', 'spellCheck', 'style', 'tabIndex', 'title', 'type']

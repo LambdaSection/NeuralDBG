@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\pysnooper\tracer.py
-# hypothesis_version: 6.148.2
-
-[b'coding[:=]\\s*([-\\w.]+)', 100, '\x1b[0m', '\x1b[1m', '\x1b[22m', '\x1b[2m', '\x1b[31m', '\x1b[32m', '\x1b[33m', '\x1b[34m', '\x1b[35m', '\x1b[36m', '\x1b[39m', '/', '@', 'New var:....... ', 'PYSNOOPER_DISABLED', 'RETURN_CONST', 'RETURN_GENERATOR', 'RETURN_VALUE', 'Starting var:.. ', 'YIELD_VALUE', '\\', '__loader__', '__name__', 'a', 'ascii', 'call', 'cygwin', 'darwin', 'def', 'depth', 'exception', 'get_source', 'linux', 'linux2', 'microseconds', 'r', 'rb', 'replace', 'return', 'utf-8', 'w', '{ident}-{name} ', '{self.prefix}{s}\n']

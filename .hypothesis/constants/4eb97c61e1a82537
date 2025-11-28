@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\Documents\Neural\neural\__init__.py
-# hypothesis_version: 6.148.2
-
-['0.3.0.dev0', '__author__', '__email__', '__version__', 'check_dependencies', 'cli', 'cloud', 'code_generation', 'dashboard', 'hpo', 'parser', 'shape_propagation', 'utils', 'visualization']

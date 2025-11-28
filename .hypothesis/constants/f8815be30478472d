@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\_add_newdocs_scalars.py
-# hypothesis_version: 6.148.2
-
-['as_integer_ratio', 'bit_count', 'bool', 'bool_', 'byte', 'bytes_', 'cdouble', 'clongdouble', 'complex128', 'complex192', 'complex256', 'complex64', 'csingle', 'datetime64', 'double', 'float128', 'float16', 'float32', 'float64', 'float96', 'half', 'int16', 'int32', 'int64', 'int8', 'int_', 'intc', 'integer', 'intp', 'is_integer', 'longdouble', 'longlong', 'object_', 'short', 'single', 'str_', 'timedelta64', 'ubyte', 'uint', 'uint16', 'uint32', 'uint64', 'uint8', 'uintc', 'uintp', 'ulonglong', 'unknown', 'ushort', 'void', 'win32']

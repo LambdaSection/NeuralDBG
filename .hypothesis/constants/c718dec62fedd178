@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\urllib3\util\retry.py
-# hypothesis_version: 6.148.2
-
-[0.0, 120, 413, 429, 503, 'Authorization', 'Cookie', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PUT', 'Proxy-Authorization', 'Retry-After', 'TRACE', '^\\s*[0-9]+\\s*$', 'too many redirects', 'unknown']

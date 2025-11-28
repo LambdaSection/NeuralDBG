@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dcc\Interval.py
-# hypothesis_version: 6.148.2
-
-['Interval', '__init__', '_explicit_args', 'children', 'dash_core_components', 'disabled', 'id', 'interval', 'max_intervals', 'n_intervals']

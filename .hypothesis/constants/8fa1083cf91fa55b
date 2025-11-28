@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\flask\sansio\blueprints.py
-# hypothesis_version: 6.148.2
-
-['.', '/', 'BlueprintSetupState', 'T_after_request', 'T_before_request', 'T_error_handler', 'T_teardown', 'T_template_filter', 'T_template_global', 'T_template_test', 'T_url_defaults', '__name__', 'a different', 'cli_group', 'defaults', 'name', 'name_prefix', 'static', 'subdomain', 'this', 'url_defaults', 'url_prefix']

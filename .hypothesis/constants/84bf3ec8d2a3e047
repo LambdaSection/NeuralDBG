@@ -1,4 +1,0 @@
-# file: c:\Users\itsni\Desktop\Neural\neural\cloud\cloud_execution.py
-# hypothesis_version: 6.142.1
-
-[8050, 8051, '--backend', '--port', '-m', '1', 'COLAB_GPU', 'MNIST', 'NEURAL_BATCH_SIZE', 'NEURAL_CLOUD_ENV', 'NEURAL_DATASET', 'NEURAL_EPOCHS', 'NEURAL_FORCE_CPU', 'SM_MODEL_DIR', 'colab', 'dashboard_url', 'debug', 'debug_model.neural', 'error', 'install', 'interface_url', 'kaggle', 'network', 'neural.cli', 'neural_', 'no-code', 'nvidia-smi', 'pip', 'png', 'process_id', 'pyngrok', 'python', 'sagemaker', 'session_id', 'stderr', 'stdout', 'success', 'tensorflow', 'tunnel_url', 'unknown']

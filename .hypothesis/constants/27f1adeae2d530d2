@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\html\Button.py
-# hypothesis_version: 6.148.2
-
-['AUTOFOCUS', 'Button', 'DISABLED', 'FORMNOVALIDATE', 'HIDDEN', '__init__', '_explicit_args', 'accessKey', 'aria-', 'aria-*', 'autoFocus', 'autofocus', 'children', 'className', 'contentEditable', 'dash_html_components', 'data-', 'data-*', 'dir', 'disable_n_clicks', 'disabled', 'draggable', 'form', 'formAction', 'formEncType', 'formMethod', 'formNoValidate', 'formTarget', 'formnovalidate', 'hidden', 'id', 'key', 'lang', 'n_clicks', 'n_clicks_timestamp', 'name', 'role', 'spellCheck', 'style', 'tabIndex', 'title', 'type', 'value']

@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\pyreadline3\clipboard\api.py
-# hypothesis_version: 6.148.2
-
-['get_clipboard_text', 'set_clipboard_text']

@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dcc\Dropdown.py
-# hypothesis_version: 6.148.2
-
-['Dropdown', 'Options', '__init__', '_explicit_args', 'children', 'className', 'clearable', 'closeOnSelect', 'dash_core_components', 'disabled', 'id', 'label', 'local', 'maxHeight', 'memory', 'multi', 'optionHeight', 'options', 'options[].label', 'persisted_props', 'persistence', 'persistence_type', 'placeholder', 'search', 'search_value', 'searchable', 'session', 'style', 'title', 'value']

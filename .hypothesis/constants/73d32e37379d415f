@@ -1,4 +1,0 @@
-# file: c:\Users\itsni\Desktop\Neural\neural\shape_propagation\layer_docs.py
-# hypothesis_version: 6.142.1
-
-['## Parameters\n\n', 'Add', 'BatchNormalization', 'Concatenate', 'Conv1D', 'Conv2D', 'Conv3D', 'Dense', 'Dropout', 'Flatten', 'Flattens the input', 'LSTM', 'MaxPooling2D', 'Output', 'TransformerEncoder', 'UpSampling2D', 'activation', 'axis', 'd_model', 'data_format', 'description', 'dff', 'filters', 'kernel_size', 'momentum', 'num_heads', 'padding', 'parameters', 'pool_size', 'rate', 'return_sequences', 'shape_transformation', 'size', 'stride', 'units']

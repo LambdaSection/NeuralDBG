@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\html\Textarea.py
-# hypothesis_version: 6.148.2
-
-['AUTOFOCUS', 'DISABLED', 'HIDDEN', 'REQUIRED', 'Textarea', '__init__', '_explicit_args', 'accessKey', 'aria-', 'aria-*', 'autoComplete', 'autoFocus', 'autofocus', 'children', 'className', 'cols', 'contentEditable', 'dash_html_components', 'data-', 'data-*', 'dir', 'disable_n_clicks', 'disabled', 'draggable', 'form', 'hidden', 'id', 'inputMode', 'key', 'lang', 'maxLength', 'minLength', 'n_clicks', 'n_clicks_timestamp', 'name', 'placeholder', 'readOnly', 'required', 'role', 'rows', 'spellCheck', 'style', 'tabIndex', 'title', 'wrap']

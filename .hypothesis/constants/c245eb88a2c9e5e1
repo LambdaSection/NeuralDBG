@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\sansio\response.py
-# hypothesis_version: 6.148.2
-
-[200, 4093, '+json', '/', ';', 'Accept-Ranges', 'Age', 'Allow', 'Cache-Control', 'Content-Encoding', 'Content-Language', 'Content-Length', 'Content-Location', 'Content-MD5', 'Content-Range', 'Content-Type', 'Date', 'ETag', 'Expires', 'Last-Modified', 'Location', 'Retry-After', 'Set-Cookie', 'Vary', 'WWW-Authenticate', 'application/', 'application/json', 'basic', 'cache-control', 'content-range', 'content-type', 'retry-after', 'text/plain', 'true', 'utf-8']

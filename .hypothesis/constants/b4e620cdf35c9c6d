@@ -1,4 +1,0 @@
-# file: c:\Users\itsni\Desktop\Neural\neural\cli\cpu_mode.py
-# hypothesis_version: 6.142.1
-
-['0', '1', '3', 'CUDA_VISIBLE_DEVICES', 'NEURAL_FORCE_CPU', 'TF_CPP_MIN_LOG_LEVEL', 'cuda', 'max_split_size_mb:32', 'true', 'yes']

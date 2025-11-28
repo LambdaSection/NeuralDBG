@@ -57,9 +57,29 @@ ENV/
 # Social media content
 social_media/
 
-
 # Project-local roadmap and vision (not for distribution)
 ROADMAP.md
 VISION.md
 .continue/rules/new-rule-1.md
 .continue/rules/new-rule.md
+
+# Experiment tracking directories
+neural_experiments/
+
+# Test artifacts
+.hypothesis/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Generated files
+*.dot
+*.png
+*.svg
+architecture
+classes.*
+packages.*
+
+# Development artifacts (test scripts should be in tests/)
+test_*.py
+sample_*.py

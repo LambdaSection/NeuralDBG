@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\lib\_npyio_impl.py
-# hypothesis_version: 6.148.2
-
-[b'PK\x03\x04', b'PK\x05\x06', 50000, '"', '#', '# ', '%', '%.18e', '+-', ',', ', ', '-', '...', '.npy', '.npz', 'ASCII', 'M8', 'No data left in file', 'O', 'S', 'S0', 'SUM', 'U0', '_', '_obj', 'allowZip64', 'argument', 'arr_%d', 'bytes', 'case_sensitive', 'delimiter', 'dtype', 'encoding', 'f%i', 'fix_imports', 'fromregex', 'genfromtxt', 'j', 'latin1', 'load', 'loadtxt', 'lower', 'm8', 'match', 'name', 'names', 'numpy', 'numpy.lib.npyio', 'object', 'packbits', 'rb', 'read', 'rt', 'save', 'savetxt', 'savez', 'savez_compressed', 'unpackbits', 'usemask', 'w', 'wb', 'write', 'wt']

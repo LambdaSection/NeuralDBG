@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\_native.py
-# hypothesis_version: 6.148.2
-
-['IntoDataFrame', 'IntoDataFrameT', 'IntoFrame', 'IntoFrameT', 'IntoLazyFrame', 'IntoLazyFrameT', 'IntoSeries', 'IntoSeriesT', 'NativeAny', 'NativeArrow', 'NativeCuDF', 'NativeDask', 'NativeDataFrame', 'NativeDuckDB', 'NativeFrame', 'NativeIbis', 'NativeKnown', 'NativeLazyFrame', 'NativeModin', 'NativePandas', 'NativePandasLike', 'NativePolars', 'NativePySpark', 'NativePySparkConnect', 'NativeSQLFrame', 'NativeSeries', 'NativeSparkLike', 'NativeUnknown', 'T', '_Guard[NativeDask]', '_Guard[NativeIbis]', 'is_native_arrow', 'is_native_cudf', 'is_native_dask', 'is_native_duckdb', 'is_native_ibis', 'is_native_modin', 'is_native_pandas', 'is_native_polars', 'is_native_pyspark', 'is_native_spark_like', 'is_native_sqlframe']

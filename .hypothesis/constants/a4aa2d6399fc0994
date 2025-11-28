@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\stable\v1\dtypes.py
-# hypothesis_version: 6.148.2
-
-['Array', 'Binary', 'Boolean', 'Categorical', 'DType', 'Date', 'Datetime', 'Decimal', 'Duration', 'Enum', 'Field', 'Float32', 'Float64', 'FloatType', 'Int128', 'Int16', 'Int32', 'Int64', 'Int8', 'IntegerType', 'List', 'NestedType', 'NumericType', 'Object', 'SignedIntegerType', 'String', 'Struct', 'Time', 'UInt128', 'UInt16', 'UInt32', 'UInt64', 'UInt8', 'Unknown', 'UnsignedIntegerType']

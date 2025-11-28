@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\requests\adapters.py
-# hypothesis_version: 6.148.2
-
-['//', 'CERT_NONE', 'CERT_REQUIRED', 'Content-Length', 'PoolManager', 'PreparedRequest', 'Proxy-Authorization', '_pool_block', '_pool_connections', '_pool_maxsize', 'bool | str | None', 'ca_cert_dir', 'ca_certs', 'cert_file', 'cert_reqs', 'config', 'headers', 'host', 'http', 'https', 'key_file', 'max_retries', 'port', 'scheme', 'socks', 'status', 'utf-8']

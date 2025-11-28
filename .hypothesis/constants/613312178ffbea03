@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dcc\Tabs.py
-# hypothesis_version: 6.148.2
-
-['Colors', 'Tabs', '__init__', '_explicit_args', 'background', 'border', 'children', 'className', 'colors', 'content_className', 'content_style', 'dash_core_components', 'id', 'local', 'memory', 'mobile_breakpoint', 'parent_className', 'parent_style', 'persisted_props', 'persistence', 'persistence_type', 'primary', 'session', 'style', 'value', 'vertical']

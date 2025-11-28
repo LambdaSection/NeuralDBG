@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\memmap.py
-# hypothesis_version: 6.148.2
-
-[b'\x00', -100.0, 'C', '_mmap', 'b', 'c', 'copyonwrite', 'flush', 'memmap', 'name', 'numpy', 'r', 'r+', 'read', 'readonly', 'readwrite', 'w+', 'write']

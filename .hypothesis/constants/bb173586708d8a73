@@ -1,4 +1,0 @@
-# file: c:\Users\itsni\Desktop\Neural\neural\docgen\docgen.py
-# hypothesis_version: 6.142.1
-
-['\n## Export\n', '\n## Layers\n', '\n## Summary\n', '\n## Warnings\n', '(', ')', ', ', 'Conv2D', 'Dense', 'Flatten', 'None', 'Output', 'activation', 'filters', 'input', 'kernel_size', 'layers', 'pandoc', 'params', 'relu', 'shape', 'softmax', 'tanh', 'type', 'units', 'y = Wx + b', 'y = softmax(Wx + b)']

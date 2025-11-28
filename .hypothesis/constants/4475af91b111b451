@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\_compliant\selectors.py
-# hypothesis_version: 6.148.2
-
-['CompliantFrameAny', 'CompliantSelector', 'CompliantSeriesAny', 'DataFrameT', 'ExprT', 'FrameT', 'LazyFrameT', 'NativeExpr', 'SeriesOrExprT', 'SeriesT']

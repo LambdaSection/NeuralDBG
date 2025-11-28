@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\datastructures\auth.py
-# hypothesis_version: 6.148.2
-
-[':', '=', '_on_update', '_parameters', '_token', '_type', 'ascii', 'basic', 'digest', 'domain', 'nonce', 'opaque', 'password', 'qop', 'realm', 'username']

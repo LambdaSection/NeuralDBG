@@ -1,4 +1,0 @@
-# file: c:\Users\itsni\Desktop\Neural\neural\parser\validation.py
-# hypothesis_version: 6.142.1
-
-[0.0, 1.0, 'T', 'array', 'boolean', 'dict', 'float', 'integer', 'probability', 'shape', 'string', 'units']

@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\flask\app.py
-# hypothesis_version: 6.148.2
-
-[307, 308, 1000, 4093, 5000, 500000, "%!#$&'()*+,/:;=?@", '.', '/', '127.0.0.1', ':', 'APPLICATION_ROOT', 'DEBUG', 'FLASK_DEBUG', 'FLASK_RUN_FROM_CLI', 'GET', 'HEAD', 'MAX_CONTENT_LENGTH', 'MAX_COOKIE_SIZE', 'MAX_FORM_MEMORY_SIZE', 'MAX_FORM_PARTS', 'OPTIONS', 'PREFERRED_URL_SCHEME', 'PROPAGATE_EXCEPTIONS', 'SECRET_KEY', 'SECRET_KEY_FALLBACKS', 'SERVER_NAME', 'SESSION_COOKIE_NAME', 'SESSION_COOKIE_PATH', 'TESTING', 'TRAP_HTTP_EXCEPTIONS', 'TRUSTED_HOSTS', 'T_teardown', 'T_template_filter', 'T_template_global', 'T_template_test', 'USE_X_SENDFILE', 'app', 'auto_reload', 'autoescape', 'b', 'g', 'http', 'json.dumps_function', 'r', 'rb', 'red', 'rt', 'session', 'static', 'templates', 'threaded', 'true', 'use_debugger', 'use_reloader', 'utf-8']

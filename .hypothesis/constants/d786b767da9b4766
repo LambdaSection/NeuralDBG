@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\sansio\multipart.py
-# hypothesis_version: 6.148.2
-
-[b'\n', b'\r', b'\r\n', b'\r\n--', b' ', b'%s--%s(--[^\\S\\n\\r]*%s?|[^\\S\\n\\r]*%s)', b'%s?--%s(--[^\\S\\n\\r]*%s?|[^\\S\\n\\r]*%s)', b'%s[ \t]', b'(?:\r\n\r\n|\r\r|\n\n)', b'(?:\r\n|\n|\r)', b'--', b'--\r\n', b'; filename="%s"', b'Content-Disposition: form-data; name="%s"', ':', 'content-disposition', 'filename', 'name']

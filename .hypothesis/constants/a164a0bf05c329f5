@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\selectors.py
-# hypothesis_version: 6.148.2
-
-['*', '__add__', '__and__', '__or__', 'all', 'boolean', 'by_dtype', 'categorical', 'datetime', 'matches', 'numeric', 'selectors.all', 'selectors.boolean', 'selectors.by_dtype', 'selectors.datetime', 'selectors.matches', 'selectors.numeric', 'selectors.string', 'string']

@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\_compliant\any_namespace.py
-# hypothesis_version: 6.148.2
-
-['CatNamespace', 'DateTimeNamespace', 'ListNamespace', 'NameNamespace', 'NamespaceAccessor', 'StringNamespace', 'StructNamespace', 'T', 'cat', 'dt', 'list', 'name', 'str', 'struct']

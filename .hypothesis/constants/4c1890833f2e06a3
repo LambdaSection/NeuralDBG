@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\lib\__init__.py
-# hypothesis_version: 6.148.2
-
-['Arrayterator', 'NumpyVersion', 'add_docstring', 'add_newdoc', 'array_utils', 'arraypad', 'arraysetops', 'arrayterator', 'emath', 'format', 'function_base', 'histograms', 'index_tricks', 'introspect', 'math', 'mixins', 'nanfunctions', 'npyio', 'numpy.lib', 'polynomial', 'scimath', 'shape_base', 'stride_tricks', 'tracemalloc_domain', 'twodim_base', 'type_check', 'ufunclike', 'utils']

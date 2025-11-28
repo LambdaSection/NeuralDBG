@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\lark\parse_tree_builder.py
-# hypothesis_version: 6.148.2
-
-['0', '_', '__default__', '__lark_meta__', '_ambig', '_iambig', '_inter', 'container_column', 'container_end_column', 'container_end_line', 'container_end_pos', 'container_line', 'container_start_pos', 'data', 'end_line', 'line', 'visit_wrapper']

@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\fromnumeric.py
-# hypothesis_version: 6.148.2
-
-['C', 'K', 'all', 'amax', 'amin', 'any', 'argmax', 'argmin', 'argpartition', 'argsort', 'around', 'choose', 'clip', 'compress', 'cumprod', 'cumsum', 'cumulative_prod', 'cumulative_sum', 'diagonal', 'introselect', 'keepdims', 'left', 'matrix_transpose', 'max', 'mean', 'min', 'ndim', 'nonzero', 'numpy', 'partition', 'prod', 'ptp', 'put', 'raise', 'ravel', 'repeat', 'reshape', 'resize', 'round', 'searchsorted', 'shape', 'size', 'sort', 'squeeze', 'std', 'sum', 'swapaxes', 'take', 'trace', 'transpose', 'var', 'where']

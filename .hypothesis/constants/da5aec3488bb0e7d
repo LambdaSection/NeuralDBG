@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\graphviz\parameters\formats.py
-# hypothesis_version: 6.148.2
-
-['FORMATS', 'Format', '_format', 'bmp', 'canon', 'cgimage', 'cmap', 'cmapx', 'cmapx_np', 'dot', 'dot_json', 'eps', 'exr', 'fig', 'format', 'gd', 'gd2', 'gif', 'gtk', 'gv', 'ico', 'imap', 'imap_np', 'ismap', 'jp2', 'jpe', 'jpeg', 'jpg', 'json', 'json0', 'missing format', 'pct', 'pdf', 'pic', 'pict', 'plain', 'plain-ext', 'png', 'pov', 'ps', 'ps2', 'psd', 'sgi', 'svg', 'svg_inline', 'svgz', 'tga', 'tif', 'tiff', 'tk', 'verify_format', 'vml', 'vmlz', 'vrml', 'wbmp', 'webp', 'x11', 'xdot', 'xdot1.2', 'xdot1.4', 'xdot_json', 'xlib']

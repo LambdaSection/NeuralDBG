@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\werkzeug\routing\rules.py
-# hypothesis_version: 6.148.2
-
-["!$&'()*+,/:;=@", '"\'', '(?<!/)(/?)', ',', '.kwargs', '.self', '/', '/{2,}?', '<([^>]+)>', '<werkzeug routing>', 'False', 'GET', 'HEAD', 'None', 'OPTIONS', 'True', '\\Z', '_ASTT', 'arguments', 'col_offset', 'converter', 'def _(): pass', 'default', 'end_col_offset', 'end_lineno', 'exec', 'lineno', 'name', 'params', 'q', 'rule not bound', 'slash', 'static', 'stringval', 'value', 'variable', '|']

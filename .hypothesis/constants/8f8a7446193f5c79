@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\graphviz\backend\rendering.py
-# hypothesis_version: 6.148.2
-
-['-O', '-o', '.', 'get_filepath', 'get_format', 'render']

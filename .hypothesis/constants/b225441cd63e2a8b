@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\pyreadline3\modes\notemacs.py
-# hypothesis_version: 6.148.2
-
-[300, '\r?\n', "%s`%s': %s", '/', '<NotEmacsMode>', 'BackSpace', 'Clear', 'Control-b', 'Control-d', 'Control-f', 'Control-space', 'Control-z', 'Delete', 'End', 'Home', 'Left', 'Return', 'Right', 'Shift-space', '\\', '\\ ', 'forward-i-search', 'in readline: %s', 'multi: %s', 'notemacs', 'returning(%s)', 'reverse-i-search', 'startup hook failed']

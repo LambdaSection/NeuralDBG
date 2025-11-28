@@ -1,4 +1,0 @@
-# file: c:\Users\itsni\Desktop\Neural\neural\shape_propagation\utils.py
-# hypothesis_version: 6.142.1
-
-[0.1, 100, 1000, 1024, 4096, 'Dense', 'bool', 'bottleneck', 'float16', 'float32', 'incompatible_shapes', 'info', 'int32', 'int64', 'invalid_input_shape', 'kernel_too_large', 'layer_index', 'message', 'missing_parameter', 'negative_filters', 'negative_stride', 'optimization', 'same', 'type', 'uint8', 'valid', 'value', 'warning']

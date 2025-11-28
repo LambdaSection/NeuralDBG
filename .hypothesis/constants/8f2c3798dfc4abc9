@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\_patch.py
-# hypothesis_version: 6.148.2
-
-['Add', 'Append', 'Assign', 'Clear', 'Delete', 'Div', 'Extend', 'Insert', 'Merge', 'Mul', 'Patch', 'Prepend', 'Remove', 'Reverse', 'Sub', '_KeyType', '__dash_patch_update', '_location', '_operations', 'location', 'operation', 'operations', 'params', 'tolist']

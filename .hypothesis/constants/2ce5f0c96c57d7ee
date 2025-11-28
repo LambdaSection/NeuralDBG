@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\graphviz\quoting.py
-# hypothesis_version: 6.148.2
-
-['(?<!\\\\)(?:\\\\{2})*\\\\$', ':', '<.*>$', '\\', '\\\\', '_', 'a_list', 'attr_list', 'c', 'digraph', 'e', 'edge', 'escape', 'graph', 'items', 'n', 'ne', 'node', 'nohtml', 'nw', 'quote', 'quote_edge', 's', 'se', 'strict', 'subgraph', 'sw', 'w']

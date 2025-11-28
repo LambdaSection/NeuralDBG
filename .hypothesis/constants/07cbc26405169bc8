@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\charset_normalizer\__init__.py
-# hypothesis_version: 6.148.2
-
-['CharsetMatch', 'CharsetMatches', 'VERSION', '__version__', 'charset_normalizer', 'detect', 'from_bytes', 'from_fp', 'from_path', 'is_binary', 'set_logging_handler']

@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\requests\auth.py
-# hypothesis_version: 6.148.2
-
-[b':', 400, 500, ',', '/', 'Authorization', 'Basic ', 'MD5', 'MD5-SESS', 'Proxy-Authorization', 'SHA', 'SHA-256', 'SHA-512', 'algorithm', 'auth', 'digest', 'digest ', 'init', 'latin1', 'multipart/form-data', 'nonce', 'opaque', 'password', 'qop', 'realm', 'response', 'username', 'utf-8', 'www-authenticate']

@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\_dtype.py
-# hypothesis_version: 6.148.2
-
-[121, '%d', "'%s%c%d'", "'%s%d'", "'%sU%d'", "'?'", "'O'", "'S%d'", "'S'", "'T'", "'V%d'", "'V'", "'bool'", '(', ')', ',', ', ', ", 'aligned'%sTrue}", ', align=True', ':', ': ', '=', 'M', 'O', 'S', 'U', 'V', '[', ']', "], 'itemsize'%s%d", 'b', 'bool', 'bytes', 'c', 'complex', 'datetime', 'f', 'float', 'generic', 'i', 'int', 'm', 'object', 'str', 'timedelta', 'u', 'uint', 'void', "{'names'%s[", '|', '}']

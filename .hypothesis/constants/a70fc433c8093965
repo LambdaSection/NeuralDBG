@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dash_table\Format.py
-# hypothesis_version: 6.148.2
-
-['#b', '#o', '#x', '$', '%', '(', '+', ',', '-', '.{0}', '0', '<', '=', '>', 'X', '^', '_', 'align', 'atto', 'b', 'binary', 'c', 'center', 'd', 'decimal', 'decimal_integer', 'decimal_or_exponent', 'decimal_si_prefix', 'default', 'e', 'exa', 'exponent', 'f', 'femto', 'fill', 'fixed', 'g', 'giga', 'group', 'grouping', 'hex', 'kilo', 'left', 'locale', 'lower_case_hex', 'mega', 'micro', 'milli', 'nano', 'negative', 'no', 'none', 'nully', 'o', 'octal', 'p', 'padding', 'parantheses', 'percentage', 'percentage_rounded', 'peta', 'pico', 'positive', 'precision', 'prefix', 'r', 'right', 'right_sign', 's', 'scheme', 'sign', 'space', 'specifier', 'symbol', 'tera', 'to_plotly_json', 'trim', 'type', 'unicode', 'upper_case_hex', 'width', 'x', 'yes', 'yocto', 'yotta', 'zepto', 'zetta', '{}{}{}{}{}{}{}{}{}{}', '~']

@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\html\ObjectEl.py
-# hypothesis_version: 6.148.2
-
-['HIDDEN', 'ObjectEl', '__init__', '_explicit_args', 'accessKey', 'aria-', 'aria-*', 'children', 'className', 'contentEditable', 'dash_html_components', 'data', 'data-', 'data-*', 'dir', 'disable_n_clicks', 'draggable', 'form', 'height', 'hidden', 'id', 'key', 'lang', 'n_clicks', 'n_clicks_timestamp', 'name', 'role', 'spellCheck', 'style', 'tabIndex', 'title', 'type', 'useMap', 'width']

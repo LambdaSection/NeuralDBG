@@ -347,6 +347,68 @@ Ready-to-use notebooks are available for:
 
 ---
 
+## 🔬 Experiment Tracking
+
+Neural DSL now automatically tracks all your training runs! Every model you train is logged with hyperparameters, metrics, and artifacts.
+
+### Features
+- **Automatic Logging**: No manual tracking code needed
+- **Metrics History**: Loss, accuracy, and custom metrics tracked per epoch
+- **Hyperparameter Logging**: Optimizer, learning rate, and model config automatically saved
+- **Experiment Storage**: All experiments saved to `neural_experiments/` directory
+- **CLI Commands**: View, compare, and plot experiments
+
+### Usage
+```bash
+# Run a model (tracking is automatic)
+neural run examples/mnist.neural --backend tensorflow
+
+# List all experiments  
+neural track list
+
+# Show experiment details
+neural track show <experiment_id>
+
+# Plot metrics
+neural track plot <experiment_id>
+
+# Compare experiments
+neural track compare <exp_id_1> <exp_id_2>
+```
+
+All generated code automatically includes tracking logic - no setup required!
+
+---
+
+## 🏗️ Neural Ecosystem Projects
+
+Neural is part of a larger ecosystem within the **λ-S (Lambda-Section)** startup. The following projects have been extracted to separate repositories:
+
+### Related Projects
+- **Aquarium** - Tauri-based desktop IDE for Neural DSL
+  - Specialized development environment with visual design tools
+  - Real-time shape propagation visualization
+  - Repository: [TBD]
+
+- **NeuralPaper.ai** - Interactive model visualization platform
+  - Web-based model annotation and sharing
+  - Collaborative features for research
+  - Repository: [TBD]
+
+- **Neural-Research** - Historical neural network paper analysis
+  - McCulloch-Pitts 1943 paper annotations
+  - Jupyter notebooks and research content
+  - Repository: [TBD]
+
+- **Lambda-sec Models** - Production neural network models for λ-S startup
+  - MathLang models (Newton differential equations)
+  - Transformer architectures with training data
+  - Repository: [TBD]
+
+These projects remain integrated with Neural through shared APIs and tooling.
+
+---
+
 ##  Why Neural?
 
 | Feature               | Neural      | Raw TensorFlow/PyTorch |
@@ -355,6 +417,7 @@ Ready-to-use notebooks are available for:
 | Framework Switching   | 1-line flag | Days of rewriting       |
 | Architecture Diagrams | Built-in    | Third-party tools       |
 | Training Config       | Unified     | Fragmented configs      |
+| Experiment Tracking   | ✅ Automatic | ❌ Manual setup         |
 
 
 ### **🔄 Cross-Framework Code Generation**
@@ -376,7 +439,6 @@ Ready-to-use notebooks are available for:
 - [AI Integration Guide](docs/ai_integration_guide.md) - 🤖 **NEW!** Natural language to DSL
 - [Automation Guide](AUTOMATION_GUIDE.md) - 🔄 **NEW!** Automated releases and blog posts
 - [Contributing Guide](CONTRIBUTING.md) - **NEW!** How to contribute
-- [What's New](WHATS_NEW.md) - **NEW!** Latest updates
 - [Blog](docs/blog/README.md)
 
 ### Explore advanced features:
@@ -400,27 +462,6 @@ Explore common use cases in `examples/` with step-by-step guides in `docs/exampl
 
 *Note: You may need to zoom in to see details in these architecture diagrams.*
 
-## NeuralPaper.ai
-
-NeuralPaper.ai is an interactive platform for visualizing, annotating, and sharing neural network models. It provides a web-based interface for exploring model architectures, understanding tensor flows, and collaborating on model development.
-
-### Features
-
-- **Interactive Model Visualization**: Explore model architectures with interactive diagrams
-- **Code Annotation**: Add explanations and insights to specific parts of your model code
-- **Collaborative Sharing**: Share annotated models with colleagues and the community
-- **Integration with Neural DSL**: Seamless workflow from model definition to visualization
-
-### Getting Started
-
-```bash
-# Start the NeuralPaper.ai backend
-cd neuralpaper
-./start.sh
-```
-
-Then open your browser to http://localhost:3000 to access the NeuralPaper.ai interface.
-
 ## Repository Structure
 
 The Neural repository is organized into the following main directories:
@@ -436,8 +477,7 @@ The Neural repository is organized into the following main directories:
   - **`neural/dashboard/`**: NeuralDbg dashboard
   - **`neural/hpo/`**: Hyperparameter optimization
   - **`neural/cloud/`**: Cloud integration (Kaggle, Colab, SageMaker)
-- **`neuralpaper/`**: NeuralPaper.ai implementation
-- **`Aquarium/`**: Specialized IDE for neural network development
+  - **`neural/tracking/`**: Experiment tracking system
 - **`profiler/`**: Performance profiling tools
 - **`tests/`**: Test suite
 
@@ -453,8 +493,7 @@ Each directory contains its own README with detailed documentation:
 - [neural/dashboard](neural/dashboard/README.md): NeuralDbg dashboard
 - [neural/hpo](neural/hpo/README.md): Hyperparameter optimization
 - [neural/cloud](neural/cloud/README.md): Cloud integration
-- [neuralpaper](neuralpaper/README.md): NeuralPaper.ai implementation
-- [Aquarium](Aquarium/README.md): Specialized IDE for neural network development
+- [neural/tracking](neural/tracking/README.md): Experiment tracking
 - [profiler](profiler/README.md): Performance profiling tools
 - [docs](docs/README.md): Documentation
 - [examples](examples/README.md): Example models

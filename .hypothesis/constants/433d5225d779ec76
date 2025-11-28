@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\_expression_parsing.py
-# hypothesis_version: 6.148.2
-
-[', ', '.', 'CompliantExprAny', 'alias', 'allow_multi_output', 'col', 'current_node', 'exclude', 'expansion_kind', 'exprs', 'has_windows', 'indices', 'is_elementwise', 'is_literal', 'is_scalar_like', 'kind', 'kwargs', 'n_orderable_ops', 'name', 'name.', 'names', 'order_by', 'partition_by', 'preserves_length', 'prev', 'str_as_lit']

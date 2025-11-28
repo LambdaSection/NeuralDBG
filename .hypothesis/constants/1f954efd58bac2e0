@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\_compliant\dataframe.py
-# hypothesis_version: 6.148.2
-
-['CompliantDataFrame', 'CompliantFrame', 'CompliantLazyFrame', 'EagerDataFrame', 'Incomplete', 'IntoArrowTable', 'T', '_2DArray', '_NativeFrameT', 'full', 'pa.Table']

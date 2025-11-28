@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\__init__.py
-# hypothesis_version: 6.148.2
-
-['1', 'GOTOBLAS_MAIN_FREE', 'MachAr', 'OPENBLAS_MAIN_FREE', '_multiarray_umath', 'abs', 'acos', 'acosh', 'asin', 'asinh', 'atan', 'atan2', 'atanh', 'bitwise_invert', 'bitwise_left_shift', 'bitwise_right_shift', 'concat', 'memmap', 'numpy', 'numpy.dtypes', 'permute_dims', 'pow', 'recarray', 'record', 'sctypeDict']

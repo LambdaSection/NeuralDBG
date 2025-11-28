@@ -1,4 +1,0 @@
-# file: c:\Users\itsni\Desktop\Neural\neural\utils\seed.py
-# hypothesis_version: 6.142.1
-
-['PYTHONHASHSEED', 'numpy', 'python', 'tensorflow', 'torch']

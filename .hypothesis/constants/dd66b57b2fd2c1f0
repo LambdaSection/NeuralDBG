@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\dash\dcc\Input.py
-# hypothesis_version: 6.148.2
-
-['AUTOFOCUS', 'DISABLED', 'Input', 'READONLY', 'REQUIRED', '__init__', '_explicit_args', 'autoComplete', 'autoFocus', 'autofocus', 'children', 'className', 'dash_core_components', 'debounce', 'disabled', 'email', 'false', 'full-width-latin', 'hidden', 'id', 'inputMode', 'kana', 'katakana', 'latin', 'latin-name', 'latin-prose', 'list', 'local', 'max', 'maxLength', 'memory', 'min', 'minLength', 'multiple', 'n_blur', 'n_blur_timestamp', 'n_submit', 'n_submit_timestamp', 'name', 'number', 'numeric', 'password', 'pattern', 'persisted_props', 'persistence', 'persistence_type', 'placeholder', 'range', 'readOnly', 'readonly', 'required', 'search', 'selectionDirection', 'selectionEnd', 'selectionStart', 'session', 'size', 'spellCheck', 'step', 'style', 'tel', 'text', 'true', 'type', 'url', 'value', 'verbatim']

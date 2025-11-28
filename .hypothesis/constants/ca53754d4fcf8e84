@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\expr_dt.py
-# hypothesis_version: 6.148.2
-
-['Expr', 'ExprT', 'dt.convert_time_zone', 'dt.date', 'dt.day', 'dt.hour', 'dt.microsecond', 'dt.millisecond', 'dt.minute', 'dt.month', 'dt.nanosecond', 'dt.offset_by', 'dt.ordinal_day', 'dt.replace_time_zone', 'dt.second', 'dt.timestamp', 'dt.to_string', 'dt.total_minutes', 'dt.total_nanoseconds', 'dt.total_seconds', 'dt.truncate', 'dt.weekday', 'dt.year', 'ms', 'ns', 'us']

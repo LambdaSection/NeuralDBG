@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\urllib3\util\ssl_match_hostname.py
-# hypothesis_version: 6.148.2
-
-['%', '*', ', ', '.', '3.5.0.1', 'DNS', 'IP Address', '[^.]*', '[^.]+', '\\*', '\\.', '\\A', '\\Z', 'commonName', 'subject', 'subjectAltName', 'xn--']

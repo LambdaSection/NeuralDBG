@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\lib\mixins.py
-# hypothesis_version: 6.148.2
-
-['abs', 'add', 'and', 'divmod', 'eq', 'floordiv', 'ge', 'gt', 'invert', 'le', 'lshift', 'lt', 'matmul', 'mod', 'mul', 'ne', 'neg', 'or', 'pos', 'pow', 'rshift', 'sub', 'truediv', 'xor']

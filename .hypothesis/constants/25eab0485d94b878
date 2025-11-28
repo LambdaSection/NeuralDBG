@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\_dtype_ctypes.py
-# hypothesis_version: 6.148.2
-
-['<', '>', '__ctype_be__', '__ctype_le__', '_pack_', '_type_', 'formats', 'itemsize', 'names', 'offsets']

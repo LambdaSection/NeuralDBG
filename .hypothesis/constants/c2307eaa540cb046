@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\readline.py
-# hypothesis_version: 6.148.2
-
-['GetOutputFile', 'add_history', 'callback_read_char', 'clear_history', 'get_begidx', 'get_completer', 'get_completer_delims', 'get_endidx', 'get_history_item', 'get_history_length', 'get_line_buffer', 'insert_text', 'parse_and_bind', 'read_history_file', 'read_init_file', 'redisplay', 'rl', 'set_completer', 'set_completer_delims', 'set_history_length', 'set_pre_input_hook', 'set_startup_hook', 'write_history_file']

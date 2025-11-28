@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\narwhals\_compliant\__init__.py
-# hypothesis_version: 6.148.2
-
-['CompliantDataFrame', 'CompliantExpr', 'CompliantExprT', 'CompliantFrame', 'CompliantFrameT', 'CompliantGroupBy', 'CompliantLazyFrame', 'CompliantNamespace', 'CompliantSelector', 'CompliantSeries', 'CompliantSeriesT', 'DepthTrackingExpr', 'DepthTrackingGroupBy', 'EagerDataFrame', 'EagerDataFrameT', 'EagerExpr', 'EagerGroupBy', 'EagerNamespace', 'EagerSeries', 'EagerSeriesHist', 'EagerSeriesNamespace', 'EagerSeriesT', 'EvalNames', 'EvalSeries', 'LazyExpr', 'LazyExprNamespace', 'LazyNamespace', 'NativeFrameT_co', 'NativeSeriesT_co', 'WindowInputs']

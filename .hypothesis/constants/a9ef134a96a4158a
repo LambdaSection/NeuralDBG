@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\numpy\_core\getlimits.py
-# hypothesis_version: 6.148.2
-
-[b'f\xae', b'\x9a\x99\x99\x99\x99\x99Y<\x9a\x99\x99\x99\x99\x99\xb9\xbf', b'\x9a\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\x99\xfb\xbf', b'\x9a\x99\x99\x99\x99\x99\xb9\xbf', b'\x9a\x99\x99\x99\x99\x99\xb9\xbf\x9a\x99\x99\x99\x99\x99Y<', b'\xcd\xcc\xcc\xbd', b'\xcd\xcc\xcc\xcc\xcc\xcc\xcc\xcc\xfb\xbf', -1022.0, -53.0, -52.0, -1.0, 0.0, 1.0, 2.0, 10.0, -16382, -1022, -126, -113, -112, -106, -105, 105, 112, 128, 1024, 16384, 65504, '%12.5e', '%15.7e', '%24.16e', '%s', '%s%d', '<', 'dd', 'double', 'dtype', 'epsneg', 'finfo', 'fmt', 'half', 'iexp', 'ignore', 'iinfo', 'itype', 'iu', 'klass', 'long double', 'machep', 'max', 'maxexp', 'min', 'minexp', 'negep', 'numpy', 'precision', 'resolution', 'single', 'smallest_subnormal', 'title', 'u']

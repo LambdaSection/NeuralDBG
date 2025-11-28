@@ -1,4 +1,0 @@
-# file: C:\Users\Utilisateur\AppData\Roaming\Python\Python314\site-packages\pyreadline3\modes\basemode.py
-# hypothesis_version: 6.148.2
-
-[300, '\r?\n', ' \t\n"\\\'`@$><=;|&{(', '%-20s: %s', '*', '/', '<BaseMode>', '>>> ', '>>>%s -> %s<<<', 'Control', 'Function', 'Keycode/char', 'Meta', 'Shift', '\\', '\\ ', '_bell', '_clear_after', '_print_prompt', '_update_line', '_update_prompt_pos', 'allow_ctrl_c', 'ascii', 'base', 'bell_style', 'complete text="%s"', 'console', 'fnames=<%s>', 'mark_directories', 'multi: >%s<', 'off', 'on', 'paste: >%s<', 'prompt_begin_pos', 'prompt_end_pos', 'show all if ambigous', 'startup hook failed']
