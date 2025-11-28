@@ -111,7 +111,22 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
         optimizer_type = optimizer_config['type'] if isinstance(optimizer_config, dict) else optimizer_config
 
         code = "import tensorflow as tf\nfrom tensorflow.keras import layers\n"
-        code += f"from tensorflow.keras.optimizers import {optimizer_type}\n\n"
+        code += f"from tensorflow.keras.optimizers import {optimizer_type}\n"
+        code += "from neural.tracking.experiment_tracker import ExperimentManager\n\n"
+
+        code += "# Initialize Experiment Tracking\n"
+        code += "experiment_manager = ExperimentManager()\n"
+        code += "experiment = experiment_manager.create_experiment()\n"
+        code += "experiment.log_hyperparameters({'optimizer': '" + optimizer_type + "', 'backend': 'tensorflow'})\n\n"
+
+        code += "# Custom Callback for Tracking\n"
+        code += "class NeuralTrackingCallback(tf.keras.callbacks.Callback):\n"
+        code += "    def __init__(self, experiment):\n"
+        code += "        super().__init__()\n"
+        code += "        self.experiment = experiment\n\n"
+        code += "    def on_epoch_end(self, epoch, logs=None):\n"
+        code += "        if logs:\n"
+        code += "            self.experiment.log_metrics(logs, step=epoch)\n\n"
 
         # Add input shape handling
         input_shape = tuple(model_data['input']['shape'])  # Use model-defined shape (no batch dim here)
@@ -184,6 +199,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
                 f"    epochs={tc.get('epochs', 10)},\n"
                 f"    batch_size={tc.get('batch_size', 32)},\n"
                 f"    validation_split={tc.get('validation_split', 0.2)},\n"
+                f"    callbacks=[NeuralTrackingCallback(experiment)],\n"
                 f"    verbose=1\n)\n"
             )
             if 'training_config' in model_data and model_data['training_config'].get('mixed_precision', False):
@@ -198,7 +214,13 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
         optimizer_type = optimizer_config['type'] if isinstance(optimizer_config, dict) else optimizer_config
         code = "import torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport torchvision.transforms as transforms\n"
         code += "from torchvision import datasets\n"
-        code += "from torch.utils.data import DataLoader\n\n"
+        code += "from torch.utils.data import DataLoader\n"
+        code += "from neural.tracking.experiment_tracker import ExperimentManager\n\n"
+
+        code += "# Initialize Experiment Tracking\n"
+        code += "experiment_manager = ExperimentManager()\n"
+        code += "experiment = experiment_manager.create_experiment()\n"
+        code += "experiment.log_hyperparameters({'optimizer': '" + optimizer_type + "', 'backend': 'pytorch'})\n\n"
         code += "# Neural network model definition\n"
         code += "class NeuralNetworkModel(nn.Module):\n"
         code += f"{indent}def __init__(self):\n"
@@ -414,7 +436,8 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
             code += f"{indent}{indent}scaler.step(optimizer)\n"
             code += f"{indent}{indent}scaler.update()\n"
             code += f"{indent}{indent}running_loss += loss.item()  # Accumulate loss\n"
-            code += f"{indent}print(f'Epoch {{epoch+1}}/{{{tc.get('epochs', 10)}}} - Loss: {{running_loss / len(train_loader):.4f}}')\n"  # Print average loss
+            code += f"{indent}avg_loss = running_loss / len(train_loader)\n"
+            code += f"{indent}print(f'Epoch {{epoch+1}}/{{{tc.get('epochs', 10)}}} - Loss: {{avg_loss:.4f}}')\n"  # Print average loss
             code += "\n# Evaluate model\n"
             code += "model.eval()\n"
             code += "correct = 0\n"
@@ -426,7 +449,9 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
             code += f"{indent}{indent}_, predicted = torch.max(outputs.data, 1)\n"
             code += f"{indent}{indent}total += target.size(0)\n"
             code += f"{indent}{indent}correct += (predicted == target).sum().item()\n"
-            code += "print(f'Accuracy: {100 * correct / total:.2f}%')\n"
+            code += f"{indent}accuracy = 100 * correct / total\n"
+            code += "print(f'Accuracy: {accuracy:.2f}%')\n"
+            code += "experiment.log_metrics({'loss': avg_loss, 'accuracy': accuracy}, step=epoch)\n"
             if 'save_path' in tc:
                 code += f"{indent}{indent}torch.save(model.state_dict(), '{tc['save_path']}')\n"
 
