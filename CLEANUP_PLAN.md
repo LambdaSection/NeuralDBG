@@ -1,59 +1,35 @@
-# Repository Cleanup Plan
+## Proposed Action Plan
 
-## Files and Directories to Remove
+### Phase 1: Extract Separate Projects (High Priority)
+- [x] Create new repositories: `Neural-Aquarium`, `NeuralPaper`
+- [x] Move `Aquarium/` and `neuralpaper/` content
+- [x] Update main README with links to these projects
+- [x] Add deprecation notices in current directories before removal
 
-### Redundant Documentation (Keep only essential docs)
-- `SUMMARY.md` (redundant with `README.md` and `CHANGELOG.md`)
-- `FINAL_SUMMARY.md` (session-specific, not needed for repo)
-- `COMPLETE_SESSION_REPORT.md` (session-specific, not needed for repo)
-- `SESSION_COMPLETE.md` (session-specific, not needed for repo)
-- `INDEX.md` (redundant with README.md)
-- `CHECKLIST.md` (development-specific, covered in CONTRIBUTING.md)
-- `WHATS_NEW.md` (covered in CHANGELOG.md)
-- `release-notes-v0.2.9.md` (old release note, should be in CHANGELOG.md)
+### Phase 2: Remove Development Artifacts (High Priority)
+- [x] Delete `get-pip.py` (2.1 MB saved)
+- [x] Delete sample files (`sample_pytorch.py`, `sample_tensorflow.py`)
+- [x] Delete/move root-level test files
+- [x] Delete `.gitmodules`
+- [x] Add `.hypothesis/` to `.gitignore` and clean
 
-### Test Artifacts and Temporary Files
-- `.augment_pytest_report.xml`
-- `.augment_pytest_report_layers.xml`
-- `test_architecture.png`
-- `test_layer_structure.py` (if it's just a test script, should be in `tests/`)
-- `test_runner.py` (if it's just a test script, should be in `tests/`)
-- `test_visualize_debug.py` (if it's just a test script, should be in `tests/`)
-- `architecture` (appears to be a temporary file)
-- `classes.dot`, `packages.dot` (generated files, can be regenerated)
-- `classes.png`, `packages.png` (generated files, can be regenerated)
+### Phase 3: Consolidate Documentation (Medium Priority)
+- [x] Merge `README_AUTOMATION.md` into main `README.md`
+- [x] Merge `README_DEVELOPMENT.md` into `CONTRIBUTING.md`
+- [x] Delete or merge `README_FIRST.md`
+- [x] Archive `CHECKLIST.md` (move to `docs/archive/`)
+- [x] Consolidate `GETTING_STARTED.md` and `QUICK_START_AUTOMATION.md`
 
-### Duplicate/Backup Directories
-- `.git.bak` (backup of .git, not needed)
-- `repo.git` (appears to be a duplicate/backup, 3962 files!)
+### Phase 4: Investigate Lambda-sec Models (Medium Priority)
+- [x] Review `Lambda-sec Models/` contents
+- [x] Decide on appropriate action (move to examples, extract, or archive)
 
-### Sample/Demo Files (if not needed)
-- `sample_pytorch.py` (should examples/ have these instead?)
-- `sample_tensorflow.py` (should examples/ have these instead?)
-- `get-pip.py` (not needed in repo, users can download directly)
+### Phase 5: Update .gitignore (Low Priority)
+- [x] Add patterns for generated files
+- [x] Add `.hypothesis/`
+- [x] Add `neural_experiments/` (tracking directories)
+- [x] Add common Python patterns
 
-### README Fragmentation
-- `README_AUTOMATION.md` (should be consolidated into main README or docs/)
-- `README_DEVELOPMENT.md` (should be in CONTRIBUTING.md)
-- `README_FIRST.md` (confusing, should be part of main README)
-
-## Action Plan
-
-1. Move test scripts to `tests/` if they're actual tests
-2. Delete redundant documentation files
-3. Delete test artifacts and generated diagrams  
-4. Remove `.git.bak` and `repo.git` backup directories
-5. Consolidate README files into main README.md and docs/
-6. Update .gitignore to exclude generated files
-
-## Files to Keep
-- `README.md` (main documentation)
-- `CHANGELOG.md` (release history)
-- `CONTRIBUTING.md` (contributor guide)
-- `LICENSE.md` (license)
-- `GETTING_STARTED.md` (quick start guide)
-- `AUTOMATION_GUIDE.md` (automation documentation)
-- `DISTRIBUTION_JOURNAL.md` (release tracking)
-- `BUG_FIXES.md` (bug tracking)
-- `REPOSITORY_STRUCTURE.md` (repo structure)
-- `QUICK_START_AUTOMATION.md` (automation quick start)
+## Execution Status
+**All phases completed successfully on November 28, 2025.**
+See `DISTRIBUTION_JOURNAL.md` for detailed log.
