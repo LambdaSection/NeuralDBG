@@ -28,11 +28,19 @@ This document tracks projects that were extracted from the main Neural repositor
 
 ### 4. Lambda-sec Models
 - **Original Location**: `Lambda-sec Models/` directory
-- **Description**: Example neural network models for λ-S (Lambda-Section) startup
-- **Content**: MathLang models (Newton), Transformer models, training data
+- **Description**: Production neural network models for λ-S startup
+- **Content**: MathLang models (Newton differential equations), Transformer architectures, training data
 - **New Repository**: TBD (to be created)
 - **Part of**: λ-S startup ecosystem (which includes Neural)
 - **Status**: Pending extraction
+
+### 5. NeuralDbg (Part of Core Neural)
+- **Location**: `neural/dashboard/` directory
+- **Description**: Built-in debugger and visualizer for Neural DSL
+- **Features**: Real-time execution tracing, gradient analysis, anomaly detection
+- **Technology**: Python (Dash, Flask, Plotly)
+- **Status**: Integrated into main Neural repository
+- **Note**: NeuralDbg is the debugging component for the AI IDE - remains part of core Neural, not extracted
 
 ## Integration Notes
 

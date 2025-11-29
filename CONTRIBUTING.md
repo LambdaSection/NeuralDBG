@@ -23,6 +23,43 @@ Thank you for your interest in contributing to Neural DSL! This guide will help 
 
 4. **Make Changes** and submit a pull request!
 
+## 📦 Versioning Strategy
+
+Neural follows **semantic versioning** with specific rules:
+
+### Version Format: `MAJOR.MINOR.PATCH`
+
+- **Patch (0.0.X)**: Released every **15 bugs fixed**
+  - Bug fixes only
+  - No new features
+  - Backward compatible
+
+- **Minor (0.X.0)**: Released when a **new feature** is added
+  - New functionality
+  - Backward compatible
+  - May include bug fixes
+
+- **Major (X.0.0)**: Released when **stable with no known bugs**
+  - Stable release milestone
+  - All known bugs resolved (check GitHub Issues)
+  - May include breaking changes
+  - Production-ready
+
+### Release Process
+The automated release process is documented in [DISTRIBUTION_PLAN.md](DISTRIBUTION_PLAN.md).
+
+Quick release:
+```bash
+# Patch release (15 bugs fixed)
+python scripts/automation/master_automation.py --release --version-type patch
+
+# Minor release (new feature)
+python scripts/automation/master_automation.py --release --version-type minor
+
+# Major release (stable, bug-free)
+python scripts/automation/master_automation.py --release --version-type major
+```
+
 ## 📋 Development Setup
 
 ### Prerequisites
