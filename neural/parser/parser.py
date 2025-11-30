@@ -2892,10 +2892,10 @@ class ModelTransformer(lark.Transformer):
             if isinstance(input_shape, list):
                 input_shape = tuple(input_shape)
             
-        # Propagate shapes
-        current_shape = input_shape
-        for layer in network_config['layers']:
-            current_shape = propagator.propagate(current_shape, layer)
+            # Propagate shapes
+            current_shape = input_shape
+            for layer in network_config['layers']:
+                current_shape = propagator.propagate(current_shape, layer)
                 
         except ImportError:
             pass # Skip if shape propagation module is not available
