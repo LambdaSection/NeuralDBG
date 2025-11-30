@@ -2152,17 +2152,8 @@ class ModelTransformer(lark.Transformer):
             elif isinstance(param_values, dict):
                 params = param_values
             else:
-                # Single positional parameter, e.g., LSTM(64)
-            param_values = self._extract_value(param_node)
-            if isinstance(param_values, list):
-                for val in param_values:
-                    if isinstance(val, dict):
-                        params.update(val)
-                    else:
-                        if 'units' not in params:
-                            params['units'] = val
-            elif isinstance(param_values, dict):
-                params = param_values
+                # Single positional parameter, e.g., GRU(64)
+                params['units'] = param_values
 
         if 'units' not in params:
             self.raise_validation_error("GRU requires 'units' parameter", items[0])
