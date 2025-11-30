@@ -805,7 +805,7 @@ class ModelTransformer(lark.Transformer):
 
     def _validate_loss_function(self, loss_name, item=None):
         """Validate loss function is supported."""
-        valid_losses = ["mse", "cross_entropy", "binary_cross_entropy", "mae", "categorical_cross_entropy", "sparse_categorical_cross_entropy"]
+        valid_losses = ["mse", "cross_entropy", "binary_cross_entropy", "mae", "categorical_cross_entropy", "sparse_categorical_cross_entropy", "categorical_crossentropy"]
         if isinstance(loss_name, str) and loss_name.lower() not in valid_losses:
             self.raise_validation_error(f"Invalid loss function: {loss_name}", item)
 
@@ -1700,7 +1700,9 @@ class ModelTransformer(lark.Transformer):
         items: [optimizer_name, param_style1?]
         Accepts list/dict forms and merges into a flat params dict.
         """
-        optimizer_type = str(items[0])
+        optimizer_type = str(items[0]).strip('"')
+        self._validate_optimizer(optimizer_type, items[0])
+        
         params = {}
 
         # Merge parameters if provided (items[1] may be dict or list)
@@ -2151,27 +2153,6 @@ class ModelTransformer(lark.Transformer):
                 params = param_values
             else:
                 # Single positional parameter, e.g., LSTM(64)
-                params['units'] = param_values
-
-        if 'units' not in params:
-            self.raise_validation_error("LSTM requires 'units' parameter", items[0])
-
-        units = params['units']
-        if isinstance(units, dict) and 'hpo' in units:
-            pass  # HPO handled elsewhere
-        else:
-            try:
-                params['units'] = validate_units(units)
-            except ValidationError as e:
-                self.raise_validation_error(str(e), items[0], Severity.ERROR)
-                return
-
-        return {'type': 'LSTM', 'params': params}
-
-    def gru(self, items):
-        params = {}
-        if items and items[0] is not None:
-            param_node = items[0]
             param_values = self._extract_value(param_node)
             if isinstance(param_values, list):
                 for val in param_values:
@@ -2886,20 +2867,6 @@ class ModelTransformer(lark.Transformer):
         if optimizer_config:
             network_config['optimizer'] = optimizer_config
             # logger.debug(f"Adding optimizer to network_config: {optimizer_config}")
-
-        if training_config:
-            network_config['training'] = training_config
-
-        if execution_config:
-            network_config['execution'] = execution_config
-
-        # logger.debug(f"Final network_config: {network_config}")
-        return network_config
-
-    #########
-
-    def search_method_param(self, items):
-        value = self._extract_value(items[0])  # Extract "bayesian" from STRING token
         return {'search_method': value}
 
     def _extract_value(self, item):
