@@ -38,6 +38,7 @@ def test_fuse_conv_bn_weights():
 
 @patch('torch.load')
 @pytest.mark.skip(reason='_convert_torch_weights not implemented')
+@pytest.mark.skip(reason='_convert_torch_weights not implemented')
 def test_convert_torch_weights(mock_torch_load):
     # Create a model with Conv2D and BN
     model = torch.nn.Sequential(
@@ -51,6 +52,7 @@ def test_convert_torch_weights(mock_torch_load):
     assert '0.weight' in converted
     assert '0.bias' in converted
 
+@pytest.mark.skip(reason='OptimizedModel and FusedConvBNLayer not implemented')
 @pytest.mark.skip(reason='OptimizedModel and FusedConvBNLayer not implemented')
 def test_optimized_model_creation():
     config = {

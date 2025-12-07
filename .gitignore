@@ -81,5 +81,6 @@ classes.*
 packages.*
 
 # Development artifacts (test scripts should be in tests/)
-test_*.py
-sample_*.py
+# Development artifacts (test scripts should be in tests/)
+/test_*.py
+/sample_*.py

@@ -74,7 +74,7 @@ class TestParserProperties:
         program = """
         network TestNet {
             input: (28, 28, 1)
-            layers: Dense(10)
+            layers: Flatten() Dense(10)
         }
         """
         result = self.parser.parse(program)  # Parse the network
@@ -90,7 +90,7 @@ class TestParserProperties:
         program = """
         network ShapeTest {
             input: (None, 224, 224, 3)
-            layers: Dense(10)
+            layers: Flatten() Dense(10)
         }
         """
         result = self.parser.parse(program)

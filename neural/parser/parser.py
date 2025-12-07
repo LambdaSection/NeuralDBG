@@ -1311,22 +1311,36 @@ class ModelTransformer(lark.Transformer):
 
         if 'activation' in params:
             activation = params['activation']
+            
             if isinstance(activation, dict) and 'hpo' in activation:
                 self._track_hpo('Dense', 'activation', activation, items[0])
-            elif isinstance(activation, dict) and 'hpo' not in activation:
-                params['activation'] = self._extract_value(activation)
-            elif not isinstance(activation, str):
-                self.raise_validation_error(f"Dense activation must be a string or HPO, got {activation}", items[0])
             else:
-                valid_activations = {
-                    'relu', 'sigmoid', 'tanh', 'softmax', 'softplus',
-                    'softsign', 'selu', 'elu', 'exponential', 'linear'
-                }
-                if activation.lower() not in valid_activations:
-                    self.raise_validation_error(
-                        f"Invalid activation function '{activation}'",
-                        items[0]
-                    )
+                # If it's a dict (but not HPO), try to extract the value
+                if isinstance(activation, dict):
+                    # Handle case where value is wrapped in a dict with the parameter name
+                    if 'activation' in activation:
+                        activation = activation['activation']
+                    else:
+                        activation = self._extract_value(activation)
+                    params['activation'] = activation
+                
+                # Handle potential extra quotes if it's a string
+                if isinstance(activation, str):
+                    activation = activation.strip("'").strip('"')
+                    params['activation'] = activation
+
+                if not isinstance(activation, str):
+                    self.raise_validation_error(f"Dense activation must be a string or HPO, got {activation}", items[0])
+                else:
+                    valid_activations = {
+                        'relu', 'sigmoid', 'tanh', 'softmax', 'softplus',
+                        'softsign', 'selu', 'elu', 'exponential', 'linear'
+                    }
+                    if activation.lower() not in valid_activations:
+                        self.raise_validation_error(
+                            f"Invalid activation function '{activation}'",
+                            items[0]
+                        )
 
         # Extract device_spec if present (last item in items list)
         device = None
@@ -2152,31 +2166,24 @@ class ModelTransformer(lark.Transformer):
                             params['units'] = val
             elif isinstance(param_values, dict):
                 params = param_values
-            param_values = self._extract_value(param_node)
-            if isinstance(param_values, list):
-                for val in param_values:
-                    if isinstance(val, dict):
-                        params.update(val)
-                    else:
-                        if 'units' not in params:
-                            params['units'] = val
-            elif isinstance(param_values, dict):
-                params = param_values
+            else:
+                # Single positional parameter, e.g., LSTM(64)
+                params['units'] = param_values
 
         if 'units' not in params:
-            self.raise_validation_error("SimpleRNN requires 'units' parameter", items[0])
+            self.raise_validation_error("LSTM requires 'units' parameter", items[0])
 
         units = params['units']
         if isinstance(units, dict) and 'hpo' in units:
             pass
         else:
             if not isinstance(units, (int, float)) or (isinstance(units, float) and not units.is_integer()):
-                self.raise_validation_error(f"SimpleRNN units must be an integer, got {units}", items[0])
+                self.raise_validation_error(f"LSTM units must be an integer, got {units}", items[0])
             if units <= 0:
-                self.raise_validation_error(f"SimpleRNN units must be positive, got {units}", items[0])
+                self.raise_validation_error(f"LSTM units must be positive, got {units}", items[0])
             params['units'] = int(units)
 
-        return {'type': 'SimpleRNN', 'params': params}
+        return {'type': 'LSTM', 'params': params}
 
     def lr_schedule(self, items):
         """

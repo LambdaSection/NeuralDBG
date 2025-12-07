@@ -222,13 +222,18 @@ def test_custom_layer_handler_registration():
 
     propagator = ShapePropagator()
 
-    # Test the custom layer
-    input_shape = (1, 100)
-    layer = {"type": "CustomLayer", "params": {"units": 32}}
-    output_shape = propagator.propagate(input_shape, layer, framework="tensorflow")
+    try:
+        # Test the custom layer
+        input_shape = (1, 100)
+        layer = {"type": "CustomLayer", "params": {"units": 32}}
+        output_shape = propagator.propagate(input_shape, layer, framework="tensorflow")
 
-    # Check that our custom handler was used
-    assert output_shape == (1, 64)  # 32 * 2 = 64
+        # Check that our custom handler was used
+        assert output_shape == (1, 64)  # 32 * 2 = 64
+    finally:
+        # Clean up: Unregister the handler to avoid polluting other tests
+        if "CustomLayer" in ShapePropagator.LAYER_HANDLERS:
+            del ShapePropagator.LAYER_HANDLERS["CustomLayer"]
 
 if __name__ == '__main__':
     pytest.main(['-xvs', __file__])
