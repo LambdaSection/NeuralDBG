@@ -33,6 +33,89 @@ from .layer_handlers import (
     handle_zero_padding2d, handle_cropping2d
 )
 
+
+class ShapeMismatchError(Exception):
+    """Enhanced exception for shape propagation errors with actionable diagnostics.
+    
+    This exception provides detailed information about shape mismatches and offers
+    concrete suggestions for fixing the issue.
+    
+    Features:
+    - Categorizes errors by issue type (missing_parameter, shape_incompatibility, etc.)
+    - Shows input/output shapes for better understanding
+    - Provides expected vs actual value comparisons
+    - Offers multiple fix suggestions with examples
+    - Includes common parameter values as guidance
+    
+    Example error categories:
+    - missing_parameter: Required parameter not provided
+    - invalid_parameter: Parameter has invalid value (e.g., negative filters)
+    - shape_incompatibility: Input shape doesn't match layer requirements
+    - validation_error: General validation failure
+    """
+    
+    def __init__(self, 
+                 layer_type: str,
+                 issue: str,
+                 message: str,
+                 input_shape: Optional[Tuple] = None,
+                 expected_shape: Optional[str] = None,
+                 expected_value: Optional[str] = None,
+                 actual_value: Optional[str] = None,
+                 fix_suggestions: Optional[List[str]] = None):
+        """Initialize a shape mismatch error with diagnostic information.
+        
+        Args:
+            layer_type: Type of layer where error occurred
+            issue: Category of issue (e.g., 'missing_parameter', 'shape_incompatibility')
+            message: Main error message
+            input_shape: Input shape that caused the error
+            expected_shape: Expected shape format
+            expected_value: Expected parameter value
+            actual_value: Actual parameter value that caused error
+            fix_suggestions: List of actionable fix suggestions
+        """
+        self.layer_type = layer_type
+        self.issue = issue
+        self.input_shape = input_shape
+        self.expected_shape = expected_shape
+        self.expected_value = expected_value
+        self.actual_value = actual_value
+        self.fix_suggestions = fix_suggestions or []
+        
+        # Build comprehensive error message
+        full_message = self._build_message(message)
+        super().__init__(full_message)
+    
+    def _build_message(self, base_message: str) -> str:
+        """Build a comprehensive error message with all diagnostic information."""
+        lines = [
+            "\n" + "="*70,
+            f"SHAPE ERROR: {self.layer_type} Layer",
+            "="*70,
+            f"\n❌ {base_message}",
+        ]
+        
+        if self.input_shape:
+            lines.append(f"\n📊 Input Shape: {self.input_shape}")
+        
+        if self.expected_shape:
+            lines.append(f"   Expected: {self.expected_shape}")
+        
+        if self.expected_value and self.actual_value:
+            lines.append(f"\n   Expected: {self.expected_value}")
+            lines.append(f"   Got: {self.actual_value}")
+        
+        if self.fix_suggestions:
+            lines.append("\n🔧 Fix Suggestions:")
+            for i, suggestion in enumerate(self.fix_suggestions, 1):
+                lines.append(f"   {i}. {suggestion}")
+        
+        lines.append(f"\n💡 Tip: Use 'neural visualize' to see layer shapes throughout your network")
+        lines.append("="*70 + "\n")
+        
+        return "\n".join(lines)
+
 class PerformanceMonitor:
     def __init__(self):
         self.resource_history = []
@@ -115,9 +198,26 @@ class ShapePropagator:
                     layer_type = key.value
                     params = layer[key][0] if layer[key] else {}
                 else:
-                    raise KeyError("Layer must have a 'type' field")
+                    raise ShapeMismatchError(
+                        layer_type="Unknown",
+                        issue="malformed_layer",
+                        message="Layer must have a 'type' field",
+                        fix_suggestions=[
+                            "Ensure all layers follow the format: LayerType(param1=value1, param2=value2)",
+                            "Check for syntax errors in your .neural file",
+                            "Valid layer types: Dense, Conv2D, MaxPooling2D, Flatten, etc."
+                        ]
+                    )
             else:
-                raise KeyError("Layer must have a 'type' field")
+                raise ShapeMismatchError(
+                    layer_type="Unknown",
+                    issue="malformed_layer",
+                    message="Layer must have a 'type' field",
+                    fix_suggestions=[
+                        "Ensure all layers follow the format: LayerType(param1=value1, param2=value2)",
+                        "Check for syntax errors in your .neural file"
+                    ]
+                )
         else:
             layer_type = layer["type"]
             params = layer.get("params", {})
@@ -128,14 +228,49 @@ class ShapePropagator:
 
         # Validate input shape
         if not input_shape:
-            raise ValueError("Input shape cannot be empty")
+            raise ShapeMismatchError(
+                layer_type=layer_type,
+                issue="invalid_input_shape",
+                message="Input shape cannot be empty",
+                fix_suggestions=[
+                    "Define input shape at the beginning of your network",
+                    "Example: input: (None, 28, 28, 1) for MNIST",
+                    "First dimension is batch size (use None for dynamic batch size)"
+                ]
+            )
 
         # Check for negative dimensions in input shape
         if any(dim is not None and dim < 0 for dim in input_shape):
-            raise ValueError(f"Input shape cannot contain negative dimensions: {input_shape}")
+            raise ShapeMismatchError(
+                layer_type=layer_type,
+                issue="invalid_input_shape",
+                message=f"Input shape cannot contain negative dimensions: {input_shape}",
+                input_shape=input_shape,
+                fix_suggestions=[
+                    "All shape dimensions must be positive integers or None",
+                    "Check the output of the previous layer",
+                    "Use 'neural visualize' to trace where negative dimensions appear"
+                ]
+            )
 
         # Validate layer parameters based on layer type
-        self._validate_layer_params(layer_type, params, input_shape, framework)
+        try:
+            self._validate_layer_params(layer_type, params, input_shape, framework)
+        except ShapeMismatchError:
+            # Re-raise our custom errors as-is
+            raise
+        except ValueError as e:
+            # Convert ValueError to ShapeMismatchError for consistency
+            raise ShapeMismatchError(
+                layer_type=layer_type,
+                issue="validation_error",
+                message=str(e),
+                input_shape=input_shape,
+                fix_suggestions=[
+                    "Check layer parameter values",
+                    f"Review documentation for {layer_type} layer requirements"
+                ]
+            ) from e
 
         # Only set kernel_size for layers that need it
 
@@ -388,12 +523,21 @@ class ShapePropagator:
         return standardized
 
     def _validate_layer_params(self, layer_type, params, input_shape, framework='tensorflow'):
-        """Validate layer parameters based on layer type."""
+        """Validate layer parameters based on layer type with enhanced diagnostics."""
         # Validate based on layer type
         if layer_type == 'Conv2D':
             # Check if filters parameter exists
             if 'filters' not in params:
-                raise ValueError(f"Conv2D layer requires filters parameter")
+                raise ShapeMismatchError(
+                    layer_type='Conv2D',
+                    issue='missing_parameter',
+                    message=f"Conv2D layer requires 'filters' parameter",
+                    fix_suggestions=[
+                        "Add filters parameter: Conv2D(filters=32, ...)",
+                        "Common values: 32, 64, 128, 256 for different network depths",
+                        "Example: Conv2D(filters=32, kernel_size=(3,3), activation='relu')"
+                    ]
+                )
 
             # Check if filters is positive
             filters = params.get('filters')
@@ -401,11 +545,31 @@ class ShapePropagator:
                 if 'value' in filters:
                     filters = filters['value']
             if filters is not None and isinstance(filters, (int, float)) and filters <= 0:
-                raise ValueError(f"Conv2D filters must be a positive integer, got {filters}")
+                raise ShapeMismatchError(
+                    layer_type='Conv2D',
+                    issue='invalid_parameter',
+                    message=f"Conv2D filters must be a positive integer, got {filters}",
+                    expected_value="positive integer (e.g., 32, 64, 128)",
+                    actual_value=str(filters),
+                    fix_suggestions=[
+                        f"Change filters={filters} to a positive integer",
+                        "Common filter counts: 32, 64, 128, 256",
+                        "More filters = more feature detection capacity but higher computation"
+                    ]
+                )
 
             # Check if kernel_size parameter exists
             if 'kernel_size' not in params:
-                raise ValueError(f"Conv2D layer requires kernel_size parameter")
+                raise ShapeMismatchError(
+                    layer_type='Conv2D',
+                    issue='missing_parameter',
+                    message=f"Conv2D layer requires 'kernel_size' parameter",
+                    fix_suggestions=[
+                        "Add kernel_size parameter: Conv2D(..., kernel_size=(3,3))",
+                        "Common values: (3,3) for small features, (5,5) or (7,7) for larger",
+                        "Example: Conv2D(filters=32, kernel_size=(3,3))"
+                    ]
+                )
 
             # Check if kernel_size is valid
             kernel_size = params.get('kernel_size')
@@ -426,7 +590,20 @@ class ShapePropagator:
 
                 if len(spatial_dims) >= 2 and len(kernel_size) >= 2:
                     if kernel_size[0] > spatial_dims[0] or kernel_size[1] > spatial_dims[1]:
-                        raise ValueError(f"Conv2D kernel size {kernel_size} exceeds input dimensions {spatial_dims}")
+                        raise ShapeMismatchError(
+                            layer_type='Conv2D',
+                            issue='shape_incompatibility',
+                            message=f"Conv2D kernel size {kernel_size} exceeds input dimensions {spatial_dims}",
+                            input_shape=input_shape,
+                            expected_value=f"kernel_size <= {spatial_dims}",
+                            actual_value=f"kernel_size = {kernel_size}",
+                            fix_suggestions=[
+                                f"Reduce kernel_size to fit within {spatial_dims}",
+                                f"Try kernel_size=({min(spatial_dims[0], 3)}, {min(spatial_dims[1], 3)})",
+                                "Or increase input size before this layer",
+                                "Add padding if you need larger receptive field"
+                            ]
+                        )
 
             # Check if stride is positive
             stride = params.get('stride')
@@ -434,7 +611,18 @@ class ShapePropagator:
                 if 'value' in stride:
                     stride = stride['value']
             if stride is not None and isinstance(stride, (int, float)) and stride <= 0:
-                raise ValueError(f"Conv2D stride must be a positive integer, got {stride}")
+                raise ShapeMismatchError(
+                    layer_type='Conv2D',
+                    issue='invalid_parameter',
+                    message=f"Conv2D stride must be a positive integer, got {stride}",
+                    expected_value="positive integer (typically 1 or 2)",
+                    actual_value=str(stride),
+                    fix_suggestions=[
+                        f"Change stride={stride} to a positive integer",
+                        "stride=1 for no downsampling, stride=2 for 2x downsampling",
+                        "Larger strides reduce output dimensions"
+                    ]
+                )
 
         elif layer_type == 'Dense':
             # Check if units parameter exists and is positive
@@ -940,6 +1128,32 @@ class ShapePropagator:
         """
         self.optimizations = suggest_optimizations(self.shape_history)
         return self.optimizations
+    
+    def diagnose_shape_issues(self):
+        """Diagnose shape-related issues in the network architecture.
+        
+        Returns:
+            Dictionary with diagnostics including errors, warnings, and suggestions
+        """
+        from .utils import diagnose_shape_flow
+        return diagnose_shape_flow(self.shape_history)
+    
+    def get_layer_fix_suggestions(self, layer_type: str, input_shape: Tuple, params: Dict[str, Any]) -> List[str]:
+        """Get fix suggestions for a specific layer configuration.
+        
+        Args:
+            layer_type: Type of layer
+            input_shape: Input shape to the layer
+            params: Layer parameters
+            
+        Returns:
+            List of actionable fix suggestions
+        """
+        from .utils import suggest_layer_fix
+        return suggest_layer_fix(layer_type, {
+            'input_shape': input_shape,
+            'params': params
+        })
 
     def generate_interactive_visualization(self):
         """Generate an interactive HTML visualization of the model architecture.

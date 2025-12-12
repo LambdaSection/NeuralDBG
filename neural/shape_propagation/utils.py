@@ -2,7 +2,20 @@
 Utility functions for Neural's shape propagation system.
 
 This module provides helper functions for parameter extraction, shape validation,
-and error detection used by the shape propagator.
+error detection, and actionable error messages used by the shape propagator.
+
+Enhanced Features:
+1. format_error_message: Creates detailed error messages with fix suggestions
+2. suggest_layer_fix: Provides layer-specific fix recommendations
+3. diagnose_shape_flow: Analyzes entire network shape flow for issues
+4. detect_shape_issues: Identifies potential problems (bottlenecks, large tensors)
+5. suggest_optimizations: Recommends architectural improvements
+
+The error messages focus on:
+- Actionable suggestions with specific parameter values
+- Common use cases and examples
+- Step-by-step fix instructions
+- Context about why the error occurred
 """
 
 import numpy as np
@@ -168,25 +181,105 @@ def suggest_optimizations(shape_history: List[Tuple[str, Tuple[int, ...]]]) -> L
     return suggestions
 
 def format_error_message(error_type: str, details: Dict[str, Any]) -> str:
-    """Format user-friendly error messages.
+    """Format user-friendly error messages with actionable suggestions.
 
     Args:
         error_type: Type of error
         details: Dictionary with error details
 
     Returns:
-        Formatted error message
+        Formatted error message with fix suggestions
     """
-    messages = {
-        'invalid_input_shape': f"Invalid input shape: {details['shape']}. Expected a tuple with positive dimensions.",
-        'kernel_too_large': f"Kernel size {details['kernel_size']} is too large for input dimensions {details['input_dims']}.",
-        'missing_parameter': f"Missing required parameter '{details['param']}' for {details['layer_type']} layer.",
-        'incompatible_shapes': f"Incompatible shapes: cannot connect {details['from_shape']} to {details['to_shape']}.",
-        'negative_stride': f"Stride must be positive, got {details['stride']} for {details['layer_type']} layer.",
-        'negative_filters': f"Filters must be positive, got {details['filters']} for Conv2D layer."
+    error_templates = {
+        'invalid_input_shape': {
+            'message': f"Invalid input shape: {details.get('shape')}. Expected a tuple with positive dimensions.",
+            'suggestions': [
+                "Use format: (batch_size, height, width, channels) for TensorFlow",
+                "Use format: (batch_size, channels, height, width) for PyTorch",
+                "Example: input: (None, 28, 28, 1) for MNIST grayscale images"
+            ]
+        },
+        'kernel_too_large': {
+            'message': f"Kernel size {details.get('kernel_size')} is too large for input dimensions {details.get('input_dims')}.",
+            'suggestions': [
+                f"Reduce kernel_size to fit within {details.get('input_dims')}",
+                f"Try kernel_size=(3, 3) or smaller",
+                "Or increase input dimensions before this layer",
+                "Add padding to accommodate larger kernels"
+            ]
+        },
+        'missing_parameter': {
+            'message': f"Missing required parameter '{details.get('param')}' for {details.get('layer_type')} layer.",
+            'suggestions': [
+                f"Add {details.get('param')} parameter to {details.get('layer_type')} layer",
+                f"Example: {details.get('layer_type')}({details.get('param')}=...)",
+                f"Check {details.get('layer_type')} layer documentation for required parameters"
+            ]
+        },
+        'incompatible_shapes': {
+            'message': f"Incompatible shapes: cannot connect {details.get('from_shape')} to {details.get('to_shape')}.",
+            'suggestions': [
+                "Add a Flatten() layer to convert multi-dimensional to 1D",
+                "Use Reshape() to change tensor dimensions",
+                "Check that output of previous layer matches expected input",
+                "Use 'neural visualize' to see shape flow through network"
+            ]
+        },
+        'negative_stride': {
+            'message': f"Stride must be positive, got {details.get('stride')} for {details.get('layer_type')} layer.",
+            'suggestions': [
+                f"Change stride to a positive integer (typically 1 or 2)",
+                "stride=1 means no downsampling",
+                "stride=2 means 2x downsampling"
+            ]
+        },
+        'negative_filters': {
+            'message': f"Filters must be positive, got {details.get('filters')} for Conv2D layer.",
+            'suggestions': [
+                "Set filters to a positive integer (e.g., 32, 64, 128)",
+                "More filters = more feature detection but higher computation",
+                "Common progression: 32 -> 64 -> 128 -> 256"
+            ]
+        },
+        'output_dimension_too_small': {
+            'message': f"Output dimension {details.get('output_dim')} is too small after layer {details.get('layer_name')}.",
+            'suggestions': [
+                "Reduce stride or pool_size to preserve spatial dimensions",
+                "Add padding to maintain size",
+                "Check if you have too many pooling layers",
+                f"Input was {details.get('input_shape')}, became {details.get('output_shape')}"
+            ]
+        },
+        'zero_output_dimension': {
+            'message': f"Layer {details.get('layer_type')} produced zero output dimension.",
+            'suggestions': [
+                "Kernel size or pool_size is too large for input",
+                "Reduce kernel_size or pool_size",
+                "Increase input dimensions",
+                "Add padding to prevent dimension collapse"
+            ]
+        }
     }
 
-    return messages.get(error_type, f"Error: {details}")
+    error_info = error_templates.get(error_type, {
+        'message': f"Error: {details}",
+        'suggestions': ["Check layer parameters and input shapes"]
+    })
+    
+    message_parts = [
+        "\n" + "="*70,
+        "SHAPE PROPAGATION ERROR",
+        "="*70,
+        f"\n❌ {error_info['message']}",
+        "\n🔧 Fix Suggestions:"
+    ]
+    
+    for i, suggestion in enumerate(error_info['suggestions'], 1):
+        message_parts.append(f"   {i}. {suggestion}")
+    
+    message_parts.append("\n" + "="*70)
+    
+    return "\n".join(message_parts)
 
 def calculate_memory_usage(shape: Tuple[int, ...], dtype: str = 'float32') -> int:
     """Calculate memory usage for a tensor with given shape and dtype.
@@ -227,3 +320,117 @@ def format_memory_size(bytes: int) -> str:
         return f"{bytes / (1024 * 1024):.2f} MB"
     else:
         return f"{bytes / (1024 * 1024 * 1024):.2f} GB"
+
+
+def suggest_layer_fix(layer_type: str, error_context: Dict[str, Any]) -> List[str]:
+    """Suggest specific fixes based on layer type and error context.
+    
+    Args:
+        layer_type: Type of layer that encountered an error
+        error_context: Dictionary with error context (input_shape, params, etc.)
+        
+    Returns:
+        List of actionable fix suggestions
+    """
+    suggestions = []
+    input_shape = error_context.get('input_shape')
+    params = error_context.get('params', {})
+    
+    if layer_type == 'Conv2D':
+        if input_shape and len(input_shape) != 4:
+            suggestions.append(f"Conv2D expects 4D input, got {len(input_shape)}D: {input_shape}")
+            suggestions.append("Ensure input format: (batch, height, width, channels) or (batch, channels, height, width)")
+        
+        kernel_size = params.get('kernel_size')
+        if kernel_size and input_shape:
+            suggestions.append(f"Current kernel_size: {kernel_size}, input spatial dims: {input_shape[1:3]}")
+            suggestions.append("Try reducing kernel_size if it exceeds input dimensions")
+    
+    elif layer_type == 'Dense':
+        if input_shape and len(input_shape) > 2:
+            suggestions.append(f"Dense expects 2D input (batch, features), got {len(input_shape)}D")
+            suggestions.append("Add Flatten() or GlobalAveragePooling2D before Dense layer")
+            suggestions.append(f"Example: ...Conv2D(...) -> Flatten() -> Dense(...)")
+    
+    elif layer_type == 'MaxPooling2D':
+        pool_size = params.get('pool_size')
+        if pool_size and input_shape:
+            suggestions.append(f"pool_size: {pool_size}, input: {input_shape}")
+            suggestions.append("Reduce pool_size if it exceeds spatial dimensions")
+            suggestions.append("Common pool_size values: (2,2), (3,3)")
+    
+    elif layer_type == 'Flatten':
+        if input_shape:
+            flattened_size = np.prod([d for d in input_shape[1:] if d is not None])
+            suggestions.append(f"Flatten will convert {input_shape} to (batch, {flattened_size})")
+    
+    # Generic suggestions if none specific found
+    if not suggestions:
+        suggestions.append(f"Check {layer_type} layer parameters and input shape compatibility")
+        suggestions.append("Use 'neural visualize <your_file>.neural' to see shape flow")
+    
+    return suggestions
+
+
+def diagnose_shape_flow(shape_history: List[Tuple[str, Tuple[int, ...]]]) -> Dict[str, Any]:
+    """Diagnose potential issues in shape flow through network.
+    
+    Args:
+        shape_history: List of (layer_name, output_shape) tuples
+        
+    Returns:
+        Dictionary with diagnostic information and suggestions
+    """
+    diagnostics = {
+        'warnings': [],
+        'errors': [],
+        'suggestions': [],
+        'shape_flow': []
+    }
+    
+    for i, (layer_name, shape) in enumerate(shape_history):
+        # Check for dimension collapse
+        if any(dim is not None and dim <= 0 for dim in shape):
+            diagnostics['errors'].append({
+                'layer': layer_name,
+                'issue': 'zero_or_negative_dimension',
+                'message': f"Layer {layer_name} produced invalid dimensions: {shape}",
+                'suggestions': [
+                    "Check previous layer parameters (stride, kernel_size, pool_size)",
+                    "Dimensions may have collapsed due to aggressive downsampling",
+                    "Consider reducing stride or adding padding"
+                ]
+            })
+        
+        # Check for extreme size reductions
+        if i > 0:
+            prev_shape = shape_history[i-1][1]
+            prev_size = np.prod([d for d in prev_shape if d is not None and d > 0])
+            curr_size = np.prod([d for d in shape if d is not None and d > 0])
+            
+            if curr_size < prev_size * 0.01:  # >99% reduction
+                diagnostics['warnings'].append({
+                    'layer': layer_name,
+                    'issue': 'extreme_dimension_reduction',
+                    'message': f"Layer {layer_name} reduced tensor size by >99%: {prev_size} -> {curr_size}",
+                    'suggestions': [
+                        "This may cause information loss",
+                        "Consider more gradual downsampling",
+                        "Review pooling and stride parameters"
+                    ]
+                })
+        
+        diagnostics['shape_flow'].append({
+            'layer': layer_name,
+            'shape': shape,
+            'size': np.prod([d for d in shape if d is not None and d > 0]),
+            'memory_mb': calculate_memory_usage(shape) / (1024 * 1024)
+        })
+    
+    # Overall suggestions
+    if diagnostics['errors']:
+        diagnostics['suggestions'].append("Fix dimension errors before proceeding")
+    if diagnostics['warnings']:
+        diagnostics['suggestions'].append("Review warnings for potential architecture improvements")
+    
+    return diagnostics
