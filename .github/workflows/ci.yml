@@ -7,14 +7,42 @@ on:
     - cron: "0 2 * * *"  # nightly at 02:00 UTC
 
 jobs:
-  build:
-    name: lint-type-test-audit (${{ matrix.os }}, py${{ matrix.python-version }})
+  lint:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+          cache-dependency-path: 'setup.py'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install project and tools
+        run: |
+          python -m pip install -e .
+          python -m pip install ruff mypy
+
+      - name: Ruff (lint)
+        run: python -m ruff check .
+
+      - name: Mypy (type check)
+        run: python -m mypy .
+
+  unit-tests:
+    name: Unit Tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - name: Checkout
@@ -24,6 +52,128 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'setup.py'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install project and dependencies
+        run: |
+          python -m pip install -e .
+          python -m pip install pytest pytest-cov
+
+      - name: Run unit tests with coverage
+        run: |
+          python -m pytest tests/parser tests/shape_propagation tests/code_generator tests/visualization tests/hpo tests/cli tests/utils tests/docgen tests/ai -v --cov=neural --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unit-tests,python-${{ matrix.python-version }},${{ matrix.os }}
+          name: unit-${{ matrix.os }}-py${{ matrix.python-version }}
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  integration-tests:
+    name: Integration Tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'setup.py'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install project and dependencies
+        run: |
+          python -m pip install -e .
+          python -m pip install pytest pytest-cov
+
+      - name: Run integration tests with coverage
+        run: |
+          python -m pytest tests/integration_tests -v --cov=neural --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: integration-tests,python-${{ matrix.python-version }},${{ matrix.os }}
+          name: integration-${{ matrix.os }}-py${{ matrix.python-version }}
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  e2e-tests:
+    name: E2E Tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'setup.py'
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install project and dependencies
+        run: |
+          python -m pip install -e .
+          python -m pip install pytest pytest-cov
+
+      - name: Run e2e tests with coverage
+        run: |
+          python -m pytest tests/test_*.py tests/cloud tests/dashboard -v --cov=neural --cov-report=xml --cov-report=term
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: e2e-tests,python-${{ matrix.python-version }},${{ matrix.os }}
+          name: e2e-${{ matrix.os }}-py${{ matrix.python-version }}
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  supply-chain-audit:
+    name: Supply Chain Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: 'pip'
+          cache-dependency-path: 'setup.py'
 
       - name: Upgrade pip
         run: python -m pip install --upgrade pip
@@ -31,18 +181,23 @@ jobs:
       - name: Install project and tools
         run: |
           python -m pip install -e .
-          python -m pip install ruff mypy pip-audit pytest
-
-      - name: Ruff (lint)
-        run: python -m ruff check .
-
-      - name: Mypy (type check)
-        run: python -m mypy .
-
-      - name: Pytest (unit tests)
-        run: python -m pytest -q
+          python -m pip install pip-audit
 
       - name: pip-audit (supply chain)
         run: python -m pip_audit -l --progress-spinner off
         continue-on-error: true
 
+  coverage-report:
+    name: Coverage Report
+    needs: [unit-tests, integration-tests, e2e-tests]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false

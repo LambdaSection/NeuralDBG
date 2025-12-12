@@ -71,6 +71,7 @@ neural_experiments/
 .hypothesis/
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 *.prof
 output.prof
@@ -91,3 +92,5 @@ packages.*
 # Development artifacts (test scripts should be in tests/)
 /test_*.py
 /sample_*.py
+/_temp_*.py
+/_temp_*.ps1
