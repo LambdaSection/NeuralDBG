@@ -29,7 +29,13 @@ Examples
 >>> executor.train_model(code_path, epochs=10, batch_size=32)
 """
 
-from .cloud_execution import CloudExecutor
+from .cloud_execution import (
+    CloudExecutor,
+    CloudExecutionError,
+    CloudConnectionError,
+    CloudCompilationError,
+    CloudRuntimeError
+)
 from .remote_connection import RemoteConnection
 
 # Import SageMaker integration if running in SageMaker environment
@@ -37,6 +43,13 @@ import os
 if 'SM_MODEL_DIR' in os.environ:
     from .sagemaker_integration import SageMakerHandler, sagemaker_entry_point
 
-__all__ = ['CloudExecutor', 'RemoteConnection']
+__all__ = [
+    'CloudExecutor',
+    'CloudExecutionError',
+    'CloudConnectionError',
+    'CloudCompilationError',
+    'CloudRuntimeError',
+    'RemoteConnection'
+]
 if 'SM_MODEL_DIR' in os.environ:
     __all__.extend(['SageMakerHandler', 'sagemaker_entry_point'])
