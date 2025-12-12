@@ -85,19 +85,35 @@ except Exception as e:
     warnings.warn(f"Utils module unavailable: {e}")
 
 
-def check_dependencies():
+def check_dependencies() -> Dict[str, bool]:
     """
-    Check which modules are available and return a status dictionary.
+    Check module availability and return status dictionary.
 
-    Returns:
-        dict: Module name -> availability status (True/False)
+    Returns
+    -------
+    Dict[str, bool]
+        Mapping of module name to availability status (True/False)
 
-    Example:
-        >>> import neural
-        >>> deps = neural.check_dependencies()
-        >>> if deps['parser']:
-        ...     # Parser is available, can use neural.parser
-        ...     pass
+    Examples
+    --------
+    >>> import neural
+    >>> deps = neural.check_dependencies()
+    >>> if deps['parser']:
+    ...     from neural.parser import create_parser
+    ...     parser = create_parser('network')
+    >>> print(deps)  # doctest: +SKIP
+    {'cli': True, 'parser': True, 'shape_propagation': True, ...}
+    
+    Notes
+    -----
+    Use this function to check if optional dependencies are installed
+    before importing specific modules. If a module shows as False,
+    install the required dependencies:
+    
+    - parser: requires 'lark'
+    - dashboard: requires 'flask', 'dash'
+    - hpo: requires 'optuna'
+    - Full installation: pip install neural-dsl[full]
     """
     return {
         "cli": cli is not None,  # CLI available?

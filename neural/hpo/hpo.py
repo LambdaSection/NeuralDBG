@@ -1,3 +1,9 @@
+"""
+Hyperparameter optimization module for Neural DSL.
+
+This module provides comprehensive HPO support with Optuna integration,
+supporting various search strategies and automatic model tuning.
+"""
 from __future__ import annotations
 
 import optuna
@@ -17,8 +23,34 @@ from neural.execution_optimization.execution import get_device
 import copy
 from typing import Optional, Tuple, Dict, Any, List
 
-# Data Loader
-def get_data(dataset_name: str, input_shape: Tuple[int, ...], batch_size: int, train: bool = True, backend: str = 'pytorch') -> Any:
+def get_data(
+    dataset_name: str,
+    input_shape: Tuple[int, ...],
+    batch_size: int,
+    train: bool = True,
+    backend: str = 'pytorch'
+) -> Any:
+    """
+    Load dataset for HPO experiments.
+    
+    Parameters
+    ----------
+    dataset_name : str
+        Name of dataset ('MNIST', 'CIFAR10')
+    input_shape : Tuple[int, ...]
+        Expected input shape
+    batch_size : int
+        Batch size for data loader
+    train : bool, optional
+        Load training or test set, by default True
+    backend : str, optional
+        Framework backend ('pytorch', 'tensorflow'), by default 'pytorch'
+        
+    Returns
+    -------
+    DataLoader or tf.data.Dataset
+        Dataset loader for the specified backend
+    """
     datasets = {'MNIST': MNIST, 'CIFAR10': CIFAR10}
     dataset = datasets.get(dataset_name, MNIST)(root='./data', train=train, transform=ToTensor(), download=True)
     if backend == 'pytorch':
@@ -437,5 +469,3 @@ def optimize_and_return(config: str, n_trials: int = 10, dataset_name: str = 'MN
         normalized_params['learning_rate'] = 0.001  # Default from optimizer_config
 
     return normalized_params
-params
-_params

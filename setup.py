@@ -106,6 +106,12 @@ setup(
             + ML_EXTRAS_DEPS
             + API_DEPS
         ),
+        "docs": [
+            "sphinx>=5.0",
+            "sphinx-rtd-theme>=1.0",
+            "sphinx-autodoc-typehints>=1.19",
+            "myst-parser>=0.18"
+        ]
     },
     entry_points={
         "console_scripts": ["neural=neural.__main__:cli"]

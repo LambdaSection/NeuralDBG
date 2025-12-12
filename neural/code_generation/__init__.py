@@ -1,4 +1,21 @@
-"""Code generation and export functionality for Neural DSL."""
+"""
+Code generation module for Neural DSL.
+
+This module provides functionality to convert parsed Neural DSL models into
+executable Python code for multiple deep learning frameworks.
+
+Supported backends:
+    - TensorFlow/Keras
+    - PyTorch
+    - ONNX
+
+The code generator handles:
+    - Layer instantiation and configuration
+    - Shape propagation and validation
+    - Optimizer and loss function setup
+    - Training loop generation
+    - Experiment tracking integration
+"""
 
 from neural.code_generation.code_generator import (
     generate_code,

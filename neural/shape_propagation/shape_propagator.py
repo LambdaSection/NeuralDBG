@@ -1,3 +1,9 @@
+"""
+Shape propagation module for Neural DSL.
+
+This module provides tensor shape inference, validation, and optimization
+suggestions for neural network architectures.
+"""
 from __future__ import annotations
 
 import logging
@@ -125,6 +131,16 @@ class ShapeMismatchError(Exception):
         return "\n".join(lines)
 
 class PerformanceMonitor:
+    """
+    Monitor system resources during shape propagation.
+    
+    Tracks CPU, memory, GPU, and I/O usage for performance analysis.
+    
+    Attributes
+    ----------
+    resource_history : list
+        History of resource measurements
+    """
     def __init__(self):
         self.resource_history = []
 
@@ -1473,6 +1489,45 @@ def step_debug_hook(module, input, output):
     """Pauses execution at this layer for manual debugging."""
     logger.info("Paused at layer: %s", module.__class__.__name__)
     logger.info("Input shape: %s, Output shape: %s", input[0].shape, output.shape)
+
+    # Wait for user input before continuing
+    input("Press Enter to continue...")
+0 if torch is not None else False
+    is_exploding = mean_activation > 1000  # Arbitrary threshold for huge activations
+
+    return {
+        "layer": layer.__class__.__name__,
+        "mean_activation": mean_activation,
+        "anomaly": has_nan or is_exploding
+    }
+
+
+######################
+### Step Debugging ###
+######################
+def step_debug_hook(module, input, output):
+    """Pauses execution at this layer for manual debugging."""
+    print(f"Paused at layer: {module.__class__.__name__}")
+    print(f"Input shape: {input[0].shape}, Output shape: {output.shape}")
+
+    # Wait for user input before continuing
+    input("Press Enter to continue...")
+000  # Arbitrary threshold for huge activations
+
+    return {
+        "layer": layer.__class__.__name__,
+        "mean_activation": mean_activation,
+        "anomaly": has_nan or is_exploding
+    }
+
+
+######################
+### Step Debugging ###
+######################
+def step_debug_hook(module, input, output):
+    """Pauses execution at this layer for manual debugging."""
+    print(f"Paused at layer: {module.__class__.__name__}")
+    print(f"Input shape: {input[0].shape}, Output shape: {output.shape}")
 
     # Wait for user input before continuing
     input("Press Enter to continue...")

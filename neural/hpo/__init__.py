@@ -7,6 +7,30 @@ This module provides advanced hyperparameter optimization capabilities including
 - Distributed HPO with Ray Tune integration
 - Enhanced parameter importance analysis with multiple methods
 - Rich visualizations for optimization results
+
+Features
+--------
+- Automatic hyperparameter search spaces from DSL
+- Multiple search strategies (TPE, Random, Grid)
+- Distributed optimization support
+- Parameter importance analysis
+- Visualization of optimization progress
+
+Functions
+---------
+get_data
+    Load datasets for HPO experiments
+create_dynamic_model
+    Create models with trial hyperparameters
+resolve_hpo_params
+    Resolve HPO specifications to concrete values
+
+Examples
+--------
+>>> from neural.hpo import create_dynamic_model
+>>> import optuna
+>>> trial = optuna.create_trial(...)
+>>> model = create_dynamic_model(model_dict, trial, hpo_params)
 """
 
 from .hpo import (
@@ -16,7 +40,9 @@ from .hpo import (
     create_dynamic_model,
     MultiObjectiveOptimizer,
     DistributedHPO,
-    BayesianParameterImportance
+    BayesianParameterImportance,
+    get_data,
+    resolve_hpo_params
 )
 
 from .parameter_importance import ParameterImportanceAnalyzer
@@ -51,6 +77,8 @@ __all__ = [
     'objective',
     'train_model',
     'create_dynamic_model',
+    'get_data',
+    'resolve_hpo_params',
     
     # Optimization classes
     'MultiObjectiveOptimizer',

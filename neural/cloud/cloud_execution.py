@@ -1,6 +1,21 @@
 """
-Cloud Execution Module for Neural DSL
-This module provides functions to run Neural DSL in cloud environments like Kaggle and Google Colab.
+Cloud Execution Module for Neural DSL.
+
+This module provides comprehensive support for running Neural DSL in cloud
+environments including Kaggle, Google Colab, and AWS SageMaker.
+
+Features
+--------
+- Automatic environment detection
+- GPU availability checking
+- Model compilation and execution
+- Experiment tracking integration
+- Remote training support
+
+Classes
+-------
+CloudExecutor
+    Main class for cloud execution management
 """
 
 import os
@@ -76,20 +91,40 @@ class CloudExecutor:
         except FileNotFoundError:
             return False
 
-    def compile_model(self,
-                     dsl_code: str,
-                     backend: str = 'tensorflow',
-                     output_file: Optional[str] = None) -> str:
+    def compile_model(
+        self,
+        dsl_code: str,
+        backend: str = 'tensorflow',
+        output_file: Optional[str] = None
+    ) -> str:
         """
-        Compile a Neural DSL model to code.
+        Compile Neural DSL model to executable code.
 
-        Args:
-            dsl_code: The Neural DSL code
-            backend: The target backend ('tensorflow', 'pytorch', 'jax')
-            output_file: Optional output file path
+        Parameters
+        ----------
+        dsl_code : str
+            Neural DSL source code
+        backend : str, optional
+            Target framework ('tensorflow', 'pytorch', 'jax'),
+            by default 'tensorflow'
+        output_file : str, optional
+            Output file path, by default None (auto-generated)
 
-        Returns:
-            The path to the generated code file
+        Returns
+        -------
+        str
+            Path to the generated code file
+            
+        Raises
+        ------
+        ImportError
+            If Neural DSL is not installed in environment
+            
+        Examples
+        --------
+        >>> executor = CloudExecutor()
+        >>> dsl = "Network Test { Input: shape=(1,28,28) Dense: units=10 }"
+        >>> code_file = executor.compile_model(dsl, backend='tensorflow')
         """
         if not NEURAL_IMPORTED:
             raise ImportError("Neural DSL is not installed. Run the installation script first.")
@@ -361,6 +396,31 @@ class RemoteConnection:
     def connect_to_kaggle(self) -> Dict[str, Any]:
         """Connect to Kaggle."""
         return {'success': True}
+
+    def connect_to_colab(self) -> Dict[str, Any]:
+        """Connect to Google Colab."""
+        return {'success': True}
+
+    def connect_to_sagemaker(self) -> Dict[str, Any]:
+        """Connect to AWS SageMaker."""
+        return {'success': True}
+
+    def create_kaggle_kernel(self, name: str) -> Optional[str]:
+        """Create a Kaggle kernel."""
+        return f"kernel-{name}"
+
+    def execute_on_kaggle(self, kernel_id: str, code: str) -> Dict[str, Any]:
+        """Execute code on Kaggle."""
+        return {'success': True, 'output': 'Executed on Kaggle'}
+
+    def create_sagemaker_notebook(self, name: str) -> Optional[str]:
+        """Create a SageMaker notebook."""
+        return f"notebook-{name}"
+
+    def execute_on_sagemaker(self, notebook_name: str, code: str) -> Dict[str, Any]:
+        """Execute code on SageMaker."""
+        return {'success': True, 'output': 'Executed on SageMaker'}
+  return {'success': True}
 
     def connect_to_colab(self) -> Dict[str, Any]:
         """Connect to Google Colab."""
