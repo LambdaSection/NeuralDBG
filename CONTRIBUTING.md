@@ -10,10 +10,12 @@ Thank you for your interest in contributing to Neural DSL! This guide will help 
    cd Neural
    ```
 
-2. **Install Dependencies**
+2. **Set Up Development Environment**
    ```bash
-   pip install -e .
-   pip install -e ".[full]"  # For all optional dependencies
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   pip install -r requirements-dev.txt
+   pre-commit install
    ```
 
 3. **Run Tests**
@@ -81,10 +83,25 @@ python scripts/automation/master_automation.py --release --version-type major
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. **Install in development mode**
+3. **Install development dependencies**
    ```bash
-   pip install -e .
-   pip install -e ".[full]"  # For all features
+   pip install -r requirements-dev.txt
+   pre-commit install  # Set up git hooks
+   ```
+   
+   This installs:
+   - Core Neural DSL in editable mode
+   - Testing tools (pytest, pytest-cov)
+   - Linting tools (ruff, pylint, flake8)
+   - Type checking (mypy)
+   - Pre-commit hooks
+   - Security auditing (pip-audit)
+   
+   For testing specific features, install optional dependencies:
+   ```bash
+   pip install -e ".[backends]"      # ML framework testing
+   pip install -e ".[visualization]" # Visualization testing
+   pip install -e ".[full]"          # All features
    ```
 
 4. **Run tests to verify setup**
@@ -313,20 +330,115 @@ def _get_system_prompt(self) -> str:
    python -m pytest tests/ -v
    ```
 
-2. **Validate examples**
+2. **Run linters**
    ```bash
-   python scripts/automation/master_automation.py --validate
-   ```
-
-3. **Check code style**
-   ```bash
+   python -m ruff check .
    python -m pylint neural/
    ```
 
-4. **Test your changes**
+3. **Type check**
+   ```bash
+   python -m mypy neural/code_generation neural/utils
+   ```
+
+4. **Security audit**
+   ```bash
+   python -m pip_audit -l --progress-spinner off
+   ```
+
+5. **Test your changes**
    - Manual testing
    - Edge cases
    - Error handling
+
+## 📦 Managing Dependencies
+
+When contributing code that requires new dependencies:
+
+### Adding Dependencies
+
+1. **Categorize the dependency** - Determine which feature group it belongs to:
+   - `CORE_DEPS` - Essential for basic DSL functionality
+   - `BACKEND_DEPS` - ML framework support
+   - `HPO_DEPS` - Hyperparameter optimization
+   - `VISUALIZATION_DEPS` - Charts and diagrams
+   - `DASHBOARD_DEPS` - NeuralDbg interface
+   - `CLOUD_DEPS` - Cloud integrations
+   - `UTILS_DEPS` - Utilities and profiling
+   - `API_DEPS` - API server support
+   - `ML_EXTRAS_DEPS` - Additional ML tools
+
+2. **Update setup.py**
+   ```python
+   # Add to the appropriate dependency list
+   VISUALIZATION_DEPS = [
+       "matplotlib<3.10",
+       "graphviz>=0.20",
+       "your-new-package>=1.0",  # Add here
+   ]
+   ```
+
+3. **Document the dependency** in:
+   - `DEPENDENCY_GUIDE.md` - Usage and purpose
+   - `README.md` - If it's a major feature
+   - Your PR description
+
+4. **Test minimal installation** - Ensure core functionality works without your new dependency:
+   ```bash
+   python -m venv test_env
+   source test_env/bin/activate
+   pip install -e .  # Core only
+   # Verify basic commands work
+   ```
+
+5. **Test with dependency**:
+   ```bash
+   pip install -e ".[your-feature-group]"
+   # Run relevant tests
+   ```
+
+### Dependency Guidelines
+
+- **Avoid adding to CORE_DEPS** unless absolutely necessary
+- **Pin minimum versions** but avoid maximum versions unless required
+- **Check compatibility** with Python 3.8-3.11
+- **Consider size** - large dependencies should be optional
+- **Check licenses** - ensure compatibility with MIT license
+- **Avoid duplication** - check if functionality exists in current dependencies
+
+### Examples
+
+**Good**: Adding Optuna for HPO (already in HPO_DEPS)
+```python
+# In neural/hpo/optimizer.py
+try:
+    import optuna
+except ImportError:
+    raise ImportError("Optuna required for HPO. Install with: pip install neural-dsl[hpo]")
+```
+
+**Bad**: Adding large library to CORE_DEPS for minor feature
+```python
+# Don't do this
+CORE_DEPS = [
+    "click>=8.1.3",
+    "lark>=1.1.5",
+    "numpy>=1.23.0",
+    "pyyaml>=6.0.1",
+    "heavy-ml-framework>=2.0",  # Bad: Too heavy for core
+]
+```
+
+### Updating Development Dependencies
+
+For dev tools (linters, formatters, etc.), update `requirements-dev.txt`:
+
+```bash
+# requirements-dev.txt
+pytest>=7.0.0
+pytest-cov>=4.0.0
+your-new-dev-tool>=1.0  # Add here
+```
 
 ## 🎯 Contribution Priorities
 

@@ -46,11 +46,13 @@ wheels/
 *.egg
 
 # Virtual environments
-.venv/
-.venv*/
 venv/
+.venv/
 env/
+.env/
 ENV/
+.venv*/
+venv*/
 
 # Backup and large files
 .git.bak/
@@ -143,3 +145,8 @@ examples/**/time_series_predictor.neural
 examples/**/gan_*.neural
 examples/**/lstm_baseline.neural
 examples/**/test_output.py
+
+# Setup helper scripts
+do_install.py
+install.ps1
+install_deps.bat

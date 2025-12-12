@@ -49,6 +49,8 @@ neural clean --yes --all
 - [Pain Points Solved](#pain-points-solved)
 - [Key Features](#features)
 - [Installation](#installation)
+  - [Quick Install Reference](INSTALL.md)
+  - [Dependency Management Guide](DEPENDENCY_GUIDE.md)
 - [Quick Start](#quick-start)
 - [Debugging with NeuralDbg](#-debugging-with-neuraldbg)
 - [Cloud Integration](#cloud-integration)
@@ -134,15 +136,52 @@ NeuralDbg provides **real-time execution tracing, profiling, and debugging**, al
 
 ### Option 1: Install from PyPI (Recommended)
 
-```bash
-# Install the latest stable version
-pip install neural-dsl
+#### Minimal Installation (Core DSL Only)
+For basic DSL parsing, compilation, and CLI functionality:
 
-# Or specify a version
-pip install neural-dsl==0.2.9  # Latest version with Aquarium IDE integration
+```bash
+pip install neural-dsl
 ```
 
+This installs only the core dependencies (click, lark, numpy, pyyaml) for a lightweight installation.
+
+#### Install with Optional Features
+
+Install specific features as needed:
+
+```bash
+# For TensorFlow, PyTorch, or ONNX backends
+pip install neural-dsl[backends]
+
+# For hyperparameter optimization (Optuna)
+pip install neural-dsl[hpo]
+
+# For visualization tools (matplotlib, graphviz, plotly)
+pip install neural-dsl[visualization]
+
+# For NeuralDbg dashboard (Dash, Flask)
+pip install neural-dsl[dashboard]
+
+# For cloud integrations (Kaggle, Colab, AWS)
+pip install neural-dsl[cloud]
+
+# For all features
+pip install neural-dsl[full]
+```
+
+#### Development Installation
+
+For contributors:
+
+```bash
+pip install neural-dsl[dev]
+```
+
+This includes testing, linting, and type-checking tools (pytest, ruff, pylint, mypy).
+
 ### Option 2: Install from Source
+
+#### Minimal Installation
 
 ```bash
 # Clone the repository
@@ -154,8 +193,25 @@ python -m venv venv
 source venv/bin/activate  # Linux/macOS
 venv\Scripts\activate     # Windows
 
-# Install dependencies
-pip install -r requirements.txt
+# Install core dependencies only
+pip install -e .
+```
+
+#### Full Installation from Source
+
+```bash
+# Install with all optional features
+pip install -e ".[full]"
+```
+
+#### Development Setup from Source
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Set up pre-commit hooks
+pre-commit install
 ```
 
 ## Quick Start
@@ -534,39 +590,74 @@ set_seed(42)
 This sets Python's random, NumPy, PyTorch (including CUDA if present), and TensorFlow seeds.
 
 
-## Optional Dependencies
+## Dependency Management
 
-These packages enable optional features and backends. Install only what you need:
+Neural DSL uses a modular dependency structure to keep installations lightweight and flexible.
 
-- torch: PyTorch backend for code generation and execution
-- tensorflow: TensorFlow backend for code generation and execution
-- onnx: Export or interop with ONNX
-- jax: Experimental backend and numerical utilities
-- optuna: Hyperparameter optimization
-- dash, flask: Dashboard and API/visualization components
-- scikit-learn: Metrics, datasets, and HPO utilities
+### Core Dependencies
 
-Examples:
+The minimal installation includes only essential dependencies for DSL functionality:
+- **click**: CLI framework
+- **lark**: DSL parser
+- **numpy**: Numerical operations
+- **pyyaml**: Configuration parsing
+
+### Optional Feature Groups
+
+Install only the features you need:
+
+| Feature Group | Command | Use Case |
+|--------------|---------|----------|
+| **backends** | `pip install neural-dsl[backends]` | TensorFlow, PyTorch, ONNX support |
+| **hpo** | `pip install neural-dsl[hpo]` | Hyperparameter optimization with Optuna |
+| **visualization** | `pip install neural-dsl[visualization]` | Charts, graphs, architecture diagrams |
+| **dashboard** | `pip install neural-dsl[dashboard]` | NeuralDbg real-time debugging interface |
+| **cloud** | `pip install neural-dsl[cloud]` | Kaggle, Colab, AWS integrations |
+| **api** | `pip install neural-dsl[api]` | FastAPI server support |
+| **utils** | `pip install neural-dsl[utils]` | Profiling, metrics, and utilities |
+| **ml-extras** | `pip install neural-dsl[ml-extras]` | HuggingFace, Transformers |
+| **full** | `pip install neural-dsl[full]` | All optional features |
+| **dev** | `pip install neural-dsl[dev]` | Development tools (testing, linting) |
+
+### Individual Package Installation
+
+You can also install individual packages as needed:
 
 ```bash
-# PyTorch backend
-pip install torch
+# PyTorch backend only
+pip install torch torchvision
 
-# TensorFlow backend
+# TensorFlow backend only
 pip install tensorflow
 
 # ONNX export support
-pip install onnx
+pip install onnx onnxruntime
 
-# HPO and metrics utilities
+# HPO with Optuna
 pip install optuna scikit-learn
 
 # Dashboard/visualization
-pip install dash flask
+pip install dash flask matplotlib
 ```
 
+### Development Dependencies
 
+For contributors, install development tools separately:
 
+```bash
+pip install -r requirements-dev.txt
+```
+
+This includes pytest, ruff, pylint, mypy, pre-commit, and pip-audit.
+
+### Migrating from Previous Versions
+
+If you're upgrading from an older version of Neural DSL, see the [Migration Guide](MIGRATION_GUIDE_DEPENDENCIES.md) for details on the new dependency structure.
+
+**TL;DR**: For the same behavior as before, use:
+```bash
+pip install neural-dsl[full]
+```
 
 ---
 
@@ -623,7 +714,13 @@ We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for deta
 
 **Quick Start:**
 1. Fork and clone the repository
-2. Install in development mode: `pip install -e .`
+2. Set up development environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # or venv\Scripts\activate on Windows
+   pip install -r requirements-dev.txt
+   pre-commit install
+   ```
 3. Run tests: `python -m pytest tests/ -v`
 4. Make your changes and submit a pull request!
 
@@ -638,7 +735,7 @@ For detailed contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-### Development Workflow (Legacy)
+### Development Workflow
 
 This section outlines a minimal, fast local workflow to lint, type‑check, test, and audit changes before opening a PR.
 
@@ -651,12 +748,13 @@ python -m venv .venv
 .\.venv\Scripts\Activate
 ```
 
-- Install the project (editable) and dev tools used by CI
+- Install the project with development dependencies
 
 ```
-pip install -e .
-pip install ruff mypy pip-audit pytest
+pip install -r requirements-dev.txt
 ```
+
+This installs the core package in editable mode plus all development tools (ruff, mypy, pylint, pytest, pre-commit, pip-audit).
 
 ### 2) Common checks (fast)
 
@@ -701,16 +799,26 @@ python -m pip_audit -l --progress-spinner off
 - Do not commit secrets/keys. Use environment variables; keep .env or credentials out of Git.
 - Follow the shape/policy rules in codegen; add or update tests for any policy changes.
 
-### 4) Optional dependencies
+### 4) Optional dependencies for testing
 
 Install only what you need for the tests you are running (examples):
 ```
-# PyTorch backend
-your-shell> pip install torch
-# TensorFlow backend
-your-shell> pip install tensorflow
-# ONNX export
-your-shell> pip install onnx
+# PyTorch backend tests
+pip install neural-dsl[backends]
+
+# Or install specific backends individually
+pip install torch           # PyTorch only
+pip install tensorflow      # TensorFlow only
+pip install onnx           # ONNX only
+
+# HPO tests
+pip install neural-dsl[hpo]
+
+# Dashboard tests
+pip install neural-dsl[dashboard]
+
+# Full feature set (for comprehensive testing)
+pip install neural-dsl[full]
 ```
 
 If you have questions or want guidance on tightening typing or adding new policy checks, open a discussion or draft PR.
