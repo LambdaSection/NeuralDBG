@@ -14,6 +14,10 @@ from torchvision.transforms import ToTensor
 from neural.execution_optimization.execution import get_device
 from neural.parser.parser import ModelTransformer
 from neural.shape_propagation.shape_propagator import ShapePropagator
+from neural.exceptions import (
+    HPOException, InvalidHPOConfigError, InvalidParameterError,
+    UnsupportedBackendError
+)
 
 # Data Loader
 def get_data(dataset_name, input_shape, batch_size, train=True, backend='pytorch'):
@@ -85,7 +89,10 @@ def create_dynamic_model(model_dict, trial, hpo_params, backend='pytorch'):
     if backend == 'pytorch':
         return DynamicPTModel(resolved_model_dict, trial, hpo_params)
     else:
-        raise ValueError(f"Unsupported backend: {backend}")
+        raise UnsupportedBackendError(
+            backend=backend,
+            available_backends=['pytorch']
+        )
 
 
 def resolve_hpo_params(model_dict, trial, hpo_params):
@@ -178,7 +185,12 @@ class DynamicPTModel(nn.Module):
             elif layer['type'] == 'Dense':
                 units = params['units'] if 'units' in params else trial.suggest_int('dense_units', 64, 256)
                 if in_features <= 0:
-                    raise ValueError(f"Invalid in_features for Dense: {in_features}")
+                    raise InvalidParameterError(
+                        parameter='in_features',
+                        value=in_features,
+                        layer_type='Dense',
+                        expected='positive integer'
+                    )
                 # Removed print statement for cleaner output
                 self.layers.append(nn.Linear(in_features, units))
                 in_features = units
@@ -189,7 +201,12 @@ class DynamicPTModel(nn.Module):
             elif layer['type'] == 'Output':
                 units = params['units'] if 'units' in params else 10
                 if in_features <= 0:
-                    raise ValueError(f"Invalid in_features for Output: {in_features}")
+                    raise InvalidParameterError(
+                        parameter='in_features',
+                        value=in_features,
+                        layer_type='Output',
+                        expected='positive integer'
+                    )
                 # Removed print statement for cleaner output
                 self.layers.append(nn.Linear(in_features, units))
                 in_features = units

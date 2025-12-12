@@ -16,6 +16,35 @@ __version__ = "0.3.0.dev0"  # Current development version
 __author__ = "Lemniscate-SHA-256/SENOUVO Jacques-Charles Gad"  # Package author
 __email__ = "Lemniscate_zero@proton.me"  # Contact email
 
+# Import exceptions - always available
+from .exceptions import (
+    NeuralException,
+    ParserException,
+    DSLSyntaxError,
+    DSLValidationError,
+    CodeGenException,
+    UnsupportedLayerError,
+    UnsupportedBackendError,
+    ShapeException,
+    ShapeMismatchError,
+    InvalidShapeError,
+    InvalidParameterError,
+    HPOException,
+    InvalidHPOConfigError,
+    HPOSearchError,
+    TrackingException,
+    ExperimentNotFoundError,
+    MetricLoggingError,
+    CloudException,
+    CloudConnectionError,
+    CloudExecutionError,
+    VisualizationException,
+    FileOperationError,
+    DependencyError,
+    ConfigurationError,
+    ExecutionError,
+)
+
 # Core modules - imported optionally to handle missing dependencies gracefully
 # Each module is wrapped in try/except so the package can be imported
 # even when some dependencies are missing.
@@ -134,6 +163,32 @@ __all__ = [
     "__version__",
     "__author__",
     "__email__",
+    # Exceptions
+    "NeuralException",
+    "ParserException",
+    "DSLSyntaxError",
+    "DSLValidationError",
+    "CodeGenException",
+    "UnsupportedLayerError",
+    "UnsupportedBackendError",
+    "ShapeException",
+    "ShapeMismatchError",
+    "InvalidShapeError",
+    "InvalidParameterError",
+    "HPOException",
+    "InvalidHPOConfigError",
+    "HPOSearchError",
+    "TrackingException",
+    "ExperimentNotFoundError",
+    "MetricLoggingError",
+    "CloudException",
+    "CloudConnectionError",
+    "CloudExecutionError",
+    "VisualizationException",
+    "FileOperationError",
+    "DependencyError",
+    "ConfigurationError",
+    "ExecutionError",
     # Modules (may be None if dependencies missing)
     "cli",
     "parser",

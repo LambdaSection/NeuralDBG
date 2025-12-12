@@ -28,6 +28,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from lark import UnexpectedCharacters, UnexpectedToken
+from neural.exceptions import ParserException, DSLSyntaxError, DSLValidationError
 
 @dataclass
 class ParserError:
@@ -41,11 +42,18 @@ class ParserError:
     severity: str = "ERROR"
     fix_hint: Optional[str] = None
 
-class NeuralParserError(Exception):
-    """Custom exception class for Neural parser errors."""
+# Keep for backwards compatibility
+class NeuralParserError(ParserException):
+    """Custom exception class for Neural parser errors (legacy)."""
     def __init__(self, error: ParserError):
         self.error = error
-        super().__init__(str(error))
+        super().__init__(
+            message=error.message,
+            line=error.line,
+            column=error.column,
+            code_snippet=error.context,
+            suggestion=error.suggestion or error.fix_hint
+        )
 
 class ErrorHandler:
     """Handles and formats parser errors with helpful context and suggestions.

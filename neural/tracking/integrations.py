@@ -11,6 +11,10 @@ import json
 import tempfile
 from typing import Dict, List, Any, Optional, Union, Tuple
 import matplotlib.pyplot as plt
+from neural.exceptions import (
+    TrackingException, MetricLoggingError, DependencyError,
+    ConfigurationError
+)
 
 # Configure logger
 logger = logging.getLogger(__name__)

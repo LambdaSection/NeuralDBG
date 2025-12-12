@@ -3,6 +3,7 @@ import json
 import torch
 from pathlib import Path
 from typing import Dict, Any, List
+from neural.exceptions import DependencyError
 
 # Optional dependencies: triton and huggingface_hub
 try:
@@ -18,7 +19,11 @@ try:
 except Exception:
     _HAS_HF = False
     def hf_hub_download(*args, **kwargs):  # type: ignore
-        raise ImportError("huggingface_hub is not installed. Install it to download pretrained weights.")
+        raise DependencyError(
+            dependency='huggingface_hub',
+            feature='download pretrained weights',
+            install_hint='pip install huggingface_hub'
+        )
 
 def fuse_conv_bn_weights(conv_w, conv_b, bn_rm, bn_rv, bn_w, bn_b, eps):
     # Fuse Conv and BN weights mathematically

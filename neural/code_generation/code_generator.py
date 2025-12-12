@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 # Set the logger level to WARNING to reduce debug output
 logger.setLevel(logging.WARNING)
 
+from neural.exceptions import (
+    CodeGenException, UnsupportedBackendError, UnsupportedLayerError,
+    InvalidParameterError, FileOperationError
+)
+
 def to_number(x: str) -> Union[int, float]:
     try:
         return int(x)
@@ -31,7 +36,7 @@ def _policy_ensure_2d_before_dense_tf(
     """Ensure 2D input for Dense/Output in TF.
 
     Returns (insert_code, updated_shape). insert_code is a string to append to the TF code.
-    Raises ValueError when higher-rank input is not allowed and auto_flatten_output is False.
+    Raises CodeGenException when higher-rank input is not allowed and auto_flatten_output is False.
     """
     if rank_non_batch > 1:
         if auto_flatten_output:
@@ -42,9 +47,11 @@ def _policy_ensure_2d_before_dense_tf(
             except Exception as e:
                 logger.warning(f"Shape propagation warning (auto-flatten): {e}")
             return insert, current_input_shape
-        raise ValueError(
+        raise CodeGenException(
             "Layer 'Output' expects 2D input (batch, features) but got higher-rank. "
-            "Insert a Flatten/GAP before it or pass auto_flatten_output=True."
+            "Insert a Flatten/GAP before it or pass auto_flatten_output=True.",
+            backend='tensorflow',
+            layer_type='Output'
         )
     return "", current_input_shape
 
@@ -59,7 +66,7 @@ def _policy_ensure_2d_before_dense_pt(
     """Ensure 2D input for Dense/Output in PyTorch.
 
     Mutates forward_code_body when flatten is inserted and returns the updated shape.
-    Raises ValueError when higher-rank input is not allowed and auto_flatten_output is False.
+    Raises CodeGenException when higher-rank input is not allowed and auto_flatten_output is False.
     """
     if rank_non_batch > 1:
         if auto_flatten_output:
@@ -69,15 +76,21 @@ def _policy_ensure_2d_before_dense_pt(
             except Exception as e:
                 logger.warning(f"Shape propagation warning (auto-flatten): {e}")
             return current_input_shape
-        raise ValueError(
+        raise CodeGenException(
             "Layer 'Output' expects 2D input (batch, features) but got higher-rank. "
-            "Insert a Flatten/GAP before it or pass auto_flatten_output=True."
+            "Insert a Flatten/GAP before it or pass auto_flatten_output=True.",
+            backend='pytorch',
+            layer_type='Output'
         )
     return current_input_shape
 
 def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optional[Dict[str, Any]] = None, auto_flatten_output: bool = False) -> str:
     if not isinstance(model_data, dict) or 'layers' not in model_data or 'input' not in model_data:
-        raise ValueError("Invalid model_data format: must be a dict with 'layers' and 'input' keys")
+        raise InvalidParameterError(
+            parameter='model_data',
+            value=model_data,
+            expected="dict with 'layers' and 'input' keys"
+        )
 
     indent = "    "
     propagator = ShapePropagator(debug=False)
@@ -90,11 +103,20 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
     for layer in model_data.get('layers', []):
         # Validate layer format with default to dictionary
         if not isinstance(layer, dict) or 'type' not in layer:
-            raise ValueError(f"Invalid layer format: {layer}")
+            raise InvalidParameterError(
+                parameter='layer',
+                value=layer,
+                expected="dict with 'type' key"
+            )
         # Default Multiply Value to 1
         multiply = layer.get('multiply', 1)
         if not isinstance(multiply, int) or multiply < 1:
-            raise ValueError(f"Invalid 'multiply' value: {multiply}")
+            raise InvalidParameterError(
+                parameter='multiply',
+                value=multiply,
+                layer_type=layer.get('type'),
+                expected="positive integer"
+            )
         # Shallow copy to avoid modifying original layer
         layer_copy = layer.copy()
         # Changes to nested mutable objects will affect both copies
@@ -463,7 +485,10 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
         return export_onnx(model_data, "model.onnx")
 
     else:
-        raise ValueError(f"Unsupported backend: {backend}. Choose 'tensorflow', 'pytorch', or 'onnx'.")
+        raise UnsupportedBackendError(
+            backend=backend,
+            available_backends=['tensorflow', 'pytorch', 'onnx']
+        )
 
 def save_file(filename: str, content: str) -> None:
     """Save content to a file."""
@@ -471,19 +496,34 @@ def save_file(filename: str, content: str) -> None:
         with open(filename, 'w') as f:
             f.write(content)
     except Exception as e:
-        raise IOError(f"Error writing file: {filename}. {e}")
+        raise FileOperationError(
+            operation='write',
+            filepath=filename,
+            reason=str(e)
+        )
     print(f"Successfully saved file: {filename}")
 
 def load_file(filename: str) -> Any:
     """Load and parse a neural config file."""
-    with open(filename, 'r') as f:
-        content = f.read()
+    try:
+        with open(filename, 'r') as f:
+            content = f.read()
+    except Exception as e:
+        raise FileOperationError(
+            operation='read',
+            filepath=filename,
+            reason=str(e)
+        )
     if filename.endswith('.neural') or filename.endswith('.nr'):
         return create_parser('network').parse(content)
     elif filename.endswith('.rnr'):
         return create_parser('research').parse(content)
     else:
-        raise ValueError(f"Unsupported file type: {filename}")
+        raise FileOperationError(
+            operation='parse',
+            filepath=filename,
+            reason=f"Unsupported file type. Expected .neural, .nr, or .rnr"
+        )
 
 def generate_onnx(model_data):
     """Generate ONNX model"""

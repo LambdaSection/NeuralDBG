@@ -13,6 +13,10 @@ import logging
 import threading
 from pathlib import Path
 from typing import Dict, Any, Optional, List, Union
+from neural.exceptions import (
+    CloudException, CloudConnectionError, CloudExecutionError,
+    InvalidParameterError
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -72,7 +76,11 @@ class NeuralNotebook:
             result = self.remote.connect_to_sagemaker()
         else:
             logger.error(f"Unsupported platform: {self.platform}")
-            raise ValueError(f"Unsupported platform: {self.platform}")
+            raise InvalidParameterError(
+                parameter='platform',
+                value=self.platform,
+                expected="'kaggle', 'colab', or 'sagemaker'"
+            )
 
         if not result['success']:
             logger.error(f"Failed to connect to {self.platform}: {result.get('error', 'Unknown error')}")
@@ -89,7 +97,7 @@ class NeuralNotebook:
             self.kernel_id = self.remote.create_kaggle_kernel(f"neural-notebook-{int(time.time())}")
             if not self.kernel_id:
                 logger.error("Failed to create Kaggle kernel")
-                raise RuntimeError("Failed to create Kaggle kernel")
+                raise CloudExecutionError("Failed to create Kaggle kernel")
 
             logger.info(f"Created Kaggle kernel: {self.kernel_id}")
 
@@ -140,7 +148,7 @@ print("Neural DSL is ready to use!")
             result = self.remote.execute_on_kaggle(self.kernel_id, init_code)
             if not result['success']:
                 logger.error(f"Failed to initialize Kaggle kernel: {result.get('error', 'Unknown error')}")
-                raise RuntimeError(f"Failed to initialize Kaggle kernel: {result.get('error', 'Unknown error')}")
+                raise CloudExecutionError(f"Failed to initialize Kaggle kernel: {result.get('error', 'Unknown error')}")
 
             logger.info("Kaggle kernel initialized with Neural DSL")
 
@@ -149,7 +157,7 @@ print("Neural DSL is ready to use!")
             self.notebook_name = self.remote.create_sagemaker_notebook(f"neural-notebook-{int(time.time())}")
             if not self.notebook_name:
                 logger.error("Failed to create SageMaker notebook instance")
-                raise RuntimeError("Failed to create SageMaker notebook instance")
+                raise CloudExecutionError("Failed to create SageMaker notebook instance")
 
             logger.info(f"Created SageMaker notebook instance: {self.notebook_name}")
 
@@ -200,7 +208,7 @@ print("Neural DSL is ready to use!")
             result = self.remote.execute_on_sagemaker(self.notebook_name, init_code)
             if not result['success']:
                 logger.error(f"Failed to initialize SageMaker notebook: {result.get('error', 'Unknown error')}")
-                raise RuntimeError(f"Failed to initialize SageMaker notebook: {result.get('error', 'Unknown error')}")
+                raise CloudExecutionError(f"Failed to initialize SageMaker notebook: {result.get('error', 'Unknown error')}")
 
             logger.info("SageMaker notebook initialized with Neural DSL")
 

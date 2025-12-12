@@ -35,11 +35,20 @@ try:
     from neural.parser.parser import ModelTransformer, create_parser
     from neural.shape_propagation.shape_propagator import ShapePropagator
     from neural.visualization.visualizer import visualize_model
-
+    from neural.exceptions import (
+        CloudException, CloudConnectionError, CloudExecutionError,
+        DependencyError, FileOperationError
+    )
     NEURAL_IMPORTED = True
 except ImportError:
     NEURAL_IMPORTED = False
     visualize_model = None
+    # Define dummy exceptions if neural not imported
+    class CloudException(Exception): pass
+    class CloudConnectionError(Exception): pass
+    class CloudExecutionError(Exception): pass
+    class DependencyError(Exception): pass
+    class FileOperationError(Exception): pass
 
 ngrok = None
 
@@ -398,31 +407,6 @@ class RemoteConnection:
     def connect_to_kaggle(self) -> Dict[str, Any]:
         """Connect to Kaggle."""
         return {'success': True}
-
-    def connect_to_colab(self) -> Dict[str, Any]:
-        """Connect to Google Colab."""
-        return {'success': True}
-
-    def connect_to_sagemaker(self) -> Dict[str, Any]:
-        """Connect to AWS SageMaker."""
-        return {'success': True}
-
-    def create_kaggle_kernel(self, name: str) -> Optional[str]:
-        """Create a Kaggle kernel."""
-        return f"kernel-{name}"
-
-    def execute_on_kaggle(self, kernel_id: str, code: str) -> Dict[str, Any]:
-        """Execute code on Kaggle."""
-        return {'success': True, 'output': 'Executed on Kaggle'}
-
-    def create_sagemaker_notebook(self, name: str) -> Optional[str]:
-        """Create a SageMaker notebook."""
-        return f"notebook-{name}"
-
-    def execute_on_sagemaker(self, notebook_name: str, code: str) -> Dict[str, Any]:
-        """Execute code on SageMaker."""
-        return {'success': True, 'output': 'Executed on SageMaker'}
-  return {'success': True}
 
     def connect_to_colab(self) -> Dict[str, Any]:
         """Connect to Google Colab."""

@@ -47,6 +47,10 @@ except ImportError:
 
 # PretrainedModelHub temporarily disabled due to triton dependency issues
 PretrainedModelHub = None
+from neural.exceptions import (
+    ShapeException, ShapeMismatchError, InvalidShapeError,
+    InvalidParameterError, DependencyError
+)
 
 class PerformanceMonitor:
     def __init__(self):
@@ -130,9 +134,17 @@ class ShapePropagator:
                     layer_type = key.value
                     params = layer[key][0] if layer[key] else {}
                 else:
-                    raise KeyError("Layer must have a 'type' field")
+                    raise InvalidParameterError(
+                        parameter='type',
+                        value=None,
+                        expected="Layer must have a 'type' field"
+                    )
             else:
-                raise KeyError("Layer must have a 'type' field")
+                raise InvalidParameterError(
+                    parameter='type',
+                    value=None,
+                    expected="Layer must have a 'type' field"
+                )
         else:
             layer_type = layer["type"]
             params = layer.get("params", {})
@@ -143,11 +155,19 @@ class ShapePropagator:
 
         # Validate input shape
         if not input_shape:
-            raise ValueError("Input shape cannot be empty")
+            raise InvalidShapeError(
+                "Input shape cannot be empty",
+                input_shape=input_shape,
+                layer_type=layer_type
+            )
 
         # Check for negative dimensions in input shape
         if any(dim is not None and dim < 0 for dim in input_shape):
-            raise ValueError(f"Input shape cannot contain negative dimensions: {input_shape}")
+            raise InvalidShapeError(
+                f"Input shape cannot contain negative dimensions: {input_shape}",
+                input_shape=input_shape,
+                layer_type=layer_type
+            )
 
         # Validate layer parameters based on layer type
         self._validate_layer_params(layer_type, params, input_shape, framework)
@@ -408,7 +428,12 @@ class ShapePropagator:
         if layer_type == 'Conv2D':
             # Check if filters parameter exists
             if 'filters' not in params:
-                raise ValueError(f"Conv2D layer requires filters parameter")
+                raise InvalidParameterError(
+                    parameter='filters',
+                    value=None,
+                    layer_type='Conv2D',
+                    expected='filters parameter is required'
+                )
 
             # Check if filters is positive
             filters = params.get('filters')
@@ -416,11 +441,21 @@ class ShapePropagator:
                 if 'value' in filters:
                     filters = filters['value']
             if filters is not None and isinstance(filters, (int, float)) and filters <= 0:
-                raise ValueError(f"Conv2D filters must be a positive integer, got {filters}")
+                raise InvalidParameterError(
+                    parameter='filters',
+                    value=filters,
+                    layer_type='Conv2D',
+                    expected='positive integer'
+                )
 
             # Check if kernel_size parameter exists
             if 'kernel_size' not in params:
-                raise ValueError(f"Conv2D layer requires kernel_size parameter")
+                raise InvalidParameterError(
+                    parameter='kernel_size',
+                    value=None,
+                    layer_type='Conv2D',
+                    expected='kernel_size parameter is required'
+                )
 
             # Check if kernel_size is valid
             kernel_size = params.get('kernel_size')
@@ -441,7 +476,11 @@ class ShapePropagator:
 
                 if len(spatial_dims) >= 2 and len(kernel_size) >= 2:
                     if kernel_size[0] > spatial_dims[0] or kernel_size[1] > spatial_dims[1]:
-                        raise ValueError(f"Conv2D kernel size {kernel_size} exceeds input dimensions {spatial_dims}")
+                        raise ShapeMismatchError(
+                            f"Conv2D kernel size {kernel_size} exceeds input dimensions {spatial_dims}",
+                            input_shape=input_shape,
+                            layer_type='Conv2D'
+                        )
 
             # Check if stride is positive
             stride = params.get('stride')
@@ -449,28 +488,52 @@ class ShapePropagator:
                 if 'value' in stride:
                     stride = stride['value']
             if stride is not None and isinstance(stride, (int, float)) and stride <= 0:
-                raise ValueError(f"Conv2D stride must be a positive integer, got {stride}")
+                raise InvalidParameterError(
+                    parameter='stride',
+                    value=stride,
+                    layer_type='Conv2D',
+                    expected='positive integer'
+                )
 
         elif layer_type == 'Dense':
             # Check if units parameter exists and is positive
             if 'units' not in params:
-                raise ValueError(f"Dense layer requires units parameter")
+                raise InvalidParameterError(
+                    parameter='units',
+                    value=None,
+                    layer_type='Dense',
+                    expected='units parameter is required'
+                )
 
             units = params.get('units')
             if isinstance(units, dict):
                 if 'value' in units:
                     units = units['value']
             if units is not None and isinstance(units, (int, float)) and units <= 0:
-                raise ValueError(f"Dense units must be a positive integer, got {units}")
+                raise InvalidParameterError(
+                    parameter='units',
+                    value=units,
+                    layer_type='Dense',
+                    expected='positive integer'
+                )
 
             # Check if input shape is valid for Dense layer (2D)
             if len(input_shape) > 2:
-                raise ValueError(f"Dense layer expects 2D input (batch, features), got {len(input_shape)}D: {input_shape}")
+                raise ShapeMismatchError(
+                    f"Dense layer expects 2D input (batch, features), got {len(input_shape)}D: {input_shape}",
+                    input_shape=input_shape,
+                    layer_type='Dense'
+                )
 
         elif layer_type == 'MaxPooling2D':
             # Check if pool_size parameter exists
             if 'pool_size' not in params:
-                raise ValueError(f"MaxPooling2D layer requires pool_size parameter")
+                raise InvalidParameterError(
+                    parameter='pool_size',
+                    value=None,
+                    layer_type='MaxPooling2D',
+                    expected='pool_size parameter is required'
+                )
 
             # Check if pool_size is valid
             pool_size = params.get('pool_size')
@@ -491,7 +554,11 @@ class ShapePropagator:
 
                 if len(spatial_dims) >= 2 and len(pool_size) >= 2:
                     if pool_size[0] > spatial_dims[0] or pool_size[1] > spatial_dims[1]:
-                        raise ValueError(f"MaxPooling2D pool_size {pool_size} exceeds input dimensions {spatial_dims}")
+                        raise ShapeMismatchError(
+                            f"MaxPooling2D pool_size {pool_size} exceeds input dimensions {spatial_dims}",
+                            input_shape=input_shape,
+                            layer_type='MaxPooling2D'
+                        )
 
             # Check if stride is positive
             stride = params.get('stride')
@@ -499,19 +566,34 @@ class ShapePropagator:
                 if 'value' in stride:
                     stride = stride['value']
             if stride is not None and isinstance(stride, (int, float)) and stride <= 0:
-                raise ValueError(f"MaxPooling2D stride must be a positive integer, got {stride}")
+                raise InvalidParameterError(
+                    parameter='stride',
+                    value=stride,
+                    layer_type='MaxPooling2D',
+                    expected='positive integer'
+                )
 
         elif layer_type == 'Output':
             # Check if units parameter exists and is positive
             if 'units' not in params:
-                raise ValueError(f"Output layer requires units parameter")
+                raise InvalidParameterError(
+                    parameter='units',
+                    value=None,
+                    layer_type='Output',
+                    expected='units parameter is required'
+                )
 
             units = params.get('units')
             if isinstance(units, dict):
                 if 'value' in units:
                     units = units['value']
             if units is not None and isinstance(units, (int, float)) and units <= 0:
-                raise ValueError(f"Output units must be a positive integer, got {units}")
+                raise InvalidParameterError(
+                    parameter='units',
+                    value=units,
+                    layer_type='Output',
+                    expected='positive integer'
+                )
 
             # Output layer can accept higher dimensional inputs and will flatten internally
             # Unlike Dense layer which expects exactly 2D, Output can be more flexible
@@ -1106,7 +1188,11 @@ class ShapePropagator:
 
     def load_pretrained(self, model_name, pretrained=True):
         if self.hub is None:
-            raise ImportError("PretrainedModelHub is not available. Required dependencies (triton, huggingface_hub) are not installed.")
+            raise DependencyError(
+                dependency='triton, huggingface_hub',
+                feature='PretrainedModelHub',
+                install_hint='pip install neural-dsl[full]'
+            )
         model = self.hub.load(model_name, pretrained)
         # Propagate shapes through pretrained model
         input_shape = (1, 3, 224, 224)  # Default for ResNet50
@@ -1129,17 +1215,25 @@ class ShapeValidator:
     @staticmethod
     def _validate_conv(input_shape, params):
         if len(input_shape) != 4:
-            raise ValueError(f"Conv layers need 4D input. Got {len(input_shape)}D")
+            raise ShapeMismatchError(
+                f"Conv layers need 4D input. Got {len(input_shape)}D",
+                input_shape=input_shape,
+                layer_type='Conv2D'
+            )
         if params['kernel_size'] > input_shape[2]:
-            raise ValueError(f"Kernel size {params['kernel_size']} "
-                           f"exceeds input dimension {input_shape[2]}")
+            raise ShapeMismatchError(
+                f"Kernel size {params['kernel_size']} exceeds input dimension {input_shape[2]}",
+                input_shape=input_shape,
+                layer_type='Conv2D'
+            )
 
     @staticmethod
     def _validate_dense(input_shape, params):
         if len(input_shape) > 2:
-            raise ValueError(
-                f"Dense layer expects 2D input (batch, features). "
-                f"Got {len(input_shape)}D: {input_shape}"
+            raise ShapeMismatchError(
+                f"Dense layer expects 2D input (batch, features). Got {len(input_shape)}D: {input_shape}",
+                input_shape=input_shape,
+                layer_type='Dense'
             )
 # Unified parameter handling for TF/PyTorch
 FRAMEWORK_DEFAULTS = {

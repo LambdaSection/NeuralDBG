@@ -8,6 +8,7 @@ Supports both API-based and local LLM execution.
 from typing import Optional, Dict, List, Any
 import os
 import json
+from neural.exceptions import DependencyError, ConfigurationError
 
 
 class LLMProvider:
@@ -51,7 +52,11 @@ class OpenAIProvider(LLMProvider):
     def generate(self, prompt: str, **kwargs) -> str:
         """Generate text using OpenAI."""
         if not self.is_available():
-            raise RuntimeError("OpenAI client not available. Install openai package and set API key.")
+            raise DependencyError(
+                dependency='openai',
+                feature='OpenAI LLM integration',
+                install_hint='pip install openai and set OPENAI_API_KEY environment variable'
+            )
         
         response = self._client.chat.completions.create(
             model=self.model,
