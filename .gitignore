@@ -174,3 +174,7 @@ docs/api/generated/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Benchmark results
+benchmark_results/
+tests/benchmarks/benchmark_results/
