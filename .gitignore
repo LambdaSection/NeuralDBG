@@ -68,6 +68,12 @@ VISION.md
 # Experiment tracking directories
 neural_experiments/
 
+# HPO artifacts
+hpo_report.html
+*.db  # Optuna study databases
+ray_results/  # Ray Tune results
+*.log  # Log files
+
 # Test artifacts
 .hypothesis/
 .pytest_cache/
