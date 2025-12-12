@@ -78,19 +78,23 @@ def get_trace_data():
         return dashboard_module.TRACE_DATA
     return trace_data
 
-# Function to print data for debugging
+# Set up logging
+import logging
+logger = logging.getLogger(__name__)
+
+# Function to log data for debugging
 def print_dashboard_data():
     global trace_data, model_data
-    print("\n=== DASHBOARD DATA ===")
-    print(f"Model data: {model_data is not None}")
+    logger.debug("=== DASHBOARD DATA ===")
+    logger.debug("Model data: %s", model_data is not None)
     if model_data:
-        print(f"  Input: {model_data.get('input', 'None')}")
-        print(f"  Layers: {len(model_data.get('layers', []))} layers")
+        logger.debug("  Input: %s", model_data.get('input', 'None'))
+        logger.debug("  Layers: %s layers", len(model_data.get('layers', [])))
 
-    print(f"Trace data: {len(trace_data) if trace_data else 0} entries")
+    logger.debug("Trace data: %s entries", len(trace_data) if trace_data else 0)
     if trace_data and len(trace_data) > 0:
-        print(f"  First entry: {trace_data[0]}")
-    print("=====================\n")
+        logger.debug("  First entry: %s", trace_data[0])
+    logger.debug("=====================")
 
 # Function to update dashboard data
 def update_dashboard_data(new_model_data=None, new_trace_data=None, new_backend=None):

@@ -34,6 +34,8 @@ from .layer_handlers import (
     handle_zero_padding2d, handle_cropping2d
 )
 
+logger = logging.getLogger(__name__)
+
 # Global caches for performance optimization
 _shape_cache = {}
 _param_cache = {}
@@ -227,9 +229,8 @@ class ShapePropagator:
             layer_type = layer["type"]
             params = layer.get("params", {})
 
-        # Debug logging
-        print(f"DEBUG: ShapePropagator.propagate - input_shape: {input_shape}, layer_type: {layer_type}")
-        print(f"DEBUG: ShapePropagator.propagate - params: {params}")
+        logger.debug("ShapePropagator.propagate - input_shape: %s, layer_type: %s", input_shape, layer_type)
+        logger.debug("ShapePropagator.propagate - params: %s", params)
 
         # Validate input shape
         if not input_shape:
@@ -286,13 +287,13 @@ class ShapePropagator:
             elif isinstance(kernel_size, list):
                 kernel_size = tuple(kernel_size)
             elif isinstance(kernel_size, dict):
-                print(f"DEBUG: ShapePropagator.propagate - kernel_size is a dict: {kernel_size}")
+                logger.debug("ShapePropagator.propagate - kernel_size is a dict: %s", kernel_size)
                 # If it's a dictionary with a 'value' key, use that value
                 if 'value' in kernel_size:
                     kernel_size = (kernel_size['value'], kernel_size['value'])
                 # Otherwise, use a default value
                 else:
-                    print(f"DEBUG: ShapePropagator.propagate - kernel_size dict without 'value' key, using default")
+                    logger.debug("ShapePropagator.propagate - kernel_size dict without 'value' key, using default")
                     kernel_size = (3, 3)  # Default value
             params["kernel_size"] = kernel_size  # Ensure tuple in params
 
@@ -332,7 +333,7 @@ class ShapePropagator:
         })
 
         if self.debug:
-            print(f"TRACE: {trace_entry}")  # Debugging output
+            logger.debug("TRACE: %s", trace_entry)
 
         self._visualize_layer(layer_type, output_shape)  # Creates node and increments self.current_layer
         if prev_layer is not None:
@@ -428,17 +429,17 @@ class ShapePropagator:
                 try:
                     layer_type, exec_time, comp_time, trans_time, params, flops, memory, grad_norm, dead_ratio, mean_act, anomaly = entry
                 except ValueError:
-                    print(f"WARNING: Invalid trace entry format: {entry}")
+                    logger.warning("Invalid trace entry format: %s", entry)
                     continue
 
                 kernel_size = params.get("kernel_size", (1, 1)) if isinstance(params, dict) else (1, 1)
 
             # Ensure kernel_size is a tuple
             if isinstance(kernel_size, list):
-                print(f"WARNING: Converting list kernel_size {kernel_size} to tuple for {layer_type}")
+                logger.warning("Converting list kernel_size %s to tuple for %s", kernel_size, layer_type)
                 kernel_size = tuple(kernel_size)
             elif not isinstance(kernel_size, tuple):
-                print(f"WARNING: Unexpected kernel_size type {type(kernel_size)} for {layer_type}, defaulting to (1, 1)")
+                logger.warning("Unexpected kernel_size type %s for %s, defaulting to (1, 1)", type(kernel_size), layer_type)
                 kernel_size = (1, 1)
 
             trace.append({
@@ -712,18 +713,18 @@ class ShapePropagator:
             # Unlike Dense layer which expects exactly 2D, Output can be more flexible
 
 ####################################################################
-### Shape propagation through 2 Dimensional Convolutional Layers ###
+### Shape propagation through 2 Dimensional Convolutional Layers ###
 ####################################################################
 
     def _handle_conv2d(self, input_shape, params):
-        print(f"DEBUG: _handle_conv2d - input_shape: {input_shape}, params: {params}")
+        logger.debug("_handle_conv2d - input_shape: %s, params: %s", input_shape, params)
         data_format = params['data_format']  # 'channels_first' for PyTorch
         if data_format == 'channels_first':
             spatial_dims = input_shape[2:]  # Should be (28, 28)
         else:
             spatial_dims = input_shape[1:3]
 
-        print(f"DEBUG: _handle_conv2d - spatial_dims: {spatial_dims}")
+        logger.debug("_handle_conv2d - spatial_dims: %s", spatial_dims)
 
         kernel = params['kernel_size']
         if isinstance(kernel, int):
@@ -738,10 +739,10 @@ class ShapePropagator:
                     kernel = (3, 3)  # Default value
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _handle_conv2d - kernel is a dict without 'value' key: {kernel}, using default")
+                logger.debug("_handle_conv2d - kernel is a dict without 'value' key: %s, using default", kernel)
                 kernel = (3, 3)  # Default value
         elif not isinstance(kernel, tuple):
-            print(f"DEBUG: _handle_conv2d - Invalid kernel_size type: {type(kernel)}, value: {kernel}, using default")
+            logger.debug("_handle_conv2d - Invalid kernel_size type: %s, value: %s, using default", type(kernel), kernel)
             kernel = (3, 3)  # Default value
 
         stride = params.get('stride', 1)
@@ -752,7 +753,7 @@ class ShapePropagator:
                 stride = stride['value']
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _handle_conv2d - stride is a dict without 'value' key: {stride}, using default")
+                logger.debug("_handle_conv2d - stride is a dict without 'value' key: %s, using default", stride)
                 stride = 1  # Default value
 
         padding = self._calculate_padding(params, input_shape[2] if data_format == 'channels_first' else input_shape[1])
@@ -771,17 +772,17 @@ class ShapePropagator:
                     padding = (0,) * len(spatial_dims)  # Default value
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _handle_conv2d - padding is a dict without 'value' key: {padding}, using default")
+                logger.debug("_handle_conv2d - padding is a dict without 'value' key: %s, using default", padding)
                 padding = (0,) * len(spatial_dims)  # Default value
 
-        print(f"DEBUG: _handle_conv2d - kernel: {kernel}, stride: {stride}, padding: {padding}")
+        logger.debug("_handle_conv2d - kernel: %s, stride: %s, padding: %s", kernel, stride, padding)
 
         output_spatial = [
             (dim + 2*pad - k) // stride + 1
             for dim, k, pad in zip(spatial_dims, kernel, padding)
         ]
         if any(dim <= 0 for dim in output_spatial):
-            print(f"DEBUG: _handle_conv2d - Invalid Conv2D output dimensions: {output_spatial}, using default")
+            logger.debug("_handle_conv2d - Invalid Conv2D output dimensions: %s, using default", output_spatial)
             output_spatial = [1, 1]  # Default value to avoid errors
 
         filters = params['filters']
@@ -792,10 +793,10 @@ class ShapePropagator:
                 filters = filters['value']
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _handle_conv2d - filters is a dict without 'value' key: {filters}, using default")
+                logger.debug("_handle_conv2d - filters is a dict without 'value' key: %s, using default", filters)
                 filters = 32  # Default value
 
-        print(f"DEBUG: _handle_conv2d - output_spatial: {output_spatial}, filters: {filters}")
+        logger.debug("_handle_conv2d - output_spatial: %s, filters: %s", output_spatial, filters)
 
         if data_format == 'channels_first':
             return (input_shape[0], filters, *output_spatial)
@@ -803,7 +804,7 @@ class ShapePropagator:
             return (input_shape[0], *output_spatial, filters)
 
     def _handle_maxpooling2d(self, input_shape, params):
-        print(f"DEBUG: _handle_maxpooling2d - input_shape: {input_shape}, params: {params}")
+        logger.debug("_handle_maxpooling2d - input_shape: %s, params: %s", input_shape, params)
         data_format = params.get('data_format', 'channels_last')
         pool_size = params['pool_size']
 
@@ -818,7 +819,7 @@ class ShapePropagator:
                     pool_size = 2  # Default value
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _handle_maxpooling2d - pool_size is a dict without 'value' key: {pool_size}, using default")
+                logger.debug("_handle_maxpooling2d - pool_size is a dict without 'value' key: %s, using default", pool_size)
                 pool_size = 2  # Default value
 
         stride = params.get('stride', pool_size)
@@ -830,7 +831,7 @@ class ShapePropagator:
                 stride = stride['value']
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _handle_maxpooling2d - stride is a dict without 'value' key: {stride}, using default")
+                logger.debug("_handle_maxpooling2d - stride is a dict without 'value' key: %s, using default", stride)
                 stride = pool_size  # Default to pool_size
 
         # Handle stride as tuple or integer
@@ -839,7 +840,7 @@ class ShapePropagator:
         else:
             stride_h = stride_w = stride
 
-        print(f"DEBUG: _handle_maxpooling2d - pool_size: {pool_size}, stride_h: {stride_h}, stride_w: {stride_w}")
+        logger.debug("_handle_maxpooling2d - pool_size: %s, stride_h: %s, stride_w: %s", pool_size, stride_h, stride_w)
 
         # Calculate spatial dimensions based on data format
         if data_format == 'channels_last':
@@ -849,7 +850,7 @@ class ShapePropagator:
                 new_width = input_shape[2] // stride_w
                 return (input_shape[0], new_height, new_width, input_shape[3])
             else:
-                print(f"DEBUG: _handle_maxpooling2d - Invalid input shape: {input_shape}, using default")
+                logger.debug("_handle_maxpooling2d - Invalid input shape: %s, using default", input_shape)
                 return (input_shape[0], 1, 1, input_shape[-1] if len(input_shape) > 1 else 1)
         else:
             # PyTorch: input_shape = (batch, channels, height, width)
@@ -858,7 +859,7 @@ class ShapePropagator:
                 new_width = input_shape[3] // stride_w
                 return (input_shape[0], input_shape[1], new_height, new_width)
             else:
-                print(f"DEBUG: _handle_maxpooling2d - Invalid input shape: {input_shape}, using default")
+                logger.debug("_handle_maxpooling2d - Invalid input shape: %s, using default", input_shape)
                 return (input_shape[0], input_shape[1] if len(input_shape) > 1 else 1, 1, 1)
 
     def _handle_flatten(self, input_shape, params):
@@ -873,7 +874,7 @@ class ShapePropagator:
 
 
     def _handle_dense(self, input_shape, params):
-        print(f"DEBUG: _handle_dense - input_shape: {input_shape}, params: {params}")
+        logger.debug("_handle_dense - input_shape: %s, params: %s", input_shape, params)
 
         # Get units parameter with proper handling of dictionary values
         units = params.get('units', 64)  # Default to 64 if not provided
@@ -885,10 +886,10 @@ class ShapePropagator:
                 units = units['value']
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _handle_dense - units is a dict without 'value' key: {units}, using default")
+                logger.debug("_handle_dense - units is a dict without 'value' key: %s, using default", units)
                 units = 64  # Default value
 
-        print(f"DEBUG: _handle_dense - units after processing: {units}")
+        logger.debug("_handle_dense - units after processing: %s", units)
 
         # If input_shape has two or more dimensions, preserve the batch dimension.
         if len(input_shape) >= 2:
@@ -897,7 +898,7 @@ class ShapePropagator:
             return (units,)
 
     def _handle_output(self, input_shape, params):
-        print(f"DEBUG: _handle_output - input_shape: {input_shape}, params: {params}")
+        logger.debug("_handle_output - input_shape: %s, params: %s", input_shape, params)
 
         # Get units parameter with proper handling of dictionary values
         units = params.get('units', 10)  # Default to 10 if not provided
@@ -909,10 +910,10 @@ class ShapePropagator:
                 units = units['value']
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _handle_output - units is a dict without 'value' key: {units}, using default")
+                logger.debug("_handle_output - units is a dict without 'value' key: %s, using default", units)
                 units = 10  # Default value
 
-        print(f"DEBUG: _handle_output - units after processing: {units}")
+        logger.debug("_handle_output - units after processing: %s", units)
 
         # Preserves the batch dimension and converts the feature dimension to the number of output units.
         if len(input_shape) >= 2:
@@ -921,7 +922,7 @@ class ShapePropagator:
             return (units,)
 
     def _handle_globalaveragepooling2d(self, input_shape, params):
-        print(f"DEBUG: _handle_globalaveragepooling2d - input_shape: {input_shape}, params: {params}")
+        logger.debug("_handle_globalaveragepooling2d - input_shape: %s, params: %s", input_shape, params)
         data_format = params.get('data_format', 'channels_last')
 
         # For GlobalAveragePooling2D, we reduce the spatial dimensions and keep only batch and channels
@@ -930,18 +931,18 @@ class ShapePropagator:
             if len(input_shape) >= 4:
                 return (input_shape[0], input_shape[3])
             else:
-                print(f"DEBUG: _handle_globalaveragepooling2d - Invalid input shape: {input_shape}, using default")
+                logger.debug("_handle_globalaveragepooling2d - Invalid input shape: %s, using default", input_shape)
                 return (input_shape[0], input_shape[-1] if len(input_shape) > 1 else 1)
         else:
             # PyTorch: input_shape = (batch, channels, height, width)
             if len(input_shape) >= 4:
                 return (input_shape[0], input_shape[1])
             else:
-                print(f"DEBUG: _handle_globalaveragepooling2d - Invalid input shape: {input_shape}, using default")
+                logger.debug("_handle_globalaveragepooling2d - Invalid input shape: %s, using default", input_shape)
                 return (input_shape[0], input_shape[1] if len(input_shape) > 1 else 1)
 
     def _handle_upsampling2d(self, input_shape, params):
-        print(f"DEBUG: _handle_upsampling2d - input_shape: {input_shape}, params: {params}")
+        logger.debug("_handle_upsampling2d - input_shape: %s, params: %s", input_shape, params)
         data_format = params.get('data_format', 'channels_last')
         size = params.get('size', (2, 2))
 
@@ -958,10 +959,10 @@ class ShapePropagator:
                     size = (2, 2)  # Default value
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _handle_upsampling2d - size is a dict without 'value' key: {size}, using default")
+                logger.debug("_handle_upsampling2d - size is a dict without 'value' key: %s, using default", size)
                 size = (2, 2)  # Default value
 
-        print(f"DEBUG: _handle_upsampling2d - size after processing: {size}")
+        logger.debug("_handle_upsampling2d - size after processing: %s", size)
 
         # Calculate new spatial dimensions
         if data_format == 'channels_last':
@@ -971,7 +972,7 @@ class ShapePropagator:
                 new_width = input_shape[2] * size[1]
                 return (input_shape[0], new_height, new_width, input_shape[3])
             else:
-                print(f"DEBUG: _handle_upsampling2d - Invalid input shape: {input_shape}, using default")
+                logger.debug("_handle_upsampling2d - Invalid input shape: %s, using default", input_shape)
                 return input_shape
         else:
             # PyTorch: input_shape = (batch, channels, height, width)
@@ -980,7 +981,7 @@ class ShapePropagator:
                 new_width = input_shape[3] * size[1]
                 return (input_shape[0], input_shape[1], new_height, new_width)
             else:
-                print(f"DEBUG: _handle_upsampling2d - Invalid input shape: {input_shape}, using default")
+                logger.debug("_handle_upsampling2d - Invalid input shape: %s, using default", input_shape)
                 return input_shape
 
     # Handle default helper
@@ -1002,7 +1003,7 @@ class ShapePropagator:
         Returns:
             int or tuple or list: Calculated padding value.
         """
-        print(f"DEBUG: _calculate_padding - params: {params}, input_dim: {input_dim}")
+        logger.debug("_calculate_padding - params: %s, input_dim: %s", params, input_dim)
         padding = params.get('padding', 0)
 
         # Handle dictionary values in padding
@@ -1012,7 +1013,7 @@ class ShapePropagator:
                 padding = padding['value']
             # Otherwise, use a default value
             else:
-                print(f"DEBUG: _calculate_padding - padding is a dict without 'value' key: {padding}, using default")
+                logger.debug("_calculate_padding - padding is a dict without 'value' key: %s, using default", padding)
                 padding = 0  # Default value
 
         if isinstance(padding, int):
@@ -1034,13 +1035,13 @@ class ShapePropagator:
                         return 1  # Default value
                 # Otherwise, use a default value
                 else:
-                    print(f"DEBUG: _calculate_padding - kernel is a dict without 'value' key: {kernel}, using default")
+                    logger.debug("_calculate_padding - kernel is a dict without 'value' key: %s, using default", kernel)
                     return 1  # Default value
             elif isinstance(kernel, tuple):
                 # Process each dimension
                 return tuple((k - 1) // 2 for k in kernel)
             else:
-                print(f"DEBUG: _calculate_padding - Invalid kernel type: {type(kernel)}, value: {kernel}, using default")
+                logger.debug("_calculate_padding - Invalid kernel type: %s, value: %s, using default", type(kernel), kernel)
                 return 1  # Default value
         elif padding == 'valid':
             return 0
@@ -1313,8 +1314,8 @@ class ShapePropagator:
 
     def _log_shape(self, shape, stage):
         if self.debug:
-            logging.info(f"{stage.upper()} SHAPE: {shape}")
-            logging.debug(f"Shape details: {self._shape_analysis(shape)}")
+            logger.info("%s SHAPE: %s", stage.upper(), shape)
+            logger.debug("Shape details: %s", self._shape_analysis(shape))
 
     def _shape_analysis(self, shape):
         return {
@@ -1323,7 +1324,7 @@ class ShapePropagator:
             'channel_dim': shape[1] if len(shape) > 1 else None
         }
 
-    ### Loading Pretrained Models ####
+    ### Loading Pretrained Models ####
 
     def load_pretrained(self, model_name, pretrained=True):
         if self.hub is None:
@@ -1388,7 +1389,7 @@ def _calculate_shape(self, input_shape, layer):
         return (input_shape[0], np.prod(input_shape[1:]))
     return input_shape
 
-### Compute FLOPs and memory usage for visualization ###
+### Compute FLOPs and memory usage for visualization ###
 def compute_flops_params(layer, input_shape):
     """Estimate FLOPs and parameter counts for a given layer."""
     if layer["type"] == "Dense":
@@ -1464,12 +1465,12 @@ def detect_activation_anomalies(layer, input, output):
 
 
 ######################
-### Step Debugging ###
+### Step Debugging ###
 ######################
 def step_debug_hook(module, input, output):
     """Pauses execution at this layer for manual debugging."""
-    print(f"Paused at layer: {module.__class__.__name__}")
-    print(f"Input shape: {input[0].shape}, Output shape: {output.shape}")
+    logger.info("Paused at layer: %s", module.__class__.__name__)
+    logger.info("Input shape: %s, Output shape: %s", input[0].shape, output.shape)
 
     # Wait for user input before continuing
     input("Press Enter to continue...")

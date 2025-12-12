@@ -1,3 +1,4 @@
+import logging
 import networkx as nx
 import plotly.graph_objects as go
 from networkx.drawing.nx_agraph import graphviz_layout
@@ -6,6 +7,8 @@ from tqdm import tqdm
 import numpy as np
 from dash import html
 import plotly.express as px
+
+logger = logging.getLogger(__name__)
 
 def create_animated_network(layer_data, show_progress=True):
     """Create an animated network visualization with detailed progress tracking.
@@ -171,10 +174,10 @@ def _update_progress(progress_data):
     elapsed = time.time() - progress_data["start_time"]
     step = progress_data["steps"][progress_data["current_step"]]
 
-    # Print progress to console
-    print(f"[{progress_data['progress']:.1f}%] Step {progress_data['current_step']+1}/4: {step}")
-    print(f"  → {progress_data['details']}")
-    print(f"  → Elapsed: {elapsed:.2f}s")
+    # Log progress
+    logger.debug("[%.1f%%] Step %d/4: %s", progress_data['progress'], progress_data['current_step']+1, step)
+    logger.debug("  → %s", progress_data['details'])
+    logger.debug("  → Elapsed: %.2fs", elapsed)
 
     # You could also emit this via websockets for dashboard updates
     # This would be implemented if using with Dash/Flask

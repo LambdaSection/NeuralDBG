@@ -1,5 +1,8 @@
 import os
+import logging
 import datetime
+
+logger = logging.getLogger(__name__)
 
 RESEARCH_TEMPLATE = r"""
 \documentclass{article}
@@ -130,4 +133,4 @@ def generate_research_paper(model_data, results, shape_history, shape_prop_img="
     with open(filename, "w") as file:
         file.write(latex_content)
 
-    print(f"Research paper saved as {filename}. Compile with LaTeX.")
+    logger.info("Research paper saved as %s. Compile with LaTeX.", filename)

@@ -4,8 +4,11 @@ Multi-Language Support for Neural AI
 Provides translation and language detection for natural language processing.
 """
 
+import logging
 from typing import Optional, Dict
 import os
+
+logger = logging.getLogger(__name__)
 
 
 class LanguageDetector:
@@ -110,7 +113,7 @@ class Translator:
                 return translator.translate(text)
         except Exception as e:
             # Translation failed, return original
-            print(f"Translation warning: {e}")
+            logger.warning("Translation warning: %s", e)
             return text
 
 

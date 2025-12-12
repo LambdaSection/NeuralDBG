@@ -1,4 +1,7 @@
+import logging
 from lark import Lark
+
+logger = logging.getLogger(__name__)
 
 grammar = """
 start: conv2d
@@ -16,4 +19,4 @@ WS: /[ \\t]+/
 parser = Lark(grammar, parser="lalr")
 input_string = 'Conv2D(32, (3, 3), "relu")'
 tree = parser.parse(input_string)
-print(tree.pretty())
+logger.info("Parse tree:\n%s", tree.pretty())

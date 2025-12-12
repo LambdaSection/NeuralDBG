@@ -155,8 +155,8 @@ try:
 
     # Initialize the cloud executor
     executor = CloudExecutor()
-    print(f"Detected environment: {executor.environment}")
-    print(f"GPU available: {executor.is_gpu_available}")
+    logger.info("Detected environment: %s", executor.environment)
+    logger.info("GPU available: %s", executor.is_gpu_available)
 
     # Define helper functions
     def run_dsl(dsl_code, backend='tensorflow', dataset='MNIST', epochs=5):

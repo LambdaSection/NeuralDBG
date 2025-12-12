@@ -4,6 +4,7 @@ It provides the data transformation logic that converts Neural DSL model structu
 The model_to_d3_json method specifically creates the nodes and links structure that D3.js uses
 """
 
+import logging
 # Make tensorflow optional - allows tests to run without it
 try:
     import tensorflow as tf
@@ -21,6 +22,7 @@ import os
 import sys
 import json
 
+logger = logging.getLogger(__name__)
 
 # Add the parent directory to the Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -191,4 +193,4 @@ if __name__ == '__main__':
     model_data = ModelTransformer().transform(parsed)
 
     visualizer = NeuralVisualizer(model_data)
-    print(visualizer.model_to_d3_json())
+    logger.info("Visualization data: %s", visualizer.model_to_d3_json())

@@ -1,5 +1,8 @@
 import os
+import logging
 import torch
+
+logger = logging.getLogger(__name__)
 
 # Only import TensorRT if not in CPU mode
 TENSORRT_AVAILABLE = False
@@ -53,7 +56,7 @@ def optimize_model_with_tensorrt(model):
     """ Converts model to TensorRT for optimized inference """
     # Check if TensorRT is available
     if not TENSORRT_AVAILABLE:
-        print("TensorRT not available, skipping optimization")
+        logger.info("TensorRT not available, skipping optimization")
         return model
 
     model.eval()

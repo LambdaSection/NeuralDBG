@@ -471,7 +471,7 @@ def save_file(filename: str, content: str) -> None:
             f.write(content)
     except Exception as e:
         raise IOError(f"Error writing file: {filename}. {e}")
-    print(f"Successfully saved file: {filename}")
+    logger.info("Successfully saved file: %s", filename)
 
 def load_file(filename: str) -> Any:
     """Load and parse a neural config file."""

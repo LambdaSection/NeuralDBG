@@ -4,10 +4,13 @@ AI Assistant for Neural DSL
 Main interface for AI-powered features including natural language to DSL conversion.
 """
 
+import logging
 from typing import Optional, Dict, List
 from .natural_language_processor import NaturalLanguageProcessor, IntentType, DSLGenerator
 from .llm_integration import LLMIntegration
 from .multi_language import MultiLanguageSupport
+
+logger = logging.getLogger(__name__)
 
 
 class NeuralAIAssistant:
@@ -35,7 +38,7 @@ class NeuralAIAssistant:
             try:
                 self.llm = LLMIntegration(provider=llm_provider)
             except Exception as e:
-                print(f"Warning: LLM not available: {e}. Using rule-based processing.")
+                logger.warning("LLM not available: %s. Using rule-based processing.", e)
                 self.use_llm = False
     
     def chat(self, user_input: str, context: Optional[Dict] = None) -> Dict[str, any]:
@@ -70,7 +73,7 @@ class NeuralAIAssistant:
                 }
             except Exception as e:
                 # Fallback to rule-based if LLM fails
-                print(f"LLM generation failed: {e}. Falling back to rule-based processing.")
+                logger.warning("LLM generation failed: %s. Falling back to rule-based processing.", e)
         
         # Rule-based processing
         intent_type, params = self.nlp.extract_intent(processed_text)
