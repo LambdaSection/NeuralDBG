@@ -2575,6 +2575,42 @@ class ModelTransformer(lark.Transformer):
         """
         return {"type": "LSTMDropoutWrapper", 'params': self._extract_value(items[0])}
 
+    def gru(self, items):
+        # Support both alias rule call (items[0] is Token) and basic_layer call
+        items = self._shift_if_token(items)
+        params = {}
+        if items and items[0] is not None:
+            param_node = items[0]  # From param_style1
+            param_values = self._extract_value(param_node)
+            if isinstance(param_values, list):
+                for val in param_values:
+                    if isinstance(val, dict):
+                        params.update(val)
+                    else:
+                        # Handle positional units parameter if present
+                        if 'units' not in params:
+                            params['units'] = val
+            elif isinstance(param_values, dict):
+                params = param_values
+            else:
+                # Single positional parameter, e.g., GRU(64)
+                params['units'] = param_values
+
+        if 'units' not in params:
+            self.raise_validation_error("GRU requires 'units' parameter", items[0])
+
+        units = params['units']
+        if isinstance(units, dict) and 'hpo' in units:
+            pass
+        else:
+            if not isinstance(units, (int, float)) or (isinstance(units, float) and not units.is_integer()):
+                self.raise_validation_error(f"GRU units must be an integer, got {units}", items[0])
+            if units <= 0:
+                self.raise_validation_error(f"GRU units must be positive, got {units}", items[0])
+            params['units'] = int(units)
+
+        return {'type': 'GRU', 'params': params, 'sublayers': []}
+
     def research(self, items):
         """
         Process a Research block.
