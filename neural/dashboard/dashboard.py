@@ -1,38 +1,33 @@
-from __future__ import annotations
+import json
+import threading
+import time
 
 import dash
-from dash import Dash, dcc, html, callback, Input, Output, State
-from dash.exceptions import PreventUpdate
-import sys
-import os
 import numpy as np
-import pysnooper
 import plotly.graph_objects as go
-from flask import Flask
-from numpy import random
-import json
+import pysnooper
 import requests
-import time
-from typing import Optional, List, Dict, Any
+from dash import Dash, Input, Output, State, callback, dcc, html
+from dash.exceptions import PreventUpdate
+from dash_bootstrap_components import themes
+from flask import Flask
+
+from neural.dashboard.tensor_flow import (
+    create_animated_network,
+    create_layer_computation_timeline,
+    create_progress_component,
+)
+from neural.shape_propagation.shape_propagator import ShapePropagator
+
+
 # Make flask_socketio optional - allows tests to run without it
 try:
     from flask_socketio import SocketIO
+
     SOCKETIO_AVAILABLE = True
 except ImportError:
     SocketIO = None
     SOCKETIO_AVAILABLE = False
-import threading
-from dash_bootstrap_components import themes
-
-# Add the parent directory of 'neural' to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
-from neural.shape_propagation.shape_propagator import ShapePropagator
-from neural.dashboard.tensor_flow import (
-    create_animated_network,
-    create_progress_component,
-    create_layer_computation_timeline
-)
 
 
 
@@ -73,7 +68,7 @@ model_data = None
 backend = 'tensorflow'
 shape_history = []
 
-def get_trace_data() -> list:
+def get_trace_data():
     """Get trace data, checking TRACE_DATA first (for test compatibility)."""
     # Check if TRACE_DATA has been reassigned in the module namespace
     import neural.dashboard.dashboard as dashboard_module
@@ -96,7 +91,7 @@ def print_dashboard_data():
     print("=====================\n")
 
 # Function to update dashboard data
-def update_dashboard_data(new_model_data: Optional[Dict[str, Any]] = None, new_trace_data: Optional[List[Dict[str, Any]]] = None, new_backend: Optional[str] = None) -> None:
+def update_dashboard_data(new_model_data=None, new_trace_data=None, new_backend=None):
     """Update the dashboard data with new data from the CLI."""
     global model_data, trace_data, backend, shape_history, _trace_data_list
 
@@ -138,7 +133,7 @@ print_dashboard_data()
     [Input("update_interval", "value")]
 )
 
-def update_interval(new_interval: int) -> List[int]:
+def update_interval(new_interval):
     """Update the interval dynamically based on slider value."""
     return [new_interval]
 
@@ -155,7 +150,7 @@ if socketio is not None:
     [Output("trace_graph", "figure")],
     [Input("interval_component", "n_intervals"), Input("viz_type", "value"), Input("layer_filter", "value")]
 )
-def update_trace_graph(n: int, viz_type: str, selected_layers: Optional[List[str]] = None) -> List[go.Figure]:
+def update_trace_graph(n, viz_type, selected_layers=None):
     """Update execution trace graph with various visualization types."""
     global trace_data
     # Use get_trace_data() to get the current trace data (handles test reassignments)

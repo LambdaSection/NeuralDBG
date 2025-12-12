@@ -4,31 +4,26 @@ It provides the data transformation logic that converts Neural DSL model structu
 The model_to_d3_json method specifically creates the nodes and links structure that D3.js uses
 """
 
-import logging
+import json
+
+import numpy as np
+import plotly.graph_objects as go
+from graphviz import Digraph
+from matplotlib import pyplot as plt
+
+from neural.parser.parser import ModelTransformer, create_parser
+
+
 # Make tensorflow optional - allows tests to run without it
 try:
-    import tensorflow as tf
     import keras
+    import tensorflow as tf
+
     TENSORFLOW_AVAILABLE = True
 except ImportError:
     tf = None
     keras = None
     TENSORFLOW_AVAILABLE = False
-from matplotlib import pyplot as plt
-from graphviz import Digraph
-import plotly.graph_objects as go
-import numpy as np
-import os
-import sys
-import json
-
-logger = logging.getLogger(__name__)
-
-# Add the parent directory to the Python path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-
-from neural.parser.parser import ModelTransformer, create_parser
 
 
 class NeuralVisualizer:
@@ -193,4 +188,4 @@ if __name__ == '__main__':
     model_data = ModelTransformer().transform(parsed)
 
     visualizer = NeuralVisualizer(model_data)
-    logger.info("Visualization data: %s", visualizer.model_to_d3_json())
+    print(visualizer.model_to_d3_json())

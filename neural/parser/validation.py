@@ -3,8 +3,9 @@ Parameter validation utilities for Neural DSL parser.
 Provides strict type checking and conversion for layer parameters.
 """
 
-from typing import Union, Any, TypeVar, Optional, Type
 from enum import Enum
+from typing import Any, Optional, Type, TypeVar, Union
+
 import numpy as np
 
 class ParamType(Enum):

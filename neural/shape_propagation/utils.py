@@ -18,8 +18,9 @@ The error messages focus on:
 - Context about why the error occurred
 """
 
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
 import numpy as np
-from typing import Any, Dict, List, Tuple, Optional, Union, Callable
 
 def extract_param(params: Dict[str, Any],
                  key: str,

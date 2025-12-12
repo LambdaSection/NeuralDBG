@@ -22,3 +22,11 @@ target-version = "py311"
 select = ["E", "F", "I"]  # pycodestyle, pyflakes, isort
 ignore = []
 
+[tool.ruff.lint.isort]
+known-first-party = ["neural", "pretrained_models"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+lines-after-imports = 2
+force-single-line = false
+force-sort-within-sections = true
+order-by-type = true
+

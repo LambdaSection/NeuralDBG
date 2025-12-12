@@ -4,12 +4,14 @@ This module provides lazy loading for heavy dependencies.
 """
 
 import importlib
-import sys
-import os
-import time
 import logging
+import os
+import sys
+import time
 import warnings
 from functools import lru_cache
+
+from .cli_aesthetics import print_error
 
 # Configure environment to suppress specific warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow messages

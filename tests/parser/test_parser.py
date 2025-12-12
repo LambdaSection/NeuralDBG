@@ -1,15 +1,14 @@
-import os
-import sys
-
 import pytest
-import lark
 from lark import Lark, exceptions
 from lark.exceptions import VisitError
 
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from neural.parser.parser import ModelTransformer, create_parser, DSLValidationError, Severity, safe_parse
+from neural.parser.parser import (
+    DSLValidationError,
+    ModelTransformer,
+    Severity,
+    create_parser,
+    safe_parse,
+)
 
 
 def assert_dict_equal(actual, expected, path=""):

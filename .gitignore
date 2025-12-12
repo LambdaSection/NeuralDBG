@@ -157,3 +157,20 @@ install_deps.bat
 docs/_build/
 docs/_autosummary/
 docs/api/generated/
+
+# Ruff cache
+.ruff_cache/
+
+# mypy cache
+.mypy_cache/
+
+# IDE/Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

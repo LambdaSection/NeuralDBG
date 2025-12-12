@@ -2,58 +2,61 @@
 """
 Main CLI implementation for Neural using Click.
 """
-from __future__ import annotations
 
-import os
-import sys
-import subprocess
-import click
-import logging
 import hashlib
-import shutil
-import time
 import json
-import numpy as np
+import logging
+import os
+import shutil
+import subprocess
+import sys
+import time
 from pathlib import Path
 from typing import Optional
+
+import click
+import numpy as np
 from lark import exceptions
+
+from .cli_aesthetics import (
+    Colors,
+    Spinner,
+    animate_neural_network,
+    print_command_header,
+    print_error,
+    print_help_command,
+    print_info,
+    print_neural_logo,
+    print_success,
+    print_warning,
+    progress_bar,
+)
+from .cpu_mode import is_cpu_mode, set_cpu_mode
+from .lazy_imports import (
+    code_generator as code_generator_module,
+)
+from .lazy_imports import (
+    experiment_tracker as experiment_tracker_module,
+)
+from .lazy_imports import get_module
+from .lazy_imports import hpo as hpo_module
+from .lazy_imports import jax, optuna, tensorflow, torch
+from .lazy_imports import shape_propagator as shape_propagator_module
+from .lazy_imports import tensor_flow as tensor_flow_module
+from .version import __version__
+from .welcome_message import show_welcome_message
+
+
 # Optional debugging dependency
 try:
     import pysnooper
+
     _HAS_PYSNOOPER = True
 except ImportError:
     pysnooper = None
     _HAS_PYSNOOPER = False
 
-# Import CLI aesthetics
-from .cli_aesthetics import (
-    print_neural_logo, print_command_header, print_success,
-    print_error, print_warning, print_info, Spinner,
-    progress_bar, animate_neural_network, Colors,
-    print_help_command
-)
-
-# Import welcome message
-from .welcome_message import show_welcome_message
-
-# Import version
-from .version import __version__
-
-# Import CPU mode
-from .cpu_mode import set_cpu_mode, is_cpu_mode
-
-# Import lazy loaders
-from .lazy_imports import (
-    shape_propagator as shape_propagator_module,
-    tensor_flow as tensor_flow_module,
-    hpo as hpo_module,
-    code_generator as code_generator_module,
-    experiment_tracker as experiment_tracker_module,
-    get_module,
-    tensorflow, torch, jax, optuna
-)
-
-def configure_logging(verbose: bool = False) -> None:
+def configure_logging(verbose=False):
     """Configure logging levels based on verbosity."""
     # Set environment variables to suppress debug messages from dependencies
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow messages
@@ -1290,120 +1293,6 @@ print(f"Model visualization saved to: {{viz_path}}")
 
 @cli.command()
 @click.argument('file', type=click.Path(exists=True, file_okay=True, dir_okay=False))
-@click.option('--backend', '-b', default='tensorflow', help='Backend framework', type=click.Choice(['tensorflow', 'pytorch'], case_sensitive=False))
-@click.option('--format', '-f', 'export_format', default='onnx', help='Export format', type=click.Choice(['onnx', 'tflite', 'torchscript', 'savedmodel'], case_sensitive=False))
-@click.option('--output', '-o', default=None, help='Output path (defaults based on format)')
-@click.option('--optimize', is_flag=True, help='Apply optimization passes')
-@click.option('--quantize', is_flag=True, help='Apply quantization (TFLite only)')
-@click.option('--quantization-type', default='int8', type=click.Choice(['int8', 'float16', 'dynamic']), help='Quantization type (TFLite only)')
-@click.option('--deployment', type=click.Choice(['torchserve', 'tfserving', 'none'], case_sensitive=False), default='none', help='Generate deployment configs')
-@click.option('--model-name', default='model', help='Name for deployed model')
-@click.pass_context
-def export(ctx, file: str, backend: str, export_format: str, output: Optional[str], optimize: bool, quantize: bool, quantization_type: str, deployment: str, model_name: str):
-    """Export a model for deployment in various formats."""
-    print_command_header("export")
-    print_info(f"Exporting {file} to {export_format} format")
-    
-    ext = os.path.splitext(file)[1].lower()
-    start_rule = 'network' if ext in ['.neural', '.nr'] else 'research' if ext == '.rnr' else None
-    if not start_rule:
-        print_error(f"Unsupported file type: {ext}. Supported: .neural, .nr, .rnr")
-        sys.exit(1)
-    
-    try:
-        from neural.parser.parser import create_parser, ModelTransformer
-        with Spinner("Parsing Neural DSL file") as spinner:
-            if ctx.obj.get('NO_ANIMATIONS'):
-                spinner.stop()
-            parser_instance = create_parser(start_rule=start_rule)
-            with open(file, 'r') as f:
-                content = f.read()
-            tree = parser_instance.parse(content)
-            model_data = ModelTransformer().transform(tree)
-    except Exception as e:
-        print_error(f"Parsing failed: {str(e)}")
-        sys.exit(1)
-    
-    try:
-        from neural.code_generation.export import ModelExporter
-        exporter = ModelExporter(model_data, backend)
-        
-        if output is None:
-            format_extensions = {
-                'onnx': '.onnx',
-                'tflite': '.tflite',
-                'torchscript': '.pt',
-                'savedmodel': '_saved_model'
-            }
-            output = f"{os.path.splitext(file)[0]}{format_extensions[export_format]}"
-        
-        with Spinner(f"Exporting to {export_format}") as spinner:
-            if ctx.obj.get('NO_ANIMATIONS'):
-                spinner.stop()
-            
-            if export_format == 'onnx':
-                output_path = exporter.export_onnx(output, optimize=optimize)
-            elif export_format == 'tflite':
-                if backend != 'tensorflow':
-                    print_error("TFLite export requires TensorFlow backend")
-                    sys.exit(1)
-                output_path = exporter.export_tflite(
-                    output,
-                    quantize=quantize,
-                    quantization_type=quantization_type
-                )
-            elif export_format == 'torchscript':
-                if backend != 'pytorch':
-                    print_error("TorchScript export requires PyTorch backend")
-                    sys.exit(1)
-                output_path = exporter.export_torchscript(output)
-            elif export_format == 'savedmodel':
-                if backend != 'tensorflow':
-                    print_error("SavedModel export requires TensorFlow backend")
-                    sys.exit(1)
-                output_path = exporter.export_savedmodel(output)
-        
-        print_success(f"Model exported successfully!")
-        print(f"\n{Colors.CYAN}Export Information:{Colors.ENDC}")
-        print(f"  {Colors.BOLD}Format:{Colors.ENDC}   {export_format}")
-        print(f"  {Colors.BOLD}Output:{Colors.ENDC}   {output_path}")
-        print(f"  {Colors.BOLD}Backend:{Colors.ENDC}  {backend}")
-        if optimize:
-            print(f"  {Colors.BOLD}Optimized:{Colors.ENDC} Yes")
-        if quantize:
-            print(f"  {Colors.BOLD}Quantized:{Colors.ENDC} Yes ({quantization_type})")
-        
-        if deployment != 'none':
-            print_info(f"Generating {deployment} deployment configs...")
-            deploy_dir = f"{os.path.splitext(file)[0]}_deployment"
-            
-            if deployment == 'torchserve':
-                config_path, model_store = exporter.create_torchserve_config(
-                    output_path, model_name, deploy_dir
-                )
-                scripts = exporter.generate_deployment_scripts(deploy_dir, 'torchserve')
-            elif deployment == 'tfserving':
-                config_path = exporter.create_tfserving_config(
-                    output_path, model_name, deploy_dir
-                )
-                scripts = exporter.generate_deployment_scripts(deploy_dir, 'tfserving')
-            
-            print_success("Deployment configs generated!")
-            print(f"\n{Colors.CYAN}Deployment Files:{Colors.ENDC}")
-            print(f"  {Colors.BOLD}Directory:{Colors.ENDC} {deploy_dir}")
-            print(f"  {Colors.BOLD}Config:{Colors.ENDC}    {config_path}")
-            for script in scripts:
-                print(f"  {Colors.BOLD}Script:{Colors.ENDC}    {script}")
-    
-    except Exception as e:
-        print_error(f"Export failed: {str(e)}")
-        import traceback
-        if ctx.obj.get('VERBOSE'):
-            traceback.print_exc()
-        sys.exit(1)
-
-@cli.command()
-@click.argument('file', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.option('--gradients', is_flag=True, help='Analyze gradient flow')
 @click.option('--dead-neurons', is_flag=True, help='Detect dead neurons')
 @click.option('--anomalies', is_flag=True, help='Detect training anomalies')
@@ -1638,62 +1527,6 @@ def no_code(ctx, port: int):
         sys.exit(1)
     except KeyboardInterrupt:
         print_info("Server stopped by user")
-
-
-@cli.command(name='experiments')
-@click.option('--port', default=8052, help='Web interface port', type=int)
-@click.option('--base-dir', default='neural_experiments', help='Experiments directory', type=click.Path())
-@click.option('--host', default='127.0.0.1', help='Server host')
-@click.pass_context
-def experiments(ctx, port: int, base_dir: str, host: str):
-    """Launch the experiment comparison UI."""
-    print_command_header("experiments")
-    print_info("Loading experiment tracking system...")
-    
-    try:
-        from neural.tracking import ExperimentManager, ExperimentComparisonUI
-        
-        with Spinner("Initializing experiment manager") as spinner:
-            if ctx.obj.get('NO_ANIMATIONS'):
-                spinner.stop()
-            manager = ExperimentManager(base_dir=base_dir)
-            experiments_list = manager.list_experiments()
-        
-        print_success(f"Found {len(experiments_list)} experiments in {base_dir}")
-        
-        if len(experiments_list) > 0:
-            print(f"\n{Colors.CYAN}Recent Experiments:{Colors.ENDC}")
-            for exp in experiments_list[:5]:
-                status_color = Colors.GREEN if exp['status'] == 'completed' else Colors.YELLOW
-                print(f"  {status_color}●{Colors.ENDC} {exp['experiment_name']} ({exp['experiment_id']}) - {exp['status']}")
-            if len(experiments_list) > 5:
-                print(f"  {Colors.CYAN}... and {len(experiments_list) - 5} more{Colors.ENDC}")
-        else:
-            print_warning("No experiments found. Run some experiments first!")
-        
-        print(f"\n{Colors.CYAN}Server Information:{Colors.ENDC}")
-        print(f"  {Colors.BOLD}URL:{Colors.ENDC}         http://{host}:{port}")
-        print(f"  {Colors.BOLD}Interface:{Colors.ENDC}   Experiment Comparison UI")
-        print(f"  {Colors.BOLD}Base Dir:{Colors.ENDC}    {base_dir}")
-        print(f"\n{Colors.YELLOW}Press Ctrl+C to stop the server{Colors.ENDC}\n")
-        
-        with Spinner("Starting web server") as spinner:
-            if ctx.obj.get('NO_ANIMATIONS'):
-                spinner.stop()
-            ui = ExperimentComparisonUI(manager=manager, port=port)
-        
-        ui.run(debug=False, host=host)
-        
-    except ImportError as e:
-        print_error(f"Failed to load experiment tracking: {str(e)}")
-        print_info("Install required packages: pip install dash dash-bootstrap-components plotly")
-        sys.exit(1)
-    except Exception as e:
-        print_error(f"Failed to launch experiment comparison UI: {str(e)}")
-        sys.exit(1)
-    except KeyboardInterrupt:
-        print_info("Server stopped by user")
-
 
 if __name__ == '__main__':
     cli()

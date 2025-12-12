@@ -5,9 +5,9 @@ Converts natural language descriptions into Neural DSL code.
 Supports multiple languages through translation layer.
 """
 
-from typing import Dict, List, Optional, Tuple
 import re
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
 
 
 class IntentType(Enum):

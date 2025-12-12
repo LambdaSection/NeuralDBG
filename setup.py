@@ -1,5 +1,5 @@
 # setup.py
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 # Core dependencies required for basic DSL functionality
 CORE_DEPS = [

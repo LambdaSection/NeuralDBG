@@ -1,18 +1,12 @@
-"""
-Code generation module for Neural DSL.
-
-This module converts parsed DSL models into executable Python code for multiple
-deep learning frameworks including TensorFlow, PyTorch, and ONNX.
-"""
-from __future__ import annotations
-
 import logging
-from neural.shape_propagation.shape_propagator import ShapePropagator
-from neural.parser.parser import ModelTransformer, create_parser
-from typing import Any, Dict, Union, Optional, List, Tuple
-import numpy as np
-import warnings
 import re
+import warnings
+from typing import Any, Dict, Optional, Union
+
+import numpy as np
+
+from neural.parser.parser import ModelTransformer, create_parser
+from neural.shape_propagation.shape_propagator import ShapePropagator
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -20,26 +14,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
 def to_number(x: str) -> Union[int, float]:
-    """
-    Convert a string to int or float.
-    
-    Parameters
-    ----------
-    x : str
-        String representation of a number
-        
-    Returns
-    -------
-    Union[int, float]
-        Integer if possible, otherwise float
-        
-    Examples
-    --------
-    >>> to_number("42")
-    42
-    >>> to_number("3.14")
-    3.14
-    """
     try:
         return int(x)
     except ValueError:
@@ -78,39 +52,14 @@ def _policy_ensure_2d_before_dense_tf(
 def _policy_ensure_2d_before_dense_pt(
     rank_non_batch: int,
     auto_flatten_output: bool,
-    forward_code_body: list,
+    forward_code_body,
     propagator: ShapePropagator,
-    current_input_shape: Tuple[Optional[int], ...],
-) -> Tuple[Optional[int], ...]:
-    """
-    Ensure 2D input for Dense/Output layers in PyTorch.
+    current_input_shape,
+):
+    """Ensure 2D input for Dense/Output in PyTorch.
 
-    Parameters
-    ----------
-    rank_non_batch : int
-        Number of dimensions excluding batch dimension
-    auto_flatten_output : bool
-        Whether to automatically insert flatten operation
-    forward_code_body : list
-        List of code strings for forward pass (mutated in place)
-    propagator : ShapePropagator
-        Shape propagator instance for tracking shapes
-    current_input_shape : Tuple[Optional[int], ...]
-        Current tensor shape including batch dimension
-        
-    Returns
-    -------
-    Tuple[Optional[int], ...]
-        Updated tensor shape after flattening
-        
-    Raises
-    ------
-    ValueError
-        If input is higher-rank and auto_flatten_output is False
-        
-    Notes
-    -----
-    Mutates forward_code_body list when flatten operation is inserted.
+    Mutates forward_code_body when flatten is inserted and returns the updated shape.
+    Raises ValueError when higher-rank input is not allowed and auto_flatten_output is False.
     """
     if rank_non_batch > 1:
         if auto_flatten_output:
@@ -126,57 +75,7 @@ def _policy_ensure_2d_before_dense_pt(
         )
     return current_input_shape
 
-def generate_code(
-    model_data: Dict[str, Any],
-    backend: str,
-    best_params: Optional[Dict[str, Any]] = None,
-    auto_flatten_output: bool = False
-) -> str:
-    """
-    Generate executable code from parsed DSL model data.
-
-    Parameters
-    ----------
-    model_data : Dict[str, Any]
-        Parsed model dictionary containing 'layers', 'input', 'optimizer', etc.
-    backend : str
-        Target framework: 'tensorflow', 'pytorch', or 'onnx'
-    best_params : Optional[Dict[str, Any]], optional
-        Hyperparameters from HPO to inject into code, by default None
-    auto_flatten_output : bool, optional
-        Automatically insert flatten before dense layers if needed, by default False
-        
-    Returns
-    -------
-    str
-        Generated Python code as string
-        
-    Raises
-    ------
-    ValueError
-        If model_data format is invalid or backend is unsupported
-        
-    Examples
-    --------
-    >>> from neural.parser.parser import create_parser, ModelTransformer
-    >>> parser = create_parser('network')
-    >>> tree = parser.parse("Network Test { Input: shape=(1,28,28) Dense: units=10 }")
-    >>> transformer = ModelTransformer()
-    >>> model_data = transformer.transform(tree)
-    >>> code = generate_code(model_data, 'tensorflow')
-    >>> print(code)  # doctest: +SKIP
-    import tensorflow as tf
-    ...
-    
-    Notes
-    -----
-    The generated code includes:
-    - Framework imports
-    - Model architecture definition
-    - Optimizer configuration
-    - Experiment tracking integration
-    - Training configuration (if provided)
-    """
+def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optional[Dict[str, Any]] = None, auto_flatten_output: bool = False) -> str:
     if not isinstance(model_data, dict) or 'layers' not in model_data or 'input' not in model_data:
         raise ValueError("Invalid model_data format: must be a dict with 'layers' and 'input' keys")
 
@@ -627,34 +526,14 @@ def generate_onnx(model_data):
 
     return model
 
-def export_onnx(model_data: Dict[str, Any], filename: str = "model.onnx", optimize: bool = True) -> str:
-    """Export model to ONNX format with optional optimization."""
+def export_onnx(model_data: Dict[str, Any], filename: str = "model.onnx") -> str:
+    """Export model to ONNX format."""
     import onnx
     model = generate_onnx(model_data)
-    
-    if optimize:
-        try:
-            from onnx import optimizer
-            passes = [
-                'eliminate_identity',
-                'eliminate_nop_pad',
-                'eliminate_nop_transpose',
-                'eliminate_unused_initializer',
-                'extract_constant_to_initializer',
-                'fuse_bn_into_conv',
-                'fuse_consecutive_transposes',
-                'fuse_matmul_add_bias_into_gemm',
-                'fuse_pad_into_conv',
-                'fuse_transpose_into_gemm'
-            ]
-            model = optimizer.optimize(model, passes)
-        except ImportError:
-            logger.warning("ONNX optimizer not available, saving unoptimized model")
-    
     onnx.save(model, filename)
     return f"ONNX model saved to {filename}"
 
-def generate_tensorflow_layer(layer_type: str, params: Dict[str, Any]) -> str:
+def generate_tensorflow_layer(layer_type, params):
     """Generate TensorFlow layer code"""
     if layer_type == "TransformerEncoder":
         num_heads = params.get("num_heads", 8)

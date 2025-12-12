@@ -22,11 +22,12 @@ Features:
 4. Quick Reference: Includes syntax reminders in error messages
 """
 
-from typing import Optional, Dict, Any, List, Tuple
-from dataclasses import dataclass
-from lark import UnexpectedToken, UnexpectedCharacters
 import difflib
 import re
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple
+
+from lark import UnexpectedCharacters, UnexpectedToken
 
 @dataclass
 class ParserError:

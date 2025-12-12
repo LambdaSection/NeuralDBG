@@ -3,12 +3,12 @@ CLI aesthetics module for Neural.
 Provides ASCII art, loading animations, and other visual enhancements for the CLI.
 """
 
-import time
+import os
+import random
 import sys
 import threading
-import random
-import os
-from typing import List, Optional, Callable
+import time
+from typing import Callable, List, Optional
 
 # Neural ASCII Logo
 NEURAL_LOGO = """

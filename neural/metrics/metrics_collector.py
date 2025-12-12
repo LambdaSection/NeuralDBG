@@ -5,10 +5,11 @@ This module provides functionality to collect real metrics during model training
 including gradient flow, dead neurons, and activation anomalies.
 """
 
-import numpy as np
-import time
 import logging
-from typing import Dict, List, Any, Optional, Union, Tuple
+import time
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import numpy as np
 
 # Configure logger
 logger = logging.getLogger(__name__)

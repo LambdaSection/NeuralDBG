@@ -1,146 +1,54 @@
-"""
-Shape propagation module for Neural DSL.
-
-This module provides tensor shape inference, validation, and optimization
-suggestions for neural network architectures.
-"""
-from __future__ import annotations
-
-import logging
 import json
+import logging
 import time
-from functools import lru_cache
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+import numpy as np
+import plotly.graph_objects as go
+import psutil
+from graphviz import Digraph
+
+from neural.parser.parser import ModelTransformer
+
+from .layer_docs import format_layer_documentation, get_layer_documentation
+from .layer_handlers import (
+    handle_add,
+    handle_batch_normalization,
+    handle_concatenate,
+    handle_conv1d,
+    handle_conv3d,
+    handle_cropping2d,
+    handle_dropout,
+    handle_global_average_pooling1d,
+    handle_lstm,
+    handle_permute,
+    handle_reshape,
+    handle_zero_padding2d,
+)
+from .utils import (
+    calculate_memory_usage,
+    calculate_output_dims,
+    detect_shape_issues,
+    extract_param,
+    format_error_message,
+    format_memory_size,
+    suggest_optimizations,
+)
+
+
 # Make torch optional - allows tests to run without torch installed
 try:
     import torch
+
     TORCH_AVAILABLE = True
 except ImportError:
     torch = None
     TORCH_AVAILABLE = False
-import numpy as np
-import psutil
-import plotly.graph_objects as go
-from graphviz import Digraph
-from typing import Dict, Tuple, Optional, Any, List, Union, Callable
 
-import sys
-import os
-
-# Add the parent directory of 'neural' to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from parser.parser import ModelTransformer
 # PretrainedModelHub temporarily disabled due to triton dependency issues
 PretrainedModelHub = None
-from .utils import extract_param, calculate_output_dims, detect_shape_issues, suggest_optimizations
-from .utils import format_error_message, calculate_memory_usage, format_memory_size
-from .layer_docs import get_layer_documentation, format_layer_documentation
-from .layer_handlers import (
-    handle_conv1d, handle_conv3d, handle_lstm, handle_dropout,
-    handle_batch_normalization, handle_concatenate, handle_add,
-    handle_global_average_pooling1d, handle_reshape, handle_permute,
-    handle_zero_padding2d, handle_cropping2d
-)
-
-logger = logging.getLogger(__name__)
-
-# Global caches for performance optimization
-_shape_cache = {}
-_param_cache = {}
-
-class ShapeMismatchError(Exception):
-    """Enhanced exception for shape propagation errors with actionable diagnostics.
-    
-    This exception provides detailed information about shape mismatches and offers
-    concrete suggestions for fixing the issue.
-    
-    Features:
-    - Categorizes errors by issue type (missing_parameter, shape_incompatibility, etc.)
-    - Shows input/output shapes for better understanding
-    - Provides expected vs actual value comparisons
-    - Offers multiple fix suggestions with examples
-    - Includes common parameter values as guidance
-    
-    Example error categories:
-    - missing_parameter: Required parameter not provided
-    - invalid_parameter: Parameter has invalid value (e.g., negative filters)
-    - shape_incompatibility: Input shape doesn't match layer requirements
-    - validation_error: General validation failure
-    """
-    
-    def __init__(self, 
-                 layer_type: str,
-                 issue: str,
-                 message: str,
-                 input_shape: Optional[Tuple] = None,
-                 expected_shape: Optional[str] = None,
-                 expected_value: Optional[str] = None,
-                 actual_value: Optional[str] = None,
-                 fix_suggestions: Optional[List[str]] = None):
-        """Initialize a shape mismatch error with diagnostic information.
-        
-        Args:
-            layer_type: Type of layer where error occurred
-            issue: Category of issue (e.g., 'missing_parameter', 'shape_incompatibility')
-            message: Main error message
-            input_shape: Input shape that caused the error
-            expected_shape: Expected shape format
-            expected_value: Expected parameter value
-            actual_value: Actual parameter value that caused error
-            fix_suggestions: List of actionable fix suggestions
-        """
-        self.layer_type = layer_type
-        self.issue = issue
-        self.input_shape = input_shape
-        self.expected_shape = expected_shape
-        self.expected_value = expected_value
-        self.actual_value = actual_value
-        self.fix_suggestions = fix_suggestions or []
-        
-        # Build comprehensive error message
-        full_message = self._build_message(message)
-        super().__init__(full_message)
-    
-    def _build_message(self, base_message: str) -> str:
-        """Build a comprehensive error message with all diagnostic information."""
-        lines = [
-            "\n" + "="*70,
-            f"SHAPE ERROR: {self.layer_type} Layer",
-            "="*70,
-            f"\n❌ {base_message}",
-        ]
-        
-        if self.input_shape:
-            lines.append(f"\n📊 Input Shape: {self.input_shape}")
-        
-        if self.expected_shape:
-            lines.append(f"   Expected: {self.expected_shape}")
-        
-        if self.expected_value and self.actual_value:
-            lines.append(f"\n   Expected: {self.expected_value}")
-            lines.append(f"   Got: {self.actual_value}")
-        
-        if self.fix_suggestions:
-            lines.append("\n🔧 Fix Suggestions:")
-            for i, suggestion in enumerate(self.fix_suggestions, 1):
-                lines.append(f"   {i}. {suggestion}")
-        
-        lines.append(f"\n💡 Tip: Use 'neural visualize' to see layer shapes throughout your network")
-        lines.append("="*70 + "\n")
-        
-        return "\n".join(lines)
 
 class PerformanceMonitor:
-    """
-    Monitor system resources during shape propagation.
-    
-    Tracks CPU, memory, GPU, and I/O usage for performance analysis.
-    
-    Attributes
-    ----------
-    resource_history : list
-        History of resource measurements
-    """
     def __init__(self):
         self.resource_history = []
 
@@ -194,7 +102,6 @@ class ShapePropagator:
         self.hub = PretrainedModelHub() if PretrainedModelHub else None
         self.issues = []  # Store detected issues
         self.optimizations = []  # Store optimization suggestions
-        self._layer_cache = {}
 
         # Framework compatibility mappings
         self.param_aliases = {
@@ -223,78 +130,27 @@ class ShapePropagator:
                     layer_type = key.value
                     params = layer[key][0] if layer[key] else {}
                 else:
-                    raise ShapeMismatchError(
-                        layer_type="Unknown",
-                        issue="malformed_layer",
-                        message="Layer must have a 'type' field",
-                        fix_suggestions=[
-                            "Ensure all layers follow the format: LayerType(param1=value1, param2=value2)",
-                            "Check for syntax errors in your .neural file",
-                            "Valid layer types: Dense, Conv2D, MaxPooling2D, Flatten, etc."
-                        ]
-                    )
+                    raise KeyError("Layer must have a 'type' field")
             else:
-                raise ShapeMismatchError(
-                    layer_type="Unknown",
-                    issue="malformed_layer",
-                    message="Layer must have a 'type' field",
-                    fix_suggestions=[
-                        "Ensure all layers follow the format: LayerType(param1=value1, param2=value2)",
-                        "Check for syntax errors in your .neural file"
-                    ]
-                )
+                raise KeyError("Layer must have a 'type' field")
         else:
             layer_type = layer["type"]
             params = layer.get("params", {})
 
-        logger.debug("ShapePropagator.propagate - input_shape: %s, layer_type: %s", input_shape, layer_type)
-        logger.debug("ShapePropagator.propagate - params: %s", params)
+        # Debug logging
+        print(f"DEBUG: ShapePropagator.propagate - input_shape: {input_shape}, layer_type: {layer_type}")
+        print(f"DEBUG: ShapePropagator.propagate - params: {params}")
 
         # Validate input shape
         if not input_shape:
-            raise ShapeMismatchError(
-                layer_type=layer_type,
-                issue="invalid_input_shape",
-                message="Input shape cannot be empty",
-                fix_suggestions=[
-                    "Define input shape at the beginning of your network",
-                    "Example: input: (None, 28, 28, 1) for MNIST",
-                    "First dimension is batch size (use None for dynamic batch size)"
-                ]
-            )
+            raise ValueError("Input shape cannot be empty")
 
         # Check for negative dimensions in input shape
         if any(dim is not None and dim < 0 for dim in input_shape):
-            raise ShapeMismatchError(
-                layer_type=layer_type,
-                issue="invalid_input_shape",
-                message=f"Input shape cannot contain negative dimensions: {input_shape}",
-                input_shape=input_shape,
-                fix_suggestions=[
-                    "All shape dimensions must be positive integers or None",
-                    "Check the output of the previous layer",
-                    "Use 'neural visualize' to trace where negative dimensions appear"
-                ]
-            )
+            raise ValueError(f"Input shape cannot contain negative dimensions: {input_shape}")
 
         # Validate layer parameters based on layer type
-        try:
-            self._validate_layer_params(layer_type, params, input_shape, framework)
-        except ShapeMismatchError:
-            # Re-raise our custom errors as-is
-            raise
-        except ValueError as e:
-            # Convert ValueError to ShapeMismatchError for consistency
-            raise ShapeMismatchError(
-                layer_type=layer_type,
-                issue="validation_error",
-                message=str(e),
-                input_shape=input_shape,
-                fix_suggestions=[
-                    "Check layer parameter values",
-                    f"Review documentation for {layer_type} layer requirements"
-                ]
-            ) from e
+        self._validate_layer_params(layer_type, params, input_shape, framework)
 
         # Only set kernel_size for layers that need it
 
@@ -305,13 +161,13 @@ class ShapePropagator:
             elif isinstance(kernel_size, list):
                 kernel_size = tuple(kernel_size)
             elif isinstance(kernel_size, dict):
-                logger.debug("ShapePropagator.propagate - kernel_size is a dict: %s", kernel_size)
+                print(f"DEBUG: ShapePropagator.propagate - kernel_size is a dict: {kernel_size}")
                 # If it's a dictionary with a 'value' key, use that value
                 if 'value' in kernel_size:
                     kernel_size = (kernel_size['value'], kernel_size['value'])
                 # Otherwise, use a default value
                 else:
-                    logger.debug("ShapePropagator.propagate - kernel_size dict without 'value' key, using default")
+                    print(f"DEBUG: ShapePropagator.propagate - kernel_size dict without 'value' key, using default")
                     kernel_size = (3, 3)  # Default value
             params["kernel_size"] = kernel_size  # Ensure tuple in params
 
@@ -351,7 +207,7 @@ class ShapePropagator:
         })
 
         if self.debug:
-            logger.debug("TRACE: %s", trace_entry)
+            print(f"TRACE: {trace_entry}")  # Debugging output
 
         self._visualize_layer(layer_type, output_shape)  # Creates node and increments self.current_layer
         if prev_layer is not None:
@@ -362,28 +218,16 @@ class ShapePropagator:
 ### Performance Computation ###
 ###############################
 
-    @lru_cache(maxsize=512)
-    def _compute_performance_cached(self, layer_type: str, input_shape: tuple, output_shape: tuple, 
-                                     kernel_size: tuple, filters: int) -> tuple:
-        """Cached performance computation for common layer types."""
-        if layer_type == 'Conv2D':
-            flops = np.prod(kernel_size) * np.prod(output_shape) * input_shape[-1]
-        else:
-            flops = 0
-        
-        memory_usage = np.prod(output_shape) * 4 / (1024 ** 2)
-        compute_time = flops / 1e9
-        transfer_time = memory_usage * 1e3 / 1e9
-        
-        return flops, memory_usage, compute_time, transfer_time
-    
     def _compute_performance(self, layer: dict, input_shape: tuple, output_shape: tuple) -> tuple:
         """Compute performance metrics (FLOPs, memory usage, etc.)."""
+        # Replace None with 1 to avoid NoneType math errors
         input_shape = tuple(1 if dim is None else dim for dim in input_shape)
         output_shape = tuple(1 if dim is None else dim for dim in output_shape)
 
+        # Handle malformed layer structure (e.g., from parser issues)
         if "type" not in layer:
             if len(layer) == 1:
+                # Try to extract type from the malformed structure
                 key = next(iter(layer.keys()))
                 if hasattr(key, 'value'):
                     layer_type = key.value
@@ -394,7 +238,9 @@ class ShapePropagator:
         else:
             layer_type = layer['type']
 
+        # FLOPs calculation (example for Conv2D)
         if layer_type == 'Conv2D':
+            # Handle malformed layer structure
             if "params" not in layer:
                 if len(layer) == 1:
                     key = next(iter(layer.keys()))
@@ -404,14 +250,20 @@ class ShapePropagator:
             else:
                 params = layer['params']
 
-            kernel_size = tuple(params.get('kernel_size', (3, 3)))
-            filters = int(params.get('filters', 32))
-            
-            return self._compute_performance_cached(layer_type, input_shape, output_shape, 
-                                                   kernel_size, filters)
-        
-        memory_usage = np.prod(output_shape) * 4 / (1024 ** 2)
-        return 0, memory_usage, 0, memory_usage * 1e3 / 1e9
+            kernel_size = params.get('kernel_size', (3, 3))
+            filters = params.get('filters', 32)
+            flops = np.prod(kernel_size) * np.prod(output_shape) * input_shape[-1]
+        else:
+            flops = 0  # Default for other layers
+
+        # Memory usage (output tensor size in MB)
+        memory_usage = np.prod(output_shape) * 4 / (1024 ** 2)  # 4 bytes per float
+
+        # Simplified timing estimates
+        compute_time = flops / 1e9  # 1 GFLOP/s
+        transfer_time = memory_usage * 1e3 / 1e9  # 1 GB/s
+
+        return flops, memory_usage, compute_time, transfer_time
 
 ##################################################
 ### Send execution trace data to the dashboard ###
@@ -447,17 +299,17 @@ class ShapePropagator:
                 try:
                     layer_type, exec_time, comp_time, trans_time, params, flops, memory, grad_norm, dead_ratio, mean_act, anomaly = entry
                 except ValueError:
-                    logger.warning("Invalid trace entry format: %s", entry)
+                    print(f"WARNING: Invalid trace entry format: {entry}")
                     continue
 
                 kernel_size = params.get("kernel_size", (1, 1)) if isinstance(params, dict) else (1, 1)
 
             # Ensure kernel_size is a tuple
             if isinstance(kernel_size, list):
-                logger.warning("Converting list kernel_size %s to tuple for %s", kernel_size, layer_type)
+                print(f"WARNING: Converting list kernel_size {kernel_size} to tuple for {layer_type}")
                 kernel_size = tuple(kernel_size)
             elif not isinstance(kernel_size, tuple):
-                logger.warning("Unexpected kernel_size type %s for %s, defaulting to (1, 1)", type(kernel_size), layer_type)
+                print(f"WARNING: Unexpected kernel_size type {type(kernel_size)} for {layer_type}, defaulting to (1, 1)")
                 kernel_size = (1, 1)
 
             trace.append({
@@ -536,21 +388,10 @@ class ShapePropagator:
 
         return output_shape
 
-    @lru_cache(maxsize=256)
-    def _get_cache_key(self, layer_type, framework, params_tuple):
-        """Generate cache key for parameter standardization."""
-        return (layer_type, framework, params_tuple)
-    
     def _standardize_params(self, params, layer_type, framework):
+        # Ensure params is a dict, even if None is passed
         if params is None:
             params = {}
-        
-        params_hashable = tuple(sorted((k, str(v)) for k, v in params.items()))
-        cache_key = self._get_cache_key(layer_type, framework, params_hashable)
-        
-        if cache_key in _param_cache:
-            return _param_cache[cache_key].copy()
-        
         standardized = {}
         aliases = self.param_aliases.get(layer_type, {})
         for k, v in params.items():
@@ -559,26 +400,15 @@ class ShapePropagator:
             else:
                 standardized[k] = v
         standardized.setdefault('data_format', 'channels_first' if framework == 'pytorch' else 'channels_last')
-        
-        _param_cache[cache_key] = standardized.copy()
         return standardized
 
     def _validate_layer_params(self, layer_type, params, input_shape, framework='tensorflow'):
-        """Validate layer parameters based on layer type with enhanced diagnostics."""
+        """Validate layer parameters based on layer type."""
         # Validate based on layer type
         if layer_type == 'Conv2D':
             # Check if filters parameter exists
             if 'filters' not in params:
-                raise ShapeMismatchError(
-                    layer_type='Conv2D',
-                    issue='missing_parameter',
-                    message=f"Conv2D layer requires 'filters' parameter",
-                    fix_suggestions=[
-                        "Add filters parameter: Conv2D(filters=32, ...)",
-                        "Common values: 32, 64, 128, 256 for different network depths",
-                        "Example: Conv2D(filters=32, kernel_size=(3,3), activation='relu')"
-                    ]
-                )
+                raise ValueError(f"Conv2D layer requires filters parameter")
 
             # Check if filters is positive
             filters = params.get('filters')
@@ -586,31 +416,11 @@ class ShapePropagator:
                 if 'value' in filters:
                     filters = filters['value']
             if filters is not None and isinstance(filters, (int, float)) and filters <= 0:
-                raise ShapeMismatchError(
-                    layer_type='Conv2D',
-                    issue='invalid_parameter',
-                    message=f"Conv2D filters must be a positive integer, got {filters}",
-                    expected_value="positive integer (e.g., 32, 64, 128)",
-                    actual_value=str(filters),
-                    fix_suggestions=[
-                        f"Change filters={filters} to a positive integer",
-                        "Common filter counts: 32, 64, 128, 256",
-                        "More filters = more feature detection capacity but higher computation"
-                    ]
-                )
+                raise ValueError(f"Conv2D filters must be a positive integer, got {filters}")
 
             # Check if kernel_size parameter exists
             if 'kernel_size' not in params:
-                raise ShapeMismatchError(
-                    layer_type='Conv2D',
-                    issue='missing_parameter',
-                    message=f"Conv2D layer requires 'kernel_size' parameter",
-                    fix_suggestions=[
-                        "Add kernel_size parameter: Conv2D(..., kernel_size=(3,3))",
-                        "Common values: (3,3) for small features, (5,5) or (7,7) for larger",
-                        "Example: Conv2D(filters=32, kernel_size=(3,3))"
-                    ]
-                )
+                raise ValueError(f"Conv2D layer requires kernel_size parameter")
 
             # Check if kernel_size is valid
             kernel_size = params.get('kernel_size')
@@ -631,20 +441,7 @@ class ShapePropagator:
 
                 if len(spatial_dims) >= 2 and len(kernel_size) >= 2:
                     if kernel_size[0] > spatial_dims[0] or kernel_size[1] > spatial_dims[1]:
-                        raise ShapeMismatchError(
-                            layer_type='Conv2D',
-                            issue='shape_incompatibility',
-                            message=f"Conv2D kernel size {kernel_size} exceeds input dimensions {spatial_dims}",
-                            input_shape=input_shape,
-                            expected_value=f"kernel_size <= {spatial_dims}",
-                            actual_value=f"kernel_size = {kernel_size}",
-                            fix_suggestions=[
-                                f"Reduce kernel_size to fit within {spatial_dims}",
-                                f"Try kernel_size=({min(spatial_dims[0], 3)}, {min(spatial_dims[1], 3)})",
-                                "Or increase input size before this layer",
-                                "Add padding if you need larger receptive field"
-                            ]
-                        )
+                        raise ValueError(f"Conv2D kernel size {kernel_size} exceeds input dimensions {spatial_dims}")
 
             # Check if stride is positive
             stride = params.get('stride')
@@ -652,18 +449,7 @@ class ShapePropagator:
                 if 'value' in stride:
                     stride = stride['value']
             if stride is not None and isinstance(stride, (int, float)) and stride <= 0:
-                raise ShapeMismatchError(
-                    layer_type='Conv2D',
-                    issue='invalid_parameter',
-                    message=f"Conv2D stride must be a positive integer, got {stride}",
-                    expected_value="positive integer (typically 1 or 2)",
-                    actual_value=str(stride),
-                    fix_suggestions=[
-                        f"Change stride={stride} to a positive integer",
-                        "stride=1 for no downsampling, stride=2 for 2x downsampling",
-                        "Larger strides reduce output dimensions"
-                    ]
-                )
+                raise ValueError(f"Conv2D stride must be a positive integer, got {stride}")
 
         elif layer_type == 'Dense':
             # Check if units parameter exists and is positive
@@ -731,18 +517,18 @@ class ShapePropagator:
             # Unlike Dense layer which expects exactly 2D, Output can be more flexible
 
 ####################################################################
-### Shape propagation through 2 Dimensional Convolutional Layers ###
+### Shape propagation through 2 Dimensional Convolutional Layers ###
 ####################################################################
 
     def _handle_conv2d(self, input_shape, params):
-        logger.debug("_handle_conv2d - input_shape: %s, params: %s", input_shape, params)
+        print(f"DEBUG: _handle_conv2d - input_shape: {input_shape}, params: {params}")
         data_format = params['data_format']  # 'channels_first' for PyTorch
         if data_format == 'channels_first':
             spatial_dims = input_shape[2:]  # Should be (28, 28)
         else:
             spatial_dims = input_shape[1:3]
 
-        logger.debug("_handle_conv2d - spatial_dims: %s", spatial_dims)
+        print(f"DEBUG: _handle_conv2d - spatial_dims: {spatial_dims}")
 
         kernel = params['kernel_size']
         if isinstance(kernel, int):
@@ -757,10 +543,10 @@ class ShapePropagator:
                     kernel = (3, 3)  # Default value
             # Otherwise, use a default value
             else:
-                logger.debug("_handle_conv2d - kernel is a dict without 'value' key: %s, using default", kernel)
+                print(f"DEBUG: _handle_conv2d - kernel is a dict without 'value' key: {kernel}, using default")
                 kernel = (3, 3)  # Default value
         elif not isinstance(kernel, tuple):
-            logger.debug("_handle_conv2d - Invalid kernel_size type: %s, value: %s, using default", type(kernel), kernel)
+            print(f"DEBUG: _handle_conv2d - Invalid kernel_size type: {type(kernel)}, value: {kernel}, using default")
             kernel = (3, 3)  # Default value
 
         stride = params.get('stride', 1)
@@ -771,7 +557,7 @@ class ShapePropagator:
                 stride = stride['value']
             # Otherwise, use a default value
             else:
-                logger.debug("_handle_conv2d - stride is a dict without 'value' key: %s, using default", stride)
+                print(f"DEBUG: _handle_conv2d - stride is a dict without 'value' key: {stride}, using default")
                 stride = 1  # Default value
 
         padding = self._calculate_padding(params, input_shape[2] if data_format == 'channels_first' else input_shape[1])
@@ -790,17 +576,17 @@ class ShapePropagator:
                     padding = (0,) * len(spatial_dims)  # Default value
             # Otherwise, use a default value
             else:
-                logger.debug("_handle_conv2d - padding is a dict without 'value' key: %s, using default", padding)
+                print(f"DEBUG: _handle_conv2d - padding is a dict without 'value' key: {padding}, using default")
                 padding = (0,) * len(spatial_dims)  # Default value
 
-        logger.debug("_handle_conv2d - kernel: %s, stride: %s, padding: %s", kernel, stride, padding)
+        print(f"DEBUG: _handle_conv2d - kernel: {kernel}, stride: {stride}, padding: {padding}")
 
         output_spatial = [
             (dim + 2*pad - k) // stride + 1
             for dim, k, pad in zip(spatial_dims, kernel, padding)
         ]
         if any(dim <= 0 for dim in output_spatial):
-            logger.debug("_handle_conv2d - Invalid Conv2D output dimensions: %s, using default", output_spatial)
+            print(f"DEBUG: _handle_conv2d - Invalid Conv2D output dimensions: {output_spatial}, using default")
             output_spatial = [1, 1]  # Default value to avoid errors
 
         filters = params['filters']
@@ -811,10 +597,10 @@ class ShapePropagator:
                 filters = filters['value']
             # Otherwise, use a default value
             else:
-                logger.debug("_handle_conv2d - filters is a dict without 'value' key: %s, using default", filters)
+                print(f"DEBUG: _handle_conv2d - filters is a dict without 'value' key: {filters}, using default")
                 filters = 32  # Default value
 
-        logger.debug("_handle_conv2d - output_spatial: %s, filters: %s", output_spatial, filters)
+        print(f"DEBUG: _handle_conv2d - output_spatial: {output_spatial}, filters: {filters}")
 
         if data_format == 'channels_first':
             return (input_shape[0], filters, *output_spatial)
@@ -822,7 +608,7 @@ class ShapePropagator:
             return (input_shape[0], *output_spatial, filters)
 
     def _handle_maxpooling2d(self, input_shape, params):
-        logger.debug("_handle_maxpooling2d - input_shape: %s, params: %s", input_shape, params)
+        print(f"DEBUG: _handle_maxpooling2d - input_shape: {input_shape}, params: {params}")
         data_format = params.get('data_format', 'channels_last')
         pool_size = params['pool_size']
 
@@ -837,7 +623,7 @@ class ShapePropagator:
                     pool_size = 2  # Default value
             # Otherwise, use a default value
             else:
-                logger.debug("_handle_maxpooling2d - pool_size is a dict without 'value' key: %s, using default", pool_size)
+                print(f"DEBUG: _handle_maxpooling2d - pool_size is a dict without 'value' key: {pool_size}, using default")
                 pool_size = 2  # Default value
 
         stride = params.get('stride', pool_size)
@@ -849,7 +635,7 @@ class ShapePropagator:
                 stride = stride['value']
             # Otherwise, use a default value
             else:
-                logger.debug("_handle_maxpooling2d - stride is a dict without 'value' key: %s, using default", stride)
+                print(f"DEBUG: _handle_maxpooling2d - stride is a dict without 'value' key: {stride}, using default")
                 stride = pool_size  # Default to pool_size
 
         # Handle stride as tuple or integer
@@ -858,7 +644,7 @@ class ShapePropagator:
         else:
             stride_h = stride_w = stride
 
-        logger.debug("_handle_maxpooling2d - pool_size: %s, stride_h: %s, stride_w: %s", pool_size, stride_h, stride_w)
+        print(f"DEBUG: _handle_maxpooling2d - pool_size: {pool_size}, stride_h: {stride_h}, stride_w: {stride_w}")
 
         # Calculate spatial dimensions based on data format
         if data_format == 'channels_last':
@@ -868,7 +654,7 @@ class ShapePropagator:
                 new_width = input_shape[2] // stride_w
                 return (input_shape[0], new_height, new_width, input_shape[3])
             else:
-                logger.debug("_handle_maxpooling2d - Invalid input shape: %s, using default", input_shape)
+                print(f"DEBUG: _handle_maxpooling2d - Invalid input shape: {input_shape}, using default")
                 return (input_shape[0], 1, 1, input_shape[-1] if len(input_shape) > 1 else 1)
         else:
             # PyTorch: input_shape = (batch, channels, height, width)
@@ -877,7 +663,7 @@ class ShapePropagator:
                 new_width = input_shape[3] // stride_w
                 return (input_shape[0], input_shape[1], new_height, new_width)
             else:
-                logger.debug("_handle_maxpooling2d - Invalid input shape: %s, using default", input_shape)
+                print(f"DEBUG: _handle_maxpooling2d - Invalid input shape: {input_shape}, using default")
                 return (input_shape[0], input_shape[1] if len(input_shape) > 1 else 1, 1, 1)
 
     def _handle_flatten(self, input_shape, params):
@@ -892,7 +678,7 @@ class ShapePropagator:
 
 
     def _handle_dense(self, input_shape, params):
-        logger.debug("_handle_dense - input_shape: %s, params: %s", input_shape, params)
+        print(f"DEBUG: _handle_dense - input_shape: {input_shape}, params: {params}")
 
         # Get units parameter with proper handling of dictionary values
         units = params.get('units', 64)  # Default to 64 if not provided
@@ -904,10 +690,10 @@ class ShapePropagator:
                 units = units['value']
             # Otherwise, use a default value
             else:
-                logger.debug("_handle_dense - units is a dict without 'value' key: %s, using default", units)
+                print(f"DEBUG: _handle_dense - units is a dict without 'value' key: {units}, using default")
                 units = 64  # Default value
 
-        logger.debug("_handle_dense - units after processing: %s", units)
+        print(f"DEBUG: _handle_dense - units after processing: {units}")
 
         # If input_shape has two or more dimensions, preserve the batch dimension.
         if len(input_shape) >= 2:
@@ -916,7 +702,7 @@ class ShapePropagator:
             return (units,)
 
     def _handle_output(self, input_shape, params):
-        logger.debug("_handle_output - input_shape: %s, params: %s", input_shape, params)
+        print(f"DEBUG: _handle_output - input_shape: {input_shape}, params: {params}")
 
         # Get units parameter with proper handling of dictionary values
         units = params.get('units', 10)  # Default to 10 if not provided
@@ -928,10 +714,10 @@ class ShapePropagator:
                 units = units['value']
             # Otherwise, use a default value
             else:
-                logger.debug("_handle_output - units is a dict without 'value' key: %s, using default", units)
+                print(f"DEBUG: _handle_output - units is a dict without 'value' key: {units}, using default")
                 units = 10  # Default value
 
-        logger.debug("_handle_output - units after processing: %s", units)
+        print(f"DEBUG: _handle_output - units after processing: {units}")
 
         # Preserves the batch dimension and converts the feature dimension to the number of output units.
         if len(input_shape) >= 2:
@@ -940,7 +726,7 @@ class ShapePropagator:
             return (units,)
 
     def _handle_globalaveragepooling2d(self, input_shape, params):
-        logger.debug("_handle_globalaveragepooling2d - input_shape: %s, params: %s", input_shape, params)
+        print(f"DEBUG: _handle_globalaveragepooling2d - input_shape: {input_shape}, params: {params}")
         data_format = params.get('data_format', 'channels_last')
 
         # For GlobalAveragePooling2D, we reduce the spatial dimensions and keep only batch and channels
@@ -949,18 +735,18 @@ class ShapePropagator:
             if len(input_shape) >= 4:
                 return (input_shape[0], input_shape[3])
             else:
-                logger.debug("_handle_globalaveragepooling2d - Invalid input shape: %s, using default", input_shape)
+                print(f"DEBUG: _handle_globalaveragepooling2d - Invalid input shape: {input_shape}, using default")
                 return (input_shape[0], input_shape[-1] if len(input_shape) > 1 else 1)
         else:
             # PyTorch: input_shape = (batch, channels, height, width)
             if len(input_shape) >= 4:
                 return (input_shape[0], input_shape[1])
             else:
-                logger.debug("_handle_globalaveragepooling2d - Invalid input shape: %s, using default", input_shape)
+                print(f"DEBUG: _handle_globalaveragepooling2d - Invalid input shape: {input_shape}, using default")
                 return (input_shape[0], input_shape[1] if len(input_shape) > 1 else 1)
 
     def _handle_upsampling2d(self, input_shape, params):
-        logger.debug("_handle_upsampling2d - input_shape: %s, params: %s", input_shape, params)
+        print(f"DEBUG: _handle_upsampling2d - input_shape: {input_shape}, params: {params}")
         data_format = params.get('data_format', 'channels_last')
         size = params.get('size', (2, 2))
 
@@ -977,10 +763,10 @@ class ShapePropagator:
                     size = (2, 2)  # Default value
             # Otherwise, use a default value
             else:
-                logger.debug("_handle_upsampling2d - size is a dict without 'value' key: %s, using default", size)
+                print(f"DEBUG: _handle_upsampling2d - size is a dict without 'value' key: {size}, using default")
                 size = (2, 2)  # Default value
 
-        logger.debug("_handle_upsampling2d - size after processing: %s", size)
+        print(f"DEBUG: _handle_upsampling2d - size after processing: {size}")
 
         # Calculate new spatial dimensions
         if data_format == 'channels_last':
@@ -990,7 +776,7 @@ class ShapePropagator:
                 new_width = input_shape[2] * size[1]
                 return (input_shape[0], new_height, new_width, input_shape[3])
             else:
-                logger.debug("_handle_upsampling2d - Invalid input shape: %s, using default", input_shape)
+                print(f"DEBUG: _handle_upsampling2d - Invalid input shape: {input_shape}, using default")
                 return input_shape
         else:
             # PyTorch: input_shape = (batch, channels, height, width)
@@ -999,7 +785,7 @@ class ShapePropagator:
                 new_width = input_shape[3] * size[1]
                 return (input_shape[0], input_shape[1], new_height, new_width)
             else:
-                logger.debug("_handle_upsampling2d - Invalid input shape: %s, using default", input_shape)
+                print(f"DEBUG: _handle_upsampling2d - Invalid input shape: {input_shape}, using default")
                 return input_shape
 
     # Handle default helper
@@ -1021,7 +807,7 @@ class ShapePropagator:
         Returns:
             int or tuple or list: Calculated padding value.
         """
-        logger.debug("_calculate_padding - params: %s, input_dim: %s", params, input_dim)
+        print(f"DEBUG: _calculate_padding - params: {params}, input_dim: {input_dim}")
         padding = params.get('padding', 0)
 
         # Handle dictionary values in padding
@@ -1031,7 +817,7 @@ class ShapePropagator:
                 padding = padding['value']
             # Otherwise, use a default value
             else:
-                logger.debug("_calculate_padding - padding is a dict without 'value' key: %s, using default", padding)
+                print(f"DEBUG: _calculate_padding - padding is a dict without 'value' key: {padding}, using default")
                 padding = 0  # Default value
 
         if isinstance(padding, int):
@@ -1053,13 +839,13 @@ class ShapePropagator:
                         return 1  # Default value
                 # Otherwise, use a default value
                 else:
-                    logger.debug("_calculate_padding - kernel is a dict without 'value' key: %s, using default", kernel)
+                    print(f"DEBUG: _calculate_padding - kernel is a dict without 'value' key: {kernel}, using default")
                     return 1  # Default value
             elif isinstance(kernel, tuple):
                 # Process each dimension
                 return tuple((k - 1) // 2 for k in kernel)
             else:
-                logger.debug("_calculate_padding - Invalid kernel type: %s, value: %s, using default", type(kernel), kernel)
+                print(f"DEBUG: _calculate_padding - Invalid kernel type: {type(kernel)}, value: {kernel}, using default")
                 return 1  # Default value
         elif padding == 'valid':
             return 0
@@ -1169,32 +955,6 @@ class ShapePropagator:
         """
         self.optimizations = suggest_optimizations(self.shape_history)
         return self.optimizations
-    
-    def diagnose_shape_issues(self):
-        """Diagnose shape-related issues in the network architecture.
-        
-        Returns:
-            Dictionary with diagnostics including errors, warnings, and suggestions
-        """
-        from .utils import diagnose_shape_flow
-        return diagnose_shape_flow(self.shape_history)
-    
-    def get_layer_fix_suggestions(self, layer_type: str, input_shape: Tuple, params: Dict[str, Any]) -> List[str]:
-        """Get fix suggestions for a specific layer configuration.
-        
-        Args:
-            layer_type: Type of layer
-            input_shape: Input shape to the layer
-            params: Layer parameters
-            
-        Returns:
-            List of actionable fix suggestions
-        """
-        from .utils import suggest_layer_fix
-        return suggest_layer_fix(layer_type, {
-            'input_shape': input_shape,
-            'params': params
-        })
 
     def generate_interactive_visualization(self):
         """Generate an interactive HTML visualization of the model architecture.
@@ -1332,8 +1092,8 @@ class ShapePropagator:
 
     def _log_shape(self, shape, stage):
         if self.debug:
-            logger.info("%s SHAPE: %s", stage.upper(), shape)
-            logger.debug("Shape details: %s", self._shape_analysis(shape))
+            logging.info(f"{stage.upper()} SHAPE: {shape}")
+            logging.debug(f"Shape details: {self._shape_analysis(shape)}")
 
     def _shape_analysis(self, shape):
         return {
@@ -1342,7 +1102,7 @@ class ShapePropagator:
             'channel_dim': shape[1] if len(shape) > 1 else None
         }
 
-    ### Loading Pretrained Models ####
+    ### Loading Pretrained Models ####
 
     def load_pretrained(self, model_name, pretrained=True):
         if self.hub is None:
@@ -1407,7 +1167,7 @@ def _calculate_shape(self, input_shape, layer):
         return (input_shape[0], np.prod(input_shape[1:]))
     return input_shape
 
-### Compute FLOPs and memory usage for visualization ###
+### Compute FLOPs and memory usage for visualization ###
 def compute_flops_params(layer, input_shape):
     """Estimate FLOPs and parameter counts for a given layer."""
     if layer["type"] == "Dense":
@@ -1474,45 +1234,6 @@ def detect_activation_anomalies(layer, input, output):
     # torch is guaranteed to be available here due to the check above
     has_nan = torch.isnan(output).sum().item() > 0 if torch is not None else False
     is_exploding = mean_activation > 1000  # Arbitrary threshold for huge activations
-
-    return {
-        "layer": layer.__class__.__name__,
-        "mean_activation": mean_activation,
-        "anomaly": has_nan or is_exploding
-    }
-
-
-######################
-### Step Debugging ###
-######################
-def step_debug_hook(module, input, output):
-    """Pauses execution at this layer for manual debugging."""
-    logger.info("Paused at layer: %s", module.__class__.__name__)
-    logger.info("Input shape: %s, Output shape: %s", input[0].shape, output.shape)
-
-    # Wait for user input before continuing
-    input("Press Enter to continue...")
-0 if torch is not None else False
-    is_exploding = mean_activation > 1000  # Arbitrary threshold for huge activations
-
-    return {
-        "layer": layer.__class__.__name__,
-        "mean_activation": mean_activation,
-        "anomaly": has_nan or is_exploding
-    }
-
-
-######################
-### Step Debugging ###
-######################
-def step_debug_hook(module, input, output):
-    """Pauses execution at this layer for manual debugging."""
-    print(f"Paused at layer: {module.__class__.__name__}")
-    print(f"Input shape: {input[0].shape}, Output shape: {output.shape}")
-
-    # Wait for user input before continuing
-    input("Press Enter to continue...")
-000  # Arbitrary threshold for huge activations
 
     return {
         "layer": layer.__class__.__name__,

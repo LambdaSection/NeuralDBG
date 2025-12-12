@@ -1,56 +1,22 @@
-"""
-Hyperparameter optimization module for Neural DSL.
+import copy
 
-This module provides comprehensive HPO support with Optuna integration,
-supporting various search strategies and automatic model tuning.
-"""
-from __future__ import annotations
-
+import keras
+import numpy as np
 import optuna
+import tensorflow as tf
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.optim as optim
-import tensorflow as tf
-import numpy as np
 from sklearn.metrics import precision_score, recall_score
-from torchvision.datasets import MNIST, CIFAR10
+from torchvision.datasets import CIFAR10, MNIST
 from torchvision.transforms import ToTensor
-from neural.parser.parser import ModelTransformer
-import keras
-from neural.shape_propagation.shape_propagator import ShapePropagator
-from neural.execution_optimization.execution import get_device
-import copy
-from typing import Optional, Tuple, Dict, Any, List
 
-def get_data(
-    dataset_name: str,
-    input_shape: Tuple[int, ...],
-    batch_size: int,
-    train: bool = True,
-    backend: str = 'pytorch'
-) -> Any:
-    """
-    Load dataset for HPO experiments.
-    
-    Parameters
-    ----------
-    dataset_name : str
-        Name of dataset ('MNIST', 'CIFAR10')
-    input_shape : Tuple[int, ...]
-        Expected input shape
-    batch_size : int
-        Batch size for data loader
-    train : bool, optional
-        Load training or test set, by default True
-    backend : str, optional
-        Framework backend ('pytorch', 'tensorflow'), by default 'pytorch'
-        
-    Returns
-    -------
-    DataLoader or tf.data.Dataset
-        Dataset loader for the specified backend
-    """
+from neural.execution_optimization.execution import get_device
+from neural.parser.parser import ModelTransformer
+from neural.shape_propagation.shape_propagator import ShapePropagator
+
+# Data Loader
+def get_data(dataset_name, input_shape, batch_size, train=True, backend='pytorch'):
     datasets = {'MNIST': MNIST, 'CIFAR10': CIFAR10}
     dataset = datasets.get(dataset_name, MNIST)(root='./data', train=train, transform=ToTensor(), download=True)
     if backend == 'pytorch':
@@ -62,14 +28,14 @@ def get_data(
             data = data[..., None]  # [N, H, W] → [N, H, W, 1]
         return tf.data.Dataset.from_tensor_slices((data, targets)).batch(batch_size)
 
-def prod(iterable: Any) -> int:
+def prod(iterable):
     result = 1
     for x in iterable:
         result *= x
     return result
 
 # Factory Function
-def create_dynamic_model(model_dict: Dict[str, Any], trial: optuna.Trial, hpo_params: Dict[str, Any], backend: str = 'pytorch') -> Any:
+def create_dynamic_model(model_dict, trial, hpo_params, backend='pytorch'):
     resolved_model_dict = copy.deepcopy(model_dict)
     # Removed print statement for cleaner output
 
@@ -122,7 +88,7 @@ def create_dynamic_model(model_dict: Dict[str, Any], trial: optuna.Trial, hpo_pa
         raise ValueError(f"Unsupported backend: {backend}")
 
 
-def resolve_hpo_params(model_dict: dict, trial: optuna.Trial, hpo_params: list) -> dict:
+def resolve_hpo_params(model_dict, trial, hpo_params):
     import copy
     import logging
     logger = logging.getLogger(__name__)
@@ -290,7 +256,7 @@ class DynamicTFModel(tf.keras.Model):
                     params['units'] = units
                 self.layers_list.append(tf.keras.layers.Dense(params['units'], activation='softmax' if params.get('activation') == 'softmax' else None))
 
-    def call(self, inputs: tf.Tensor) -> tf.Tensor:
+    def call(self, inputs):
         x = tf.reshape(inputs, [inputs.shape[0], -1])  # Flatten input
         for layer in self.layers_list:
             x = layer(x)
@@ -298,7 +264,7 @@ class DynamicTFModel(tf.keras.Model):
 
 
 # Training Method
-def train_model(model: nn.Module, optimizer: optim.Optimizer, train_loader: Any, val_loader: Any, backend: str = 'pytorch', epochs: int = 1, execution_config: Optional[Dict[str, Any]] = None) -> Tuple[float, float, float, float]:
+def train_model(model, optimizer, train_loader, val_loader, backend='pytorch', epochs=1, execution_config=None):
     if backend == 'pytorch':
         device = get_device(execution_config.get("device", "auto") if execution_config else "auto")
         model.to(device)
@@ -336,7 +302,7 @@ def train_model(model: nn.Module, optimizer: optim.Optimizer, train_loader: Any,
 
 
 # HPO Objective
-def objective(trial: optuna.Trial, config: str, dataset_name: str = 'MNIST', backend: str = 'pytorch', device: str = 'auto') -> Tuple[float, float, float, float]:
+def objective(trial, config, dataset_name='MNIST', backend='pytorch', device='auto'):
     import torch.optim as optim
     from neural.execution_optimization.execution import get_device
 
@@ -388,7 +354,7 @@ def objective(trial: optuna.Trial, config: str, dataset_name: str = 'MNIST', bac
 
 
 # Optimize and Return
-def optimize_and_return(config: str, n_trials: int = 10, dataset_name: str = 'MNIST', backend: str = 'pytorch', device: str = 'auto') -> Dict[str, Any]:
+def optimize_and_return(config, n_trials=10, dataset_name='MNIST', backend='pytorch', device='auto'):
     # Set device mode
     import os
     if device.lower() == 'cpu':

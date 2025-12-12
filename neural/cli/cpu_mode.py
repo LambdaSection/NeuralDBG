@@ -3,10 +3,10 @@ CPU Mode Module for Neural DSL
 This module provides functions to run Neural DSL in CPU-only mode.
 """
 
+import importlib
 import os
 import sys
-import importlib
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 def set_cpu_mode():
     """

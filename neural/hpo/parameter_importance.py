@@ -1,34 +1,28 @@
 """
 Parameter importance analysis for hyperparameter optimization.
 """
-from __future__ import annotations
 
 import logging
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from typing import Dict, Any, List, Optional, Union, Tuple
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.inspection import permutation_importance
-import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 
+# Configure logger
 logger = logging.getLogger(__name__)
 
 class ParameterImportanceAnalyzer:
     """Analyzes the importance of hyperparameters in optimization trials."""
 
-    def __init__(self, method: str = 'random_forest'):
-        """
-        Initialize the parameter importance analyzer.
-        
-        Args:
-            method: Method for importance analysis ('random_forest', 'gradient_boosting', 'permutation')
-        """
+    def __init__(self):
+        """Initialize the parameter importance analyzer."""
         self.encoders = {}
         self.scaler = StandardScaler()
         self.model = None
-        self.method = method
 
     def analyze(self, trials: List[Dict[str, Any]], target_metric: str = 'score') -> Dict[str, float]:
         """
@@ -52,23 +46,13 @@ class ParameterImportanceAnalyzer:
             logger.warning("Too few trials for reliable parameter importance analysis")
             return {param: 1.0 / len(param_names) for param in param_names}
 
-        # Train a model to estimate parameter importance
+        # Train a random forest model to estimate parameter importance
         try:
-            if self.method == 'gradient_boosting':
-                self.model = GradientBoostingRegressor(n_estimators=100, random_state=42)
-            else:  # Default to random forest
-                self.model = RandomForestRegressor(n_estimators=100, random_state=42)
-            
+            self.model = RandomForestRegressor(n_estimators=100, random_state=42)
             self.model.fit(X, y)
 
             # Get feature importances
-            if self.method == 'permutation':
-                perm_importance = permutation_importance(
-                    self.model, X, y, n_repeats=10, random_state=42
-                )
-                importances = perm_importance.importances_mean
-            else:
-                importances = self.model.feature_importances_
+            importances = self.model.feature_importances_
 
             # Create a dictionary mapping parameter names to importance scores
             importance_dict = {param: float(imp) for param, imp in zip(param_names, importances)}
@@ -78,46 +62,6 @@ class ParameterImportanceAnalyzer:
         except Exception as e:
             logger.error(f"Error in parameter importance analysis: {str(e)}")
             return {param: 1.0 / len(param_names) for param in param_names}
-
-    def analyze_with_fanova(self, trials: List[Dict[str, Any]], 
-                           target_metric: str = 'score') -> Dict[str, float]:
-        """
-        Analyze parameter importance using fANOVA (functional ANOVA).
-        
-        Args:
-            trials: List of trial dictionaries
-            target_metric: Target metric name
-            
-        Returns:
-            Dictionary of parameter importances
-        """
-        try:
-            import optuna
-            from optuna.importance import FanovaImportanceEvaluator
-            
-            # Create a temporary study from trials
-            study = optuna.create_study()
-            
-            for trial_data in trials:
-                trial = optuna.trial.create_trial(
-                    params=trial_data.get('parameters', {}),
-                    distributions={},
-                    values=[trial_data.get(target_metric, 0)]
-                )
-                study.add_trial(trial)
-            
-            # Calculate fANOVA importances
-            evaluator = FanovaImportanceEvaluator()
-            importance = evaluator.evaluate(study)
-            
-            return importance
-            
-        except ImportError:
-            logger.warning("fANOVA requires optuna. Falling back to standard method.")
-            return self.analyze(trials, target_metric)
-        except Exception as e:
-            logger.error(f"Error in fANOVA analysis: {str(e)}")
-            return self.analyze(trials, target_metric)
 
     def _prepare_data(self, trials: List[Dict[str, Any]], target_metric: str) -> Tuple[np.ndarray, np.ndarray, List[str]]:
         """
@@ -253,78 +197,13 @@ class ParameterImportanceAnalyzer:
 
         # Plot horizontal bars
         y_pos = np.arange(len(params))
-        bars = ax.barh(y_pos, scores, align='center')
-        
-        # Color bars by importance
-        colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(params)))
-        for bar, color in zip(bars, colors):
-            bar.set_color(color)
-        
+        ax.barh(y_pos, scores, align='center')
         ax.set_yticks(y_pos)
         ax.set_yticklabels(params)
         ax.invert_yaxis()  # Labels read top-to-bottom
         ax.set_xlabel('Importance')
         ax.set_title(title)
-        ax.grid(axis='x', alpha=0.3)
 
-        plt.tight_layout()
-        return fig
-
-    def plot_importance_with_std(self, trials: List[Dict[str, Any]],
-                                 target_metric: str = 'score',
-                                 n_iterations: int = 10,
-                                 figsize: Tuple[int, int] = (10, 6)) -> plt.Figure:
-        """
-        Plot parameter importance with standard deviation (bootstrap).
-        
-        Args:
-            trials: List of trial dictionaries
-            target_metric: Target metric name
-            n_iterations: Number of bootstrap iterations
-            figsize: Figure size
-            
-        Returns:
-            Matplotlib figure
-        """
-        if not trials or len(trials) < 5:
-            logger.warning("Insufficient trials for bootstrap analysis")
-            return self.plot_importance({}, figsize=figsize)
-        
-        # Perform bootstrap sampling
-        all_importances = []
-        for _ in range(n_iterations):
-            # Sample with replacement
-            sampled_trials = np.random.choice(trials, size=len(trials), replace=True).tolist()
-            importance = self.analyze(sampled_trials, target_metric)
-            all_importances.append(importance)
-        
-        # Calculate mean and std
-        param_names = list(all_importances[0].keys())
-        mean_importance = {}
-        std_importance = {}
-        
-        for param in param_names:
-            values = [imp.get(param, 0) for imp in all_importances]
-            mean_importance[param] = np.mean(values)
-            std_importance[param] = np.std(values)
-        
-        # Sort by mean importance
-        sorted_params = sorted(param_names, key=lambda x: mean_importance[x], reverse=True)
-        means = [mean_importance[p] for p in sorted_params]
-        stds = [std_importance[p] for p in sorted_params]
-        
-        # Create plot
-        fig, ax = plt.subplots(figsize=figsize)
-        y_pos = np.arange(len(sorted_params))
-        
-        ax.barh(y_pos, means, xerr=stds, align='center', alpha=0.7, capsize=5)
-        ax.set_yticks(y_pos)
-        ax.set_yticklabels(sorted_params)
-        ax.invert_yaxis()
-        ax.set_xlabel('Importance (mean ± std)')
-        ax.set_title('Hyperparameter Importance with Uncertainty')
-        ax.grid(axis='x', alpha=0.3)
-        
         plt.tight_layout()
         return fig
 
@@ -453,164 +332,8 @@ class ParameterImportanceAnalyzer:
         fig, ax = plt.subplots(figsize=figsize)
 
         # Plot heatmap
-        sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax, vmin=-1, vmax=1, 
-                   fmt='.2f', square=True, linewidths=0.5)
+        sns.heatmap(corr, annot=True, cmap='coolwarm', ax=ax, vmin=-1, vmax=1)
         ax.set_title("Parameter Correlation Heatmap")
 
-        plt.tight_layout()
-        return fig
-
-    def plot_interaction_heatmap(self, trials: List[Dict[str, Any]],
-                                 target_metric: str = 'score',
-                                 figsize: Tuple[int, int] = (10, 8)) -> plt.Figure:
-        """
-        Plot pairwise parameter interaction heatmap.
-        
-        Args:
-            trials: List of trial dictionaries
-            target_metric: Target metric name
-            figsize: Figure size
-            
-        Returns:
-            Matplotlib figure
-        """
-        if not trials or len(trials) < 10:
-            logger.warning("Insufficient trials for interaction analysis")
-            fig, ax = plt.subplots(figsize=figsize)
-            ax.text(0.5, 0.5, "Insufficient trials", ha='center', va='center')
-            return fig
-        
-        # Prepare data
-        X, y, param_names = self._prepare_data(trials, target_metric)
-        
-        if len(param_names) < 2:
-            logger.warning("Need at least 2 parameters for interaction analysis")
-            fig, ax = plt.subplots(figsize=figsize)
-            ax.text(0.5, 0.5, "Need at least 2 parameters", ha='center', va='center')
-            return fig
-        
-        # Calculate interaction strengths using RF feature importance on cross-products
-        try:
-            from sklearn.preprocessing import PolynomialFeatures
-            
-            # Create interaction features
-            poly = PolynomialFeatures(degree=2, include_bias=False, interaction_only=True)
-            X_interactions = poly.fit_transform(X)
-            
-            # Get interaction feature names
-            feature_names = poly.get_feature_names_out(param_names)
-            
-            # Train model on interactions
-            model = RandomForestRegressor(n_estimators=50, random_state=42)
-            model.fit(X_interactions, y)
-            
-            # Extract interaction importances
-            interaction_matrix = np.zeros((len(param_names), len(param_names)))
-            
-            for i, feat_name in enumerate(feature_names):
-                if ' ' in feat_name:  # Interaction term
-                    parts = feat_name.split(' ')
-                    if len(parts) == 2:
-                        idx1 = param_names.index(parts[0])
-                        idx2 = param_names.index(parts[1])
-                        interaction_matrix[idx1, idx2] = model.feature_importances_[i]
-                        interaction_matrix[idx2, idx1] = model.feature_importances_[i]
-            
-            # Create plot
-            fig, ax = plt.subplots(figsize=figsize)
-            sns.heatmap(interaction_matrix, annot=True, cmap='YlOrRd', 
-                       xticklabels=param_names, yticklabels=param_names,
-                       ax=ax, fmt='.3f', square=True, linewidths=0.5)
-            ax.set_title("Parameter Interaction Strength")
-            
-            plt.tight_layout()
-            return fig
-            
-        except Exception as e:
-            logger.error(f"Error in interaction analysis: {str(e)}")
-            fig, ax = plt.subplots(figsize=figsize)
-            ax.text(0.5, 0.5, f"Error: {str(e)}", ha='center', va='center')
-            return fig
-
-    def plot_marginal_effects(self, trials: List[Dict[str, Any]],
-                             target_metric: str = 'score',
-                             figsize: Tuple[int, int] = (15, 10)) -> plt.Figure:
-        """
-        Plot marginal effects of each parameter on the target metric.
-        
-        Args:
-            trials: List of trial dictionaries
-            target_metric: Target metric name
-            figsize: Figure size
-            
-        Returns:
-            Matplotlib figure
-        """
-        if not trials:
-            logger.warning("No trials for marginal effects plot")
-            fig, ax = plt.subplots(figsize=figsize)
-            ax.text(0.5, 0.5, "No trials available", ha='center', va='center')
-            return fig
-        
-        # Prepare data
-        X, y, param_names = self._prepare_data(trials, target_metric)
-        
-        if len(param_names) == 0:
-            logger.warning("No parameters to plot")
-            fig, ax = plt.subplots(figsize=figsize)
-            ax.text(0.5, 0.5, "No parameters available", ha='center', va='center')
-            return fig
-        
-        # Create subplots
-        n_params = len(param_names)
-        n_cols = min(3, n_params)
-        n_rows = (n_params + n_cols - 1) // n_cols
-        
-        fig, axes = plt.subplots(n_rows, n_cols, figsize=figsize)
-        if n_rows == 1 and n_cols == 1:
-            axes = np.array([[axes]])
-        elif n_rows == 1 or n_cols == 1:
-            axes = axes.reshape(n_rows, n_cols)
-        
-        for idx, param in enumerate(param_names):
-            row = idx // n_cols
-            col = idx % n_cols
-            ax = axes[row, col]
-            
-            # Get parameter values
-            param_values = X[:, idx]
-            
-            # Create scatter plot with smoothing
-            ax.scatter(param_values, y, alpha=0.5)
-            
-            # Add smoothing curve
-            try:
-                from scipy.interpolate import make_interp_spline
-                if len(np.unique(param_values)) > 3:
-                    x_sorted = np.sort(param_values)
-                    indices = np.argsort(param_values)
-                    y_sorted = y[indices]
-                    
-                    # Use moving average for smoothing
-                    window = max(3, len(x_sorted) // 10)
-                    y_smooth = np.convolve(y_sorted, np.ones(window)/window, mode='valid')
-                    x_smooth = x_sorted[window//2:-(window//2)+1] if window > 1 else x_sorted
-                    
-                    ax.plot(x_smooth, y_smooth, 'r-', linewidth=2, alpha=0.7)
-            except Exception:
-                pass
-            
-            ax.set_xlabel(param)
-            ax.set_ylabel(target_metric)
-            ax.set_title(f'{param} effect')
-            ax.grid(True, alpha=0.3)
-        
-        # Hide empty subplots
-        for idx in range(n_params, n_rows * n_cols):
-            row = idx // n_cols
-            col = idx % n_cols
-            axes[row, col].set_visible(False)
-        
-        plt.suptitle('Marginal Effects of Parameters', fontsize=14, y=1.00)
         plt.tight_layout()
         return fig

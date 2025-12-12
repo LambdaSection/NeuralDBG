@@ -1,5 +1,5 @@
 import shutil
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from neural.shape_propagation.shape_propagator import ShapePropagator
 

@@ -4,8 +4,9 @@ Advanced search strategies for hyperparameter optimization.
 from __future__ import annotations
 
 import logging
+from typing import Any, Callable, Dict, List, Optional, Union
+
 import numpy as np
-from typing import Dict, Any, List, Optional, Union, Callable
 
 # Configure logger
 logger = logging.getLogger(__name__)

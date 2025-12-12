@@ -1,45 +1,34 @@
-from __future__ import annotations
+import json
+import logging
+import re
+import traceback
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
 import lark
+import plotly.graph_objects as go
+from lark import Token, Transformer, Tree
+from lark.exceptions import UnexpectedCharacters, UnexpectedToken, VisitError
+
+from .error_handling import ErrorHandler, NeuralParserError, ParserError
+from .learning_rate_schedules import ExponentialDecaySchedule
+from .validation import (
+    ValidationError,
+    validate_numeric,
+    validate_probability,
+    validate_shape,
+    validate_units,
+)
+
+
 # Optional debugging dependency
 try:
     import pysnooper
+
     _HAS_PYSNOOPER = True
 except ImportError:
     pysnooper = None
     _HAS_PYSNOOPER = False
-import traceback
-from lark import Tree, Transformer, Token
-from lark.exceptions import UnexpectedToken, UnexpectedCharacters, VisitError
-from typing import Any, Dict, List, Tuple, Union, Optional, Callable, cast
-import json
-import plotly.graph_objects as go
-import logging
-from enum import Enum
-import re
-
-from .error_handling import ErrorHandler, NeuralParserError, ParserError
-from .validation import (
-    validate_units,
-    validate_shape,
-    validate_probability,
-    validate_numeric,
-    ValidationError
-)
-from .learning_rate_schedules import ExponentialDecaySchedule
-
-# Import refactored modules
-from . import layer_processors as lp
-from . import layer_handlers as lh
-from . import hpo_utils
-from . import hpo_network_processor as hnp
-from . import network_processors as np_proc
-from . import value_extractors as ve
-from .parser_utils import (
-    log_by_severity, DSLValidationError, custom_error_handler, 
-    safe_parse, split_params
-)
-from .hpo_utils import Severity
 
 
 logger = logging.getLogger('neural.parser')
@@ -47,6 +36,96 @@ logging.basicConfig(
     level=logging.DEBUG,  # Capture all levels
     format='%(levelname)s: %(message)s'  # Include severity in output
 )
+
+def log_by_severity(severity, message):
+    """Log a message based on its severity level."""
+    if severity == Severity.DEBUG:
+        logger.debug(message)
+    elif severity == Severity.INFO:
+        logger.info(message)
+    elif severity == Severity.WARNING:
+        logger.warning(message)
+    elif severity == Severity.ERROR:
+        logger.error(message)
+    elif severity == Severity.CRITICAL:
+        logger.critical(message)
+
+class Severity(Enum):
+    DEBUG = 1    # For development info, not user-facing
+    INFO = 2     # Informational, no action needed
+    WARNING = 3  # Recoverable issue, parsing can continue
+    ERROR = 4    # Non-recoverable, parsing stops
+    CRITICAL = 5 # Fatal, immediate halt required
+
+
+# Custom exception for DSL validation errors
+class DSLValidationError(Exception):
+    """Exception raised for validation errors in DSL parsing.
+
+    This exception is used to report syntax, semantic, or other validation errors
+    encountered during DSL (Domain Specific Language) parsing operations.
+
+    Attributes:
+        severity (Severity): The severity level of the validation error
+        line (int, optional): The line number where the error occurred
+        column (int, optional): The column number where the error occurred
+        message (str): The raw error message
+
+    Args:
+        message (str): The error description message
+        severity (Severity, optional): The severity level. Defaults to Severity.ERROR
+        line (int, optional): The line number of the error. Defaults to None
+        column (int, optional): The column number of the error. Defaults to None
+
+    Example:
+        >>> raise DSLValidationError("Invalid syntax", line=10, column=5)
+        ERROR at line 10, column 5: Invalid syntax
+    """
+    def __init__(self, message, severity=Severity.ERROR, line=None, column=None):
+        self.severity = severity
+        self.line = line
+        self.column = column
+        if line and column:
+            super().__init__(f"{severity.name} at line {line}, column {column}: {message}")
+        else:
+            super().__init__(f"{severity.name}: {message}")
+        self.message = message  # Store raw message for logging
+
+# Custom error handler for Lark parsing
+def custom_error_handler(error):
+    if isinstance(error, KeyError):
+        msg = "Unexpected end of input (KeyError). The parser did not expect '$END'."
+        severity = Severity.ERROR
+        # KeyError doesn't have line/column attributes
+        line = column = None
+    elif isinstance(error, lark.UnexpectedCharacters):
+        msg = f"Syntax error at line {error.line}, column {error.column}: Unexpected character '{error.char}'.\n" \
+              f"Expected one of: {', '.join(sorted(error.allowed))}"
+        severity = Severity.ERROR
+        line, column = error.line, error.column
+    elif isinstance(error, lark.UnexpectedToken):
+        # Check for end-of-input scenarios more robustly
+        if str(error.token) in ['', '$END'] or 'RBRACE' in error.expected:
+            msg = "Unexpected end of input - Check for missing closing braces"
+            severity = Severity.ERROR
+            log_by_severity(severity, msg)
+            raise DSLValidationError(msg, severity, error.line, error.column)
+        else:
+            msg = f"Syntax error at line {error.line}, column {error.column}: Unexpected token '{error.token}'.\n" \
+                  f"Expected one of: {', '.join(sorted(error.expected))}"
+            severity = Severity.ERROR
+        line, column = error.line, error.column
+    else:
+        msg = str(error)
+        severity = Severity.ERROR
+        # Default to None for line/column if not available
+        line = getattr(error, 'line', None)
+        column = getattr(error, 'column', None)
+
+    log_by_severity(severity, msg)
+    if severity.value >= Severity.ERROR.value:
+        raise DSLValidationError(msg, severity, line, column)
+    return {"warning": msg, "line": line, "column": column}
 
 def create_parser(start_rule: str = 'network') -> lark.Lark:
     """
@@ -461,13 +540,10 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         grammar,
         start=start_rule,
         parser='lalr',
-        lexer='basic',
-        debug=False,
+        lexer='contextual',
+        debug=True,
         cache=True,
         propagate_positions=True,
-        maybe_placeholders=False,
-        regex=True,
-        g_regex_flags=0,
     )
     # Provide a minimal grammar shim for tests that introspect parser.rules
     try:
@@ -489,10 +565,88 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         pass
     return p
 
-# Create parser instances
+def safe_parse(parser, text):
+    """
+    Safely parse text using the provided parser, handling common parsing errors.
+
+    This function attempts to parse the input text and catches any parsing exceptions,
+    converting them to more user-friendly error messages with line and column information.
+
+    Args:
+        parser (lark.Lark): The Lark parser to use for parsing.
+        text (str): The input text to parse.
+
+    Returns:
+        dict: A dictionary containing:
+            - result: The parsed tree if successful, None otherwise.
+            - warnings: A list of warning messages.
+
+    Raises:
+        DSLValidationError: If there are syntax errors or other parsing issues.
+
+    Example:
+        >>> parser = create_parser('network')
+        >>> try:
+        ...     parse_result = safe_parse(parser, 'network MyModel { input: (28, 28, 1) }')
+        ...     tree = parse_result["result"]
+        ... except DSLValidationError as e:
+        ...     print(f"Error: {e}")
+    """
+    warnings = []
+
+    # Tokenize the input and log the stream
+    logger.debug("Token stream:")
+    # Use the parser's lex method instead of trying to access lexer directly
+    tokens = list(parser.lex(text))
+    for token in tokens:
+        logger.debug(f"Token: {token.type}('{token.value}') at line {token.line}, column {token.column}")
+
+    try:
+        tree = parser.parse(text)
+        logger.debug("Parse successful, tree generated.")
+        return {"result": tree, "warnings": warnings}
+    except (lark.UnexpectedCharacters, lark.UnexpectedToken) as e:
+        # Use enhanced error handler for better error messages
+        if isinstance(e, lark.UnexpectedToken):
+            parser_error = ErrorHandler.handle_unexpected_token(e, text)
+        else:
+            parser_error = ErrorHandler.handle_unexpected_char(e, text)
+        
+        # Format and log the enhanced error
+        formatted_error = ErrorHandler.format_error(parser_error)
+        log_by_severity(Severity.ERROR, formatted_error)
+        
+        # Raise with enhanced message
+        raise DSLValidationError(parser_error.message, Severity.ERROR, parser_error.line, parser_error.column)
+        # This line will never be reached because custom_error_handler raises an exception
+        return {"result": None, "warnings": warnings}
+    except DSLValidationError as e:
+        raise
+    except Exception as e:
+        log_by_severity(Severity.ERROR, f"Unexpected error while parsing: {str(e)}")
+        raise DSLValidationError(f"Parser error: {str(e)}", Severity.ERROR)
+
 network_parser = create_parser('network')
 layer_parser = create_parser('layer')
 research_parser = create_parser('research')
+
+def split_params(s):
+    parts = []
+    current = []
+    depth = 0
+    for c in s:
+        if c == '(':
+            depth += 1
+        elif c == ')':
+            depth -= 1
+        if c == ',' and depth == 0:
+            parts.append(''.join(current).strip())
+            current = []
+        else:
+            current.append(c)
+    if current:
+        parts.append(''.join(current).strip())
+    return parts
 
 class NeuralParser:
     """
@@ -502,12 +656,12 @@ class NeuralParser:
     for parsing different types of Neural DSL constructs.
     """
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialize the Neural parser with the main network parser."""
-        self.parser: lark.Lark = network_parser
-        self.transformer: ModelTransformer = ModelTransformer()
+        self.parser = network_parser
+        self.transformer = ModelTransformer()
 
-    def parse(self, code: str) -> Dict[str, Any]:
+    def parse(self, code: str):
         """
         Parse a Neural DSL network definition.
 
@@ -581,8 +735,6 @@ class ModelTransformer(lark.Transformer):
             'RESIDUALCONNECTION': 'residual',
             'GLOBALAVERAGEPOOLING2D': 'global_average_pooling2d',
             'GLOBALAVERAGEPOOLING1D': 'global_average_pooling1d',
-            'INCEPTION': 'inception',
-            'SQUEEZEEXCITATION': 'squeeze_excitation',
         }
         self.hpo_params = []
 
@@ -861,7 +1013,6 @@ class ModelTransformer(lark.Transformer):
                 # Ensure 'sublayers' is present, but do not clobber existing values
                 if 'sublayers' not in layer_info:
                     layer_info['sublayers'] = sublayers or []
-
                 elif sublayers:
                     # If parsed sublayers exist for this layer instance, prefer them
                     layer_info['sublayers'] = sublayers
@@ -887,6 +1038,7 @@ class ModelTransformer(lark.Transformer):
         else:
             self.raise_validation_error(f"Unsupported layer type: {layer_type}", layer_type_node)
             return {'type': layer_type, 'params': raw_params, 'sublayers': sublayers}
+
 
     def branch_spec(self, items):
         # NAME ':' '{' (layer_or_repeated)* '}'
@@ -1186,7 +1338,7 @@ class ModelTransformer(lark.Transformer):
                 else:
                     valid_activations = {
                         'relu', 'sigmoid', 'tanh', 'softmax', 'softplus',
-                        'softsign', 'selselu', 'elu', 'exponential', 'linear'
+                        'softsign', 'selu', 'elu', 'exponential', 'linear'
                     }
                     if activation.lower() not in valid_activations:
                         self.raise_validation_error(
@@ -2427,42 +2579,6 @@ class ModelTransformer(lark.Transformer):
         """
         return {"type": "LSTMDropoutWrapper", 'params': self._extract_value(items[0])}
 
-    def gru(self, items):
-        # Support both alias rule call (items[0] is Token) and basic_layer call
-        items = self._shift_if_token(items)
-        params = {}
-        if items and items[0] is not None:
-            param_node = items[0]  # From param_style1
-            param_values = self._extract_value(param_node)
-            if isinstance(param_values, list):
-                for val in param_values:
-                    if isinstance(val, dict):
-                        params.update(val)
-                    else:
-                        # Handle positional units parameter if present
-                        if 'units' not in params:
-                            params['units'] = val
-            elif isinstance(param_values, dict):
-                params = param_values
-            else:
-                # Single positional parameter, e.g., GRU(64)
-                params['units'] = param_values
-
-        if 'units' not in params:
-            self.raise_validation_error("GRU requires 'units' parameter", items[0])
-
-        units = params['units']
-        if isinstance(units, dict) and 'hpo' in units:
-            pass
-        else:
-            if not isinstance(units, (int, float)) or (isinstance(units, float) and not units.is_integer()):
-                self.raise_validation_error(f"GRU units must be an integer, got {units}", items[0])
-            if units <= 0:
-                self.raise_validation_error(f"GRU units must be positive, got {units}", items[0])
-            params['units'] = int(units)
-
-        return {'type': 'GRU', 'params': params, 'sublayers': []}
-
     def research(self, items):
         """
         Process a Research block.
@@ -2829,16 +2945,80 @@ class ModelTransformer(lark.Transformer):
         Extract a Python value from a parse tree node.
 
         This method recursively processes parse tree nodes and converts them into
-        appropriate Python data structures. Delegates to value_extractors module
-        for better separation of concerns.
+        appropriate Python data structures (strings, numbers, lists, dictionaries, etc.).
+        It handles various node types including tokens, trees, and nested structures.
 
         Args:
             item: A parse tree node (Token, Tree, list, dict, or primitive value).
 
         Returns:
             The extracted Python value corresponding to the parse tree node.
+            - For tokens, returns the token value.
+            - For trees, processes according to the tree data type.
+            - For lists, processes each element recursively.
+            - For dictionaries, processes each value recursively.
+            - For other types, returns the value as is.
         """
-        return ve.extract_value_recursive(item, self._extract_value)
+        if isinstance(item, Token):
+            if item.type == 'NAME':
+                return item.value
+            if item.type in ('INT', 'FLOAT', 'NUMBER', 'SIGNED_NUMBER'):
+                try:
+                    return int(item.value)
+                except ValueError:
+                    return float(item.value)
+            elif item.type == 'BOOL':
+                return item.value.lower() == 'true'
+            elif item.type == 'STRING':
+                return item.value.strip('"')
+            elif item.type == 'WS_INLINE':
+                return item.value.strip()
+        elif isinstance(item, Tree) and item.data == 'number_or_none':
+            child = item.children[0]
+            if isinstance(child, Token) and child.value.upper() in ('NONE', 'None'):
+                return None
+            else:
+                return self._extract_value(child)
+        elif isinstance(item, Tree):
+            if item.data == 'string_value':
+                return self._extract_value(item.children[0])
+            elif item.data == 'number':
+                return self._extract_value(item.children[0])
+            elif item.data == 'bool_value':
+                return self._extract_value(item.children[0])
+            elif item.data == 'params':
+                return [self._extract_value(child) for child in item.children]
+            elif item.data in ('tuple_', 'explicit_tuple'):
+                return tuple(self._extract_value(child) for child in item.children)
+            else:
+                extracted = [self._extract_value(child) for child in item.children]
+                if any(isinstance(e, dict) for e in extracted):
+                    return extracted
+                if len(item.children) % 2 == 0:
+                    try:
+                        # Check if all keys are strings to form a valid dictionary
+                        valid = True
+                        pairs = []
+                        for k_node, v_node in zip(item.children[::2], item.children[1::2]):
+                            key = self._extract_value(k_node)
+                            if not isinstance(key, str):
+                                valid = False
+                                break
+                            value = self._extract_value(v_node)
+                            pairs.append((key, value))
+                        if valid:
+                            return dict(pairs)
+                        else:
+                            return extracted
+                    except TypeError:
+                        return extracted
+                else:
+                    return extracted
+        elif isinstance(item, list):
+            return [self._extract_value(elem) for elem in item]
+        elif isinstance(item, dict):
+            return {k: self._extract_value(v) for k, v in item.items()}
+        return item
 
     ## Named Parameters ##
 
@@ -2946,7 +3126,7 @@ class ModelTransformer(lark.Transformer):
         return {"input_dim": self._extract_value(items[0])}
 
     def named_output_dim(self, items):
-        return {"output_dim": self._extract_value(items[1])}
+        return {"output_dim": self._extract_value(items[0])}
 
     def groups_param(self, items):
         return {'groups': self._extract_value(items[0])}
@@ -3013,7 +3193,7 @@ class ModelTransformer(lark.Transformer):
         # Support both forms:
         # ResidualConnection(params) { ... } and ResidualConnection { ... }
         if not items:
-            return {'type': 'ResidualConnection', 'params': {}, 'sublayers': []}
+            return {'type': 'ResidualConnection', 'params': None, 'sublayers': []}
 
         first_val = self._extract_value(items[0])
         params = {}
@@ -3034,8 +3214,8 @@ class ModelTransformer(lark.Transformer):
             if len(items) > 1:
                 sub_layers = self._extract_value(items[1])
 
-        # Normalize empty params to {} for consistency with tests
-        final_params = params if params else {}
+        # Normalize empty params to None for consistency with tests
+        final_params = params if params else None
         return {'type': 'ResidualConnection', 'params': final_params, 'sublayers': sub_layers}
 
     def inception(self, items):
@@ -3091,7 +3271,7 @@ class ModelTransformer(lark.Transformer):
 
     def squeeze_excitation(self, items):
         params = self._extract_value(items[0]) if items else {}
-        return {'type': 'SqueezeExcitation', 'params': params if params else {}, 'sublayers': []}
+        return {'type': 'SqueezeExcitation', 'params': params, 'sublayers': []}
 
     def quantum(self, items):
         params = self._extract_value(items[0]) if items else None

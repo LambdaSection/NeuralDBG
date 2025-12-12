@@ -4,8 +4,8 @@ Trace all imports made when importing neural.cli.
 This helps identify which modules are being imported and in what order.
 """
 
-import sys
 import os
+import sys
 from types import ModuleType
 
 # Original import function

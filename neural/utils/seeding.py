@@ -2,10 +2,11 @@
 Utilities for deterministic seeding across frameworks and random number generators.
 """
 
-import random
-import numpy as np
 import os
+import random
 from typing import Optional
+
+import numpy as np
 
 def set_global_seed(seed: Optional[int] = None) -> int:
     """

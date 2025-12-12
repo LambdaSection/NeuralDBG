@@ -1,15 +1,14 @@
-from __future__ import annotations
+import time
 
 import networkx as nx
-import plotly.graph_objects as go
-from networkx.drawing.nx_agraph import graphviz_layout
-import time
-from tqdm import tqdm
 import numpy as np
-from dash import html
 import plotly.express as px
+import plotly.graph_objects as go
+from dash import html
+from networkx.drawing.nx_agraph import graphviz_layout
+from tqdm import tqdm
 
-def create_animated_network(layer_data: list, show_progress: bool = True) -> go.Figure:
+def create_animated_network(layer_data, show_progress=True):
     """Create an animated network visualization with detailed progress tracking.
 
     Args:
@@ -181,7 +180,7 @@ def _update_progress(progress_data):
     # You could also emit this via websockets for dashboard updates
     # This would be implemented if using with Dash/Flask
 
-def create_progress_component() -> html.Div:
+def create_progress_component():
     """Create a Dash component for displaying progress."""
     return html.Div([
         html.H4("Visualization Progress"),

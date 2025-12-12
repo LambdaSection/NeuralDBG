@@ -18,22 +18,24 @@ CloudExecutor
     Main class for cloud execution management
 """
 
-import os
-import sys
-import subprocess
 import importlib
-import tempfile
+import os
 import shutil
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
-from typing import Dict, Any, Optional, Union, List
+from typing import Any, Dict, List, Optional, Union
+
 
 # Try to import Neural modules
 try:
-    from neural.parser.parser import ModelTransformer, create_parser
+    from neural.cli.cli_aesthetics import print_error, print_info, print_success, print_warning
     from neural.code_generation.code_generator import generate_code
+    from neural.parser.parser import ModelTransformer, create_parser
     from neural.shape_propagation.shape_propagator import ShapePropagator
-    from neural.cli.cli_aesthetics import print_info, print_success, print_error, print_warning
     from neural.visualization.visualizer import visualize_model
+
     NEURAL_IMPORTED = True
 except ImportError:
     NEURAL_IMPORTED = False

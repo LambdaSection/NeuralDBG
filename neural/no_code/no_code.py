@@ -1,17 +1,31 @@
-from dash import Dash, dcc, html, Input, Output, State, dash_table, callback_context
-import dash
-from dash_bootstrap_components import themes, Navbar, NavItem, NavLink, Container, Row, Col, Card, Button, Spinner, Tooltip
-import dash_bootstrap_components as dbc
 import json
-import numpy as np
-import plotly.graph_objects as go
-import plotly.express as px
 import os
-import uuid
 import time
-from neural.parser.parser import create_parser, ModelTransformer
-from neural.shape_propagation.shape_propagator import ShapePropagator
+import uuid
+
+import dash
+import dash_bootstrap_components as dbc
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+from dash import Dash, Input, Output, State, callback_context, dash_table, dcc, html
+from dash_bootstrap_components import (
+    Button,
+    Card,
+    Col,
+    Container,
+    NavItem,
+    NavLink,
+    Navbar,
+    Row,
+    Spinner,
+    Tooltip,
+    themes,
+)
+
 from neural.code_generation.code_generator import generate_code
+from neural.parser.parser import ModelTransformer, create_parser
+from neural.shape_propagation.shape_propagator import ShapePropagator
 from neural.visualization.static_visualizer.visualizer import NeuralVisualizer
 
 # ASCII Art for welcome message
