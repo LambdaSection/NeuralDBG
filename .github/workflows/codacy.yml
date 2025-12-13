@@ -15,11 +15,12 @@ name: Codacy Security Scan
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master", "develop" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master", "develop" ]
+  workflow_dispatch:
   schedule:
-    - cron: '15 9 * * 3'
+    - cron: '15 9 * * *'  # Run daily at 09:15
 
 permissions:
   contents: read
