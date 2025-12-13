@@ -272,3 +272,12 @@ neural/aquarium/.vite/
 neural/aquarium/package-lock.json
 neural/aquarium/yarn.lock
 neural/aquarium/pnpm-lock.yaml
+neural/aquarium/.env
+neural/aquarium/.env.local
+neural/aquarium/.env.development.local
+neural/aquarium/.env.test.local
+neural/aquarium/.env.production.local
+neural/aquarium/npm-debug.log*
+neural/aquarium/yarn-debug.log*
+neural/aquarium/yarn-error.log*
+neural/aquarium/coverage/

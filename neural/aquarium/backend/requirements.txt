@@ -1,6 +1,2 @@
-# Backend Bridge Requirements
-fastapi>=0.68
-uvicorn[standard]>=0.15
-pydantic>=1.8
-python-multipart>=0.0.5
-websockets>=10.0
+flask>=2.3.0
+flask-cors>=4.0.0

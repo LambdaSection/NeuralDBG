@@ -1,0 +1,108 @@
+.ai-assistant-sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 450px;
+  background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  border-left: 2px solid #3a3a5a;
+}
+
+.ai-assistant-sidebar.closed {
+  transform: translateX(100%);
+}
+
+.sidebar-header {
+  background: linear-gradient(90deg, #4a4af5 0%, #6b6bf5 100%);
+  color: white;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.toggle-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.toggle-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 64px);
+  overflow: hidden;
+}
+
+.chat-section {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 2px solid #3a3a5a;
+}
+
+.dsl-section {
+  flex: 0 0 auto;
+  max-height: 40%;
+  overflow: hidden;
+  border-bottom: 2px solid #3a3a5a;
+}
+
+.sidebar-actions {
+  padding: 15px 20px;
+  background: #1a1a2e;
+  border-top: 1px solid #3a3a5a;
+}
+
+.reset-button {
+  width: 100%;
+  padding: 12px;
+  background: #ff4757;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reset-button:hover {
+  background: #ff3838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+}
+
+.reset-button:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .ai-assistant-sidebar {
+    width: 100%;
+  }
+}

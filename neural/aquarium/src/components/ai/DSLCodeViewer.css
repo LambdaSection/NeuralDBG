@@ -1,0 +1,179 @@
+.dsl-code-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1e1e2e;
+}
+
+.viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #2a2a3e;
+  border-bottom: 2px solid #3a3a5a;
+}
+
+.viewer-header h3 {
+  margin: 0;
+  color: #e0e0f0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.viewer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+}
+
+.action-button:active {
+  transform: translateY(0);
+}
+
+.edit-button {
+  background: #ffa502;
+  color: white;
+}
+
+.edit-button:hover {
+  background: #ff8c00;
+  box-shadow: 0 4px 12px rgba(255, 165, 2, 0.3);
+}
+
+.copy-button {
+  background: #3742fa;
+  color: white;
+}
+
+.copy-button:hover {
+  background: #2832e0;
+  box-shadow: 0 4px 12px rgba(55, 66, 250, 0.3);
+}
+
+.download-button {
+  background: #1dd1a1;
+  color: white;
+}
+
+.download-button:hover {
+  background: #10ac84;
+  box-shadow: 0 4px 12px rgba(29, 209, 161, 0.3);
+}
+
+.apply-button {
+  background: #5f27cd;
+  color: white;
+}
+
+.apply-button:hover {
+  background: #4a1da8;
+  box-shadow: 0 4px 12px rgba(95, 39, 205, 0.3);
+}
+
+.save-button {
+  background: #26de81;
+  color: white;
+}
+
+.save-button:hover {
+  background: #20bf6b;
+  box-shadow: 0 4px 12px rgba(38, 222, 129, 0.3);
+}
+
+.cancel-button {
+  background: #ff4757;
+  color: white;
+}
+
+.cancel-button:hover {
+  background: #ff3838;
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+}
+
+.code-container {
+  flex: 1;
+  overflow: auto;
+  padding: 15px 20px;
+  background: #1a1a2e;
+}
+
+.code-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.code-container::-webkit-scrollbar-track {
+  background: #1e1e2e;
+}
+
+.code-container::-webkit-scrollbar-thumb {
+  background: #4a4af5;
+  border-radius: 4px;
+}
+
+.code-container::-webkit-scrollbar-thumb:hover {
+  background: #6b6bf5;
+}
+
+.code-display {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #e0e0f0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.code-display code {
+  display: block;
+}
+
+.code-editor {
+  width: 100%;
+  min-height: 200px;
+  padding: 12px;
+  background: #2a2a3e;
+  color: #e0e0f0;
+  border: 2px solid #3a3a5a;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+}
+
+.code-editor:focus {
+  border-color: #4a4af5;
+}
+
+.viewer-footer {
+  padding: 10px 20px;
+  background: #2a2a3e;
+  border-top: 1px solid #3a3a5a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.code-stats {
+  font-size: 11px;
+  color: #a0a0c0;
+  font-weight: 500;
+}

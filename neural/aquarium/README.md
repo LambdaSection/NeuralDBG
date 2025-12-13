@@ -1,318 +1,208 @@
-# Neural Aquarium
+# Neural Aquarium - AI Assistant Sidebar
 
-A comprehensive suite for Neural DSL, providing both a visual network designer and real-time shape propagation visualization, plus a backend API bridge for DSL parsing, code generation, and training job management.
+AI-powered web interface for building Neural DSL models through natural language conversation.
 
 ## Features
 
-### Visual Network Designer
+- **Natural Language Interface**: Describe neural networks in plain language
+- **Real-time DSL Generation**: Instantly generate Neural DSL code from descriptions
+- **Multi-Language Support**: Interact with the AI in 12+ languages
+- **Code Review & Editing**: Review and manually edit generated DSL code
+- **Conversational Refinement**: Iteratively improve models through chat
+- **Apply to Workspace**: Apply generated models to your workspace
 
-A modern, interactive visual network designer with drag-and-drop layer palette, real-time connection validation, and bi-directional sync with DSL code.
+## Architecture
 
-#### 🎨 Drag-and-Drop Layer Palette
-- Layers organized by category (Convolutional, Pooling, Core, Recurrent, Attention, etc.)
-- Search functionality to quickly find layers
-- Color-coded layers by category
-- Visual icons for each layer type
+### Frontend (React + TypeScript)
+- `src/components/ai/` - AI assistant components
+  - `AIAssistantSidebar.tsx` - Main sidebar container
+  - `ChatInterface.tsx` - Chat UI with message history
+  - `MessageBubble.tsx` - Individual message rendering
+  - `DSLCodeViewer.tsx` - DSL code display and editing
+  - `LanguageSelector.tsx` - Language selection dropdown
 
-#### 🖼️ Interactive Canvas
-- React Flow-based visual editor
-- Drag layers from palette onto canvas
-- Connect layers by dragging between handles
-- Pan and zoom controls
-- Mini-map for navigation
-- Auto-layout feature
+### Backend (Python + Flask)
+- `backend/api.py` - REST API server
+- Integrates with:
+  - `neural/ai/ai_assistant.py` - AI assistant core logic
+  - `neural/ai/natural_language_processor.py` - NLP and DSL generation
+  - `neural/ai/multi_language.py` - Multi-language translation
 
-#### 📊 Layer Node Components
-- Display layer type and category
-- Show layer parameters (up to 3 visible, expandable)
-- Real-time output shape propagation
-- Color-coded borders by category
-- Hover effects and selection states
+## Setup
 
-#### ✅ Connection Validation
-- Prevents incompatible layer connections
-- Cycle detection
-- Shape compatibility checking
-- Visual feedback on invalid connections
-- Prevents duplicate connections
-
-#### 🔄 Bi-directional DSL Sync
-- Real-time DSL code generation from visual design
-- Parse DSL code to visual representation
-- Monaco editor for code editing
-- Instant synchronization between views
-
-#### ⚙️ Properties Panel
-- Edit selected layer parameters
-- Specialized inputs for different parameter types
-- Category and output shape display
-- Layer description and documentation
-
-### Real-Time Shape Propagation Panel
-
-Live visualization showing layer-by-layer tensor shape changes, integrating with `neural/shape_propagation/shape_propagator.py`.
-
-#### Key Features
-
-- **Real-time Updates**: Live shape propagation with configurable auto-refresh (100-5000ms)
-- **Interactive D3.js Visualization**: Click and explore shape flow diagrams with smooth animations
-- **Plotly Charts**: Alternative visualization using Plotly for memory, parameters, and tensor size evolution
-- **Error Highlighting**: Automatic detection and highlighting of shape mismatches (red nodes, dashed lines)
-- **Detailed Tooltips**: Hover over layers to see:
-  - Input/Output shapes
-  - Parameters count
-  - FLOPs
-  - Memory usage
-- **Layer Details Panel**: Click any layer to see comprehensive transformation details
-- **Error Messages**: Clear error messages with expected vs actual shapes
-- **Table View**: Tabular representation of all layers with sortable columns
-
-### Backend API Bridge
-
-The Aquarium backend bridge exposes the core Neural DSL functionality through a modern REST API with WebSocket support, enabling:
-
-- **DSL Parsing**: Convert Neural DSL code to structured model data
-- **Shape Analysis**: Propagate and validate tensor shapes through models
-- **Code Generation**: Generate TensorFlow, PyTorch, or ONNX code
-- **Training Management**: Run and monitor training jobs in isolated processes
-- **Real-time Updates**: WebSocket support for live job monitoring
-
-## Installation
-
-### Frontend Setup
+### Frontend
 
 ```bash
 cd neural/aquarium
 npm install
+npm start
 ```
 
-### Backend Setup
+The React app will run on `http://localhost:3000`
 
-Install with API dependencies:
+### Backend
 
 ```bash
-pip install -e ".[api]"
+cd neural/aquarium/backend
+pip install -r requirements.txt
+python api.py
 ```
 
-Or ensure you have the required packages:
+The Flask API will run on `http://localhost:5000`
 
+### Full Stack Development
+
+Terminal 1 (Backend):
 ```bash
-pip install flask flask-cors
+cd neural/aquarium/backend
+python api.py
 ```
 
-## Running
-
-### Start Backend API
-
-```bash
-cd neural/aquarium
-python api/shape_api.py
-```
-
-The API runs on `http://localhost:5002`
-
-### Start Frontend (Development)
-
+Terminal 2 (Frontend):
 ```bash
 cd neural/aquarium
-npm run dev
-```
-
-Opens on `http://localhost:3000`
-
-### Build for Production
-
-```bash
-npm run build
+npm start
 ```
 
 ## Usage
 
-### Network Designer
+1. **Start a Conversation**: Click on the AI Assistant sidebar (right side)
+2. **Describe Your Model**: e.g., "Create a CNN for MNIST with 10 classes"
+3. **Review Generated DSL**: The DSL code appears in the code viewer
+4. **Refine Your Model**: Add layers or modify settings through chat
+5. **Edit Code**: Click "Edit" to manually adjust the DSL
+6. **Apply Model**: Click "Apply" to use the model in your workspace
 
-1. **Add Layers**: Drag layers from the left palette onto the canvas, or click to add at random position
-2. **Connect Layers**: Drag from a layer's bottom handle to another layer's top handle
-3. **Edit Properties**: Click a layer to select it and edit parameters in the right panel
-4. **View Code**: Click "Show Code" to see the generated Neural DSL code
-5. **Edit Code**: Make changes in the code editor and see them reflected in the visual design
-6. **Auto Layout**: Click "Auto Layout" to organize layers vertically
-7. **Clear Canvas**: Click "Clear" to start fresh
+## Example Prompts
 
-### Shape Propagation Panel
+- "Create a CNN for image classification with 10 classes"
+- "Add a dense layer with 128 units"
+- "Add dropout with rate 0.5"
+- "Set optimizer to Adam with learning rate 0.001"
+- "Add a convolutional layer with 64 filters and 3x3 kernel"
+- "Add max pooling with pool size 2"
 
-#### Automatic Mode
+## Multi-Language Support
 
-The panel automatically fetches shape propagation data at regular intervals (default: 1000ms).
+The assistant supports these languages:
+- English (en)
+- French (fr)
+- Spanish (es)
+- German (de)
+- Italian (it)
+- Portuguese (pt)
+- Russian (ru)
+- Chinese Simplified (zh-cn)
+- Japanese (ja)
+- Korean (ko)
+- Arabic (ar)
+- Hindi (hi)
 
-#### Manual Mode
+Select your language from the dropdown at the top of the sidebar.
 
-1. Uncheck "Auto-refresh" to stop automatic updates
-2. Click "Refresh Now" to fetch data on demand
+## API Endpoints
 
-#### Interacting with Visualization
+### POST /api/ai/chat
+Send a message to the AI assistant.
 
-**D3.js View:**
-- Hover over nodes to see detailed tooltips
-- Click nodes to see full layer details in the side panel
-- Red nodes indicate errors
-- Dashed red lines show shape mismatches between layers
-
-**Plotly View:**
-- Use built-in Plotly controls to zoom, pan, and export
-- Hover over data points for detailed information
-- Three synchronized charts show different aspects of shape propagation
-
-#### API Usage
-
-**Propagate a Model:**
-
-```bash
-curl -X POST http://localhost:5002/api/shape-propagation/propagate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "input_shape": [null, 28, 28, 1],
-    "framework": "tensorflow",
-    "layers": [
-      {
-        "type": "Conv2D",
-        "params": {
-          "filters": 32,
-          "kernel_size": [3, 3],
-          "padding": "same"
-        }
-      },
-      {
-        "type": "MaxPooling2D",
-        "params": {
-          "pool_size": [2, 2]
-        }
-      }
-    ]
-  }'
+**Request:**
+```json
+{
+  "user_input": "Create a CNN for MNIST",
+  "context": {
+    "current_model": "...",
+    "conversation_history": [...]
+  },
+  "language": "en"
+}
 ```
 
-**Get Shape History:**
-
-```bash
-curl http://localhost:5002/api/shape-propagation
+**Response:**
+```json
+{
+  "response": "I've created a CNN model...",
+  "dsl_code": "network MyModel { ... }",
+  "intent": "create_model",
+  "success": true,
+  "language": "en"
+}
 ```
 
-## Architecture
+### GET /api/ai/current-model
+Get the current model DSL.
 
-### Frontend Architecture
-```
-src/
-├── components/
-│   ├── designer/               # Visual network designer
-│   │   ├── NetworkDesigner.tsx
-│   │   ├── LayerNode.tsx
-│   │   ├── LayerPalette.tsx
-│   │   ├── PropertiesPanel.tsx
-│   │   └── CodeEditor.tsx
-│   └── shapes/                 # Shape propagation panel
-│       ├── ShapePropagationPanel.jsx
-│       ├── ShapePropagationPlotly.jsx
-│       └── index.js
-├── data/
-│   └── layerDefinitions.ts
-├── types/
-│   └── index.ts
-└── utils/
-    ├── dslParser.ts
-    ├── connectionValidator.ts
-    ├── shapeUtils.js
-    └── api.ts
-```
+### POST /api/ai/reset
+Reset the AI assistant state.
 
-### Backend Architecture
-```
-neural/aquarium/
-├── api/
-│   ├── __init__.py
-│   └── shape_api.py            # Flask REST API
-├── backend/
-│   ├── server.py              # FastAPI application
-│   ├── process_manager.py     # Training job management
-│   └── websocket_manager.py   # WebSocket connections
-└── examples/
-    └── example_usage.py
-```
+### POST /api/ai/translate
+Translate text between languages.
 
-## Technologies
+### POST /api/ai/detect-language
+Detect the language of input text.
+
+### GET /api/ai/supported-languages
+Get list of supported languages.
+
+## Technology Stack
 
 ### Frontend
-- **React 18** - UI framework
-- **TypeScript** - Type safety
-- **ReactFlow 11** - Visual graph editor
-- **Monaco Editor** - Code editor (VSCode engine)
-- **D3.js 7.8+** - SVG visualization
-- **Plotly.js 2.26+** - Interactive charts
-- **Vite** - Build tool
+- React 18
+- TypeScript
+- Axios (API client)
+- React Markdown (message rendering)
 
 ### Backend
-- **Flask** - REST API framework
-- **FastAPI** - Modern web framework
-- **flask-cors** - CORS support
-- **ShapePropagator** - Shape propagation engine
+- Flask 2.3+
+- Flask-CORS
+- Neural DSL AI modules
 
-## Layer Categories
+## Development
 
-- **Convolutional**: Conv1D, Conv2D, Conv3D, SeparableConv2D, etc.
-- **Pooling**: MaxPooling, AveragePooling, GlobalPooling variants
-- **Core**: Dense, Flatten, Reshape, Permute, Lambda
-- **Recurrent**: LSTM, GRU, SimpleRNN, Bidirectional
-- **Attention**: MultiHeadAttention, Attention
-- **Normalization**: BatchNormalization, LayerNormalization, GroupNormalization
-- **Regularization**: Dropout, SpatialDropout, GaussianNoise
-- **Activation**: ReLU, LeakyReLU, Softmax, Sigmoid, Tanh
-- **Embedding**: Embedding
-
-## API Reference
-
-See [backend/README.md](backend/README.md) for complete API documentation.
-
-## Testing
-
+### Running Tests
 ```bash
-# Frontend tests
 npm test
-
-# Backend tests
-python -m pytest tests/
 ```
 
-## Configuration
-
-Environment variables (prefix with `NEURAL_`):
-
-- `NEURAL_HOST`: Server host (default: 0.0.0.0)
-- `NEURAL_PORT`: Server port (default: 8000)
-- `NEURAL_LOG_LEVEL`: Logging level (default: INFO)
-- `NEURAL_API_KEY`: Optional API key for authentication
-
-## Docker Deployment
-
-Build and run with Docker:
-
+### Building for Production
 ```bash
-cd neural/aquarium/backend
-docker build -t neural-backend .
-docker run -p 8000:8000 neural-backend
+npm run build
 ```
 
-## Browser Support
+### Code Style
+- Frontend: Follows React/TypeScript best practices
+- Backend: Follows PEP 8, uses type hints
 
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
+## Integration with Neural DSL
 
-## Security
+The AI assistant integrates with existing Neural DSL modules:
+- `neural/ai/ai_assistant.py` - Main assistant logic
+- `neural/ai/natural_language_processor.py` - Intent extraction and DSL generation
+- `neural/ai/multi_language.py` - Language detection and translation
 
-- CORS enabled (configure for production)
-- Optional API key authentication
-- Process isolation for training jobs
-- Automatic resource cleanup
+Generated DSL code is compatible with the Neural DSL compiler and can be used with:
+- `neural compile model.neural --backend tensorflow`
+- `neural run model.neural --data dataset.yaml`
+- `neural visualize model.neural`
+
+## Troubleshooting
+
+### Backend not connecting
+- Ensure Flask server is running on port 5000
+- Check CORS settings if running on different ports
+
+### Translation not working
+- Install optional language dependencies:
+  ```bash
+  pip install langdetect googletrans==4.0.0rc1
+  # or
+  pip install deep-translator
+  ```
+
+### DSL code not generating
+- Check browser console for errors
+- Verify backend API is accessible
+- Check backend logs for Python errors
 
 ## License
 
-MIT License - see project root for details.
+Part of the Neural DSL project. See main LICENSE.md for details.

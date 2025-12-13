@@ -1,544 +1,487 @@
-# Integration Guide - Neural Aquarium with Neural DSL Backend
+# Neural Aquarium - Integration Guide
 
-This guide explains how to integrate the Neural Aquarium visual designer with the Neural DSL Python backend.
+This guide explains how Neural Aquarium integrates with the Neural DSL ecosystem.
 
-## Architecture
+## Overview
+
+Neural Aquarium is a web-based AI assistant that generates Neural DSL code through natural language conversation. It integrates seamlessly with existing Neural DSL tools and workflows.
+
+## Integration Architecture
 
 ```
-┌─────────────────────────────────────┐
-│   Neural Aquarium (React/TS)       │
-│   Port: 3000                        │
-│   - Visual Designer                 │
-│   - DSL Code Editor                 │
-│   - Layer Palette                   │
-└─────────────┬───────────────────────┘
-              │ HTTP/REST API
-              │
-┌─────────────▼───────────────────────┐
-│   Neural DSL Backend (Python)       │
-│   Port: 8051                        │
-│   - DSL Parser                      │
-│   - Code Generator                  │
-│   - Shape Propagation               │
-│   - Model Compilation               │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                   Neural Aquarium                        │
+│               (AI Assistant Web UI)                      │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   │ Generates DSL Files
+                   ▼
+┌─────────────────────────────────────────────────────────┐
+│                   Neural DSL Files                       │
+│                  (*.neural format)                       │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   │ Used by
+                   ▼
+┌─────────────────────────────────────────────────────────┐
+│                 Neural DSL Tools                         │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐          │
+│  │   CLI     │  │   Parser  │  │  Compiler │          │
+│  └───────────┘  └───────────┘  └───────────┘          │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐          │
+│  │Visualizer │  │  Trainer  │  │ NeuralDbg │          │
+│  └───────────┘  └───────────┘  └───────────┘          │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## Setup
+## Integration Points
 
-### 1. Frontend (Neural Aquarium)
+### 1. Neural AI Modules
 
+Neural Aquarium directly uses the following modules:
+
+#### neural/ai/ai_assistant.py
+```python
+from neural.ai.ai_assistant import NeuralAIAssistant
+
+assistant = NeuralAIAssistant(use_llm=True)
+result = assistant.chat("Create a CNN for MNIST")
+dsl_code = result['dsl_code']
+```
+
+**Features Used:**
+- Natural language processing
+- Intent extraction
+- DSL code generation
+- Conversation state management
+- Multi-language support
+
+#### neural/ai/natural_language_processor.py
+```python
+from neural.ai.natural_language_processor import (
+    NaturalLanguageProcessor,
+    DSLGenerator
+)
+
+nlp = NaturalLanguageProcessor()
+intent, params = nlp.extract_intent("Add a dense layer with 128 units")
+
+generator = DSLGenerator()
+dsl = generator.generate_from_intent(intent, params)
+```
+
+**Features Used:**
+- Intent detection (create_model, add_layer, etc.)
+- Parameter extraction (layer sizes, activations)
+- Layer type recognition
+- DSL syntax generation
+
+#### neural/ai/multi_language.py
+```python
+from neural.ai.multi_language import MultiLanguageSupport
+
+multi_lang = MultiLanguageSupport()
+result = multi_lang.process("Créer un CNN", target_lang='en')
+translated = result['final']
+```
+
+**Features Used:**
+- Language detection
+- Text translation (12+ languages)
+- Fallback handling
+
+### 2. Neural DSL CLI
+
+Generated DSL files work with all Neural CLI commands:
+
+#### Compile
 ```bash
-cd neural/aquarium
-npm install
-npm run dev
+# Download DSL from Aquarium
+# Save as model.neural
+
+neural compile model.neural --backend tensorflow --output model.py
 ```
 
-Runs on http://localhost:3000
-
-### 2. Backend (Neural DSL)
-
+#### Run/Train
 ```bash
-cd neural
-python -m venv .venv
-.\.venv\Scripts\Activate  # Windows
-source .venv/bin/activate  # Linux/Mac
-pip install -e ".[full]"
-python no_code/no_code.py
+neural run model.neural --data dataset.yaml --epochs 10 --batch-size 32
 ```
 
-Runs on http://localhost:8051
-
-### 3. Configure API URL
-
-Create `.env` file in `neural/aquarium/`:
-
-```env
-VITE_API_URL=http://localhost:8051
+#### Visualize
+```bash
+neural visualize model.neural --output architecture.png
 ```
 
-## API Endpoints
-
-The frontend expects these endpoints on the backend:
-
-### POST /api/compile
-
-Compile DSL code to target backend (TensorFlow/PyTorch/ONNX).
-
-**Request:**
-```json
-{
-  "dsl": "network MyModel { ... }",
-  "backend": "tensorflow"
-}
+#### Debug
+```bash
+neural debug model.neural --data test_data.yaml
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "code": "import tensorflow as tf...",
-  "model_summary": { ... }
-}
-```
+### 3. Neural DSL Parser
 
-### POST /api/validate
-
-Validate DSL syntax and semantics.
-
-**Request:**
-```json
-{
-  "dsl": "network MyModel { ... }"
-}
-```
-
-**Response:**
-```json
-{
-  "valid": true,
-  "errors": [],
-  "warnings": []
-}
-```
-
-### POST /api/parse
-
-Parse DSL to AST/model structure.
-
-**Request:**
-```json
-{
-  "dsl": "network MyModel { ... }"
-}
-```
-
-**Response:**
-```json
-{
-  "model": {
-    "name": "MyModel",
-    "input_shape": [null, 28, 28, 1],
-    "layers": [ ... ]
-  }
-}
-```
-
-### POST /api/export
-
-Export model to file format (ONNX, SavedModel, etc.).
-
-**Request:**
-```json
-{
-  "dsl": "network MyModel { ... }",
-  "backend": "onnx",
-  "format": "onnx"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "file_path": "/path/to/model.onnx",
-  "file_size": 12345
-}
-```
-
-## Backend Implementation Example
-
-Add these routes to Flask/Dash backend (`neural/no_code/no_code.py`):
+All generated DSL is valid Neural DSL syntax:
 
 ```python
-from flask import Flask, request, jsonify
-from neural.parser.parser import create_parser, ModelTransformer
-from neural.code_generation.code_generator import generate_code
+from neural.parser.dsl_parser import DSLParser
 
-app = Flask(__name__)
-
-@app.route('/api/compile', methods=['POST'])
-def compile_model():
-    data = request.json
-    dsl_code = data.get('dsl', '')
-    backend = data.get('backend', 'tensorflow')
-    
-    try:
-        # Parse DSL
-        parser = create_parser()
-        tree = parser.parse(dsl_code)
-        transformer = ModelTransformer()
-        model = transformer.transform(tree)
-        
-        # Generate code
-        code = generate_code(model, backend)
-        
-        return jsonify({
-            'success': True,
-            'code': code,
-            'model_summary': {
-                'name': model.get('name', 'MyModel'),
-                'num_layers': len(model.get('layers', [])),
-                'parameters': calculate_parameters(model)
-            }
-        })
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 400
-
-@app.route('/api/validate', methods=['POST'])
-def validate_dsl():
-    data = request.json
-    dsl_code = data.get('dsl', '')
-    
-    try:
-        parser = create_parser()
-        tree = parser.parse(dsl_code)
-        
-        # Validate semantics
-        errors = []
-        warnings = []
-        
-        # Add validation logic here
-        
-        return jsonify({
-            'valid': len(errors) == 0,
-            'errors': errors,
-            'warnings': warnings
-        })
-    except Exception as e:
-        return jsonify({
-            'valid': False,
-            'errors': [str(e)],
-            'warnings': []
-        }), 200
-
-@app.route('/api/parse', methods=['POST'])
-def parse_dsl():
-    data = request.json
-    dsl_code = data.get('dsl', '')
-    
-    try:
-        parser = create_parser()
-        tree = parser.parse(dsl_code)
-        transformer = ModelTransformer()
-        model = transformer.transform(tree)
-        
-        return jsonify({
-            'model': model
-        })
-    except Exception as e:
-        return jsonify({
-            'error': str(e)
-        }), 400
-
-if __name__ == '__main__':
-    app.run(debug=True, port=8051)
+# Parse Aquarium-generated DSL
+parser = DSLParser()
+ast = parser.parse_file("model.neural")
 ```
 
-## Frontend Usage
+### 4. Code Generation Backends
 
-Import API functions in React components:
+Generated models work with all backends:
+
+```bash
+# TensorFlow
+neural compile model.neural --backend tensorflow
+
+# PyTorch
+neural compile model.neural --backend pytorch
+
+# ONNX
+neural compile model.neural --backend onnx
+```
+
+### 5. NeuralDbg Dashboard
+
+Models can be debugged using NeuralDbg:
+
+```bash
+# Start NeuralDbg
+python neural/dashboard/dashboard.py
+
+# Debug Aquarium-generated model
+neural debug model.neural --data data.yaml --dashboard
+```
+
+## Workflow Integration
+
+### Workflow 1: Aquarium → CLI → Training
+
+```bash
+# 1. Create model in Aquarium
+#    "Create a CNN for MNIST"
+#    Download as model.neural
+
+# 2. Compile with Neural CLI
+neural compile model.neural --backend tensorflow --output mnist_model.py
+
+# 3. Train the model
+neural run model.neural --data mnist.yaml --epochs 10
+
+# 4. Evaluate
+python mnist_model.py evaluate --data test_data.yaml
+```
+
+### Workflow 2: Aquarium → Visualization → Refinement
+
+```bash
+# 1. Generate architecture in Aquarium
+#    Download as architecture_v1.neural
+
+# 2. Visualize
+neural visualize architecture_v1.neural --output viz.png
+
+# 3. Review visualization, then refine in Aquarium
+#    "Add dropout with rate 0.5"
+#    "Add batch normalization"
+#    Download as architecture_v2.neural
+
+# 4. Compare versions
+diff architecture_v1.neural architecture_v2.neural
+```
+
+### Workflow 3: Aquarium → Debug → Optimize
+
+```bash
+# 1. Create model in Aquarium
+#    Download as model.neural
+
+# 2. Train and debug
+neural debug model.neural --data train.yaml --dashboard
+
+# 3. Identify bottlenecks in NeuralDbg
+
+# 4. Refine in Aquarium based on insights
+#    "Replace dense layers with fewer parameters"
+
+# 5. Re-test
+neural debug optimized_model.neural --data train.yaml
+```
+
+## API Integration
+
+### Frontend → Backend
 
 ```typescript
-import { compileModel, validateDSL } from '../utils/api';
+// React component
+import { AIService } from './services/AIService';
 
-// In your component
-const handleCompile = async () => {
-  try {
-    const result = await compileModel(dslCode);
-    console.log('Compiled code:', result.code);
-  } catch (error) {
-    console.error('Compilation error:', error);
-  }
-};
+const aiService = new AIService('http://localhost:5000');
 
-const handleValidate = async () => {
-  try {
-    const result = await validateDSL(dslCode);
-    if (!result.valid) {
-      console.error('Validation errors:', result.errors);
-    }
-  } catch (error) {
-    console.error('Validation error:', error);
-  }
-};
-```
-
-## CORS Configuration
-
-Backend needs CORS enabled for frontend access:
-
-```python
-from flask_cors import CORS
-
-app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
-```
-
-Install CORS:
-```bash
-pip install flask-cors
-```
-
-## Development Workflow
-
-1. **Start Backend:**
-   ```bash
-   cd neural
-   python no_code/no_code.py
-   ```
-
-2. **Start Frontend:**
-   ```bash
-   cd neural/aquarium
-   npm run dev
-   ```
-
-3. **Test Integration:**
-   - Create a network in visual designer
-   - Click "Compile" (to be added)
-   - Backend parses DSL and generates code
-   - Frontend displays result
-
-## Production Deployment
-
-### Frontend Build
-
-```bash
-cd neural/aquarium
-npm run build
-```
-
-Outputs to `dist/` directory.
-
-### Serve with Backend
-
-```python
-from flask import send_from_directory
-
-@app.route('/')
-def serve_frontend():
-    return send_from_directory('aquarium/dist', 'index.html')
-
-@app.route('/<path:path>')
-def serve_static(path):
-    return send_from_directory('aquarium/dist', path)
-```
-
-### Docker Setup
-
-Create `Dockerfile`:
-
-```dockerfile
-FROM python:3.10-slim
-
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-RUN apt-get install -y nodejs
-
-# Copy and install Python dependencies
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-# Copy and build frontend
-COPY neural/aquarium /app/aquarium
-WORKDIR /app/aquarium
-RUN npm install && npm run build
-
-# Copy backend code
-COPY neural /app/neural
-WORKDIR /app
-
-# Run application
-EXPOSE 8051
-CMD ["python", "neural/no_code/no_code.py"]
-```
-
-## Real-time Sync Implementation
-
-For bi-directional sync, the frontend already implements:
-
-1. **Visual → DSL:**
-   - Changes in designer trigger `nodesToDSL()`
-   - Updates code editor in real-time
-
-2. **DSL → Visual:**
-   - Code editor changes trigger `parseDSLToNodes()`
-   - Updates visual designer
-
-3. **Optional: Backend Validation:**
-   - Debounce code changes
-   - Call `/api/validate` endpoint
-   - Show validation errors in UI
-
-```typescript
-const validateCode = useCallback(
-  debounce(async (code: string) => {
-    try {
-      const result = await validateDSL(code);
-      setValidationErrors(result.errors);
-      setValidationWarnings(result.warnings);
-    } catch (error) {
-      console.error('Validation error:', error);
-    }
-  }, 500),
-  []
+const result = await aiService.chat(
+  "Create a CNN for CIFAR-10",
+  { current_model: existingDSL }
 );
 
-useEffect(() => {
-  validateCode(dslCode);
-}, [dslCode, validateCode]);
+console.log(result.dsl_code);
 ```
 
-## Extending the Integration
-
-### Add Model Templates
-
-Backend provides templates:
+### Backend → AI Modules
 
 ```python
-@app.route('/api/templates', methods=['GET'])
-def get_templates():
-    return jsonify({
-        'templates': [
-            {
-                'name': 'MNIST CNN',
-                'description': 'Convolutional network for MNIST',
-                'dsl': '...'
-            },
-            # More templates...
-        ]
-    })
+# Flask API
+from neural.ai.ai_assistant import NeuralAIAssistant
+
+@app.route('/api/ai/chat', methods=['POST'])
+def chat():
+    data = request.get_json()
+    assistant = NeuralAIAssistant()
+    result = assistant.chat(data['user_input'], data.get('context'))
+    return jsonify(result)
 ```
 
-Frontend loads templates:
+## Data Flow
 
-```typescript
-const loadTemplates = async () => {
-  const response = await fetch(`${API_CONFIG.baseURL}/api/templates`);
-  const data = await response.json();
-  setTemplates(data.templates);
-};
+### Complete Flow: User Input → DSL File → Trained Model
+
+```
+1. User Input (Natural Language)
+   ↓
+2. Frontend (React) → AIService
+   ↓
+3. Backend API → POST /api/ai/chat
+   ↓
+4. NeuralAIAssistant.chat()
+   ↓
+5. NaturalLanguageProcessor.extract_intent()
+   ↓
+6. DSLGenerator.generate_from_intent()
+   ↓
+7. DSL Code (String) → Frontend
+   ↓
+8. User Downloads → model.neural file
+   ↓
+9. Neural CLI compile → model.py (TensorFlow/PyTorch)
+   ↓
+10. Neural CLI run → Trained Model
+    ↓
+11. Model Deployment
 ```
 
-### Add Shape Inference
+## File Format Compatibility
 
-Backend calculates shapes:
+### DSL File Structure
 
-```python
-@app.route('/api/infer_shapes', methods=['POST'])
-def infer_shapes():
-    data = request.json
-    model = data.get('model')
-    
-    from neural.shape_propagation.shape_propagator import ShapePropagator
-    propagator = ShapePropagator()
-    
-    shapes = []
-    current_shape = model['input_shape']
-    
-    for layer in model['layers']:
-        current_shape = propagator.propagate(current_shape, layer)
-        shapes.append({
-            'layer': layer['type'],
-            'output_shape': current_shape
-        })
-    
-    return jsonify({'shapes': shapes})
+Aquarium generates standard Neural DSL files:
+
+```neural
+network ModelName {
+    input: (height, width, channels)
+    layers:
+        Conv2D(filters, (kernel_h, kernel_w), "activation")
+        MaxPooling2D((pool_h, pool_w))
+        Flatten()
+        Dense(units, "activation")
+        Output(num_classes, "activation")
+    loss: "loss_function"
+    optimizer: OptimizerName(learning_rate=value)
+}
 ```
 
-### Add Real-time Collaboration
+This format is compatible with:
+- Neural DSL Parser
+- All backend compilers
+- Neural CLI tools
+- NeuralDbg
+- Visualization tools
 
-Use WebSockets for multi-user editing:
+## Environment Variables
 
-```python
-from flask_socketio import SocketIO, emit
-
-socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
-
-@socketio.on('model_update')
-def handle_model_update(data):
-    # Broadcast to all clients except sender
-    emit('model_updated', data, broadcast=True, include_self=False)
+### Frontend (.env)
+```env
+REACT_APP_API_URL=http://localhost:5000
 ```
 
-Frontend:
-
-```typescript
-import io from 'socket.io-client';
-
-const socket = io('http://localhost:8051');
-
-socket.on('model_updated', (data) => {
-  // Update local state
-  setNodes(data.nodes);
-  setEdges(data.edges);
-});
+### Backend (environment)
+```bash
+FLASK_ENV=development
+FLASK_APP=api.py
+PORT=5000
 ```
 
-## Troubleshooting
-
-### CORS Errors
-
-**Problem:** "Access to fetch blocked by CORS policy"
-**Solution:** Enable CORS in Flask backend
-
-### Connection Refused
-
-**Problem:** "Failed to fetch"
-**Solution:** 
-- Ensure backend is running on port 8051
-- Check `.env` file has correct API URL
-
-### Parse Errors
-
-**Problem:** Backend can't parse DSL
-**Solution:**
-- Verify DSL syntax matches grammar
-- Check backend parser version
-- Enable debug logging
+### Neural DSL (inherited)
+All Neural DSL environment variables work:
+```bash
+NEURAL_BACKEND=tensorflow  # Default backend
+NEURAL_CACHE_DIR=.neural_cache
+NEURAL_CONFIG=config.yaml
+```
 
 ## Testing Integration
 
-Create integration tests:
-
-```typescript
-// frontend test
-describe('API Integration', () => {
-  it('should compile model', async () => {
-    const dsl = 'network Test { ... }';
-    const result = await compileModel(dsl);
-    expect(result.success).toBe(true);
-  });
-});
-```
+### Unit Tests
 
 ```python
-# backend test
-def test_compile_endpoint():
-    response = client.post('/api/compile', json={
-        'dsl': 'network Test { ... }',
-        'backend': 'tensorflow'
-    })
-    assert response.status_code == 200
-    assert response.json['success'] == True
+# Test AI assistant integration
+from neural.ai.ai_assistant import NeuralAIAssistant
+
+def test_dsl_generation():
+    assistant = NeuralAIAssistant()
+    result = assistant.chat("Create a CNN for MNIST")
+    assert result['success']
+    assert 'network' in result['dsl_code']
+    assert 'Conv2D' in result['dsl_code']
 ```
 
-## Performance Optimization
+### Integration Tests
 
-1. **Caching:** Cache compilation results
-2. **Debouncing:** Debounce validation calls
-3. **Lazy Loading:** Load templates on demand
-4. **Compression:** Enable gzip compression
-5. **CDN:** Serve static assets from CDN
+```python
+# Test full pipeline
+def test_aquarium_to_cli():
+    # Generate DSL
+    assistant = NeuralAIAssistant()
+    result = assistant.chat("Create a CNN for MNIST")
+    
+    # Save to file
+    with open('test_model.neural', 'w') as f:
+        f.write(result['dsl_code'])
+    
+    # Parse with Neural DSL
+    parser = DSLParser()
+    ast = parser.parse_file('test_model.neural')
+    
+    assert ast is not None
+```
 
-## Security Considerations
+### End-to-End Tests
 
-1. **Validation:** Validate all DSL input
-2. **Sanitization:** Sanitize generated code
-3. **Rate Limiting:** Limit API requests
-4. **Authentication:** Add auth for production
-5. **HTTPS:** Use HTTPS in production
+```bash
+# Test complete workflow
+cd neural/aquarium
+
+# Start backend
+python backend/api.py &
+
+# Run frontend tests
+npm test
+
+# Test CLI integration
+neural compile test_model.neural --backend tensorflow
+```
+
+## Extension Points
+
+### Custom Intent Types
+
+Add new intents in `natural_language_processor.py`:
+
+```python
+class IntentType(Enum):
+    CREATE_MODEL = "create_model"
+    ADD_LAYER = "add_layer"
+    # Add custom intent
+    CUSTOM_INTENT = "custom_intent"
+```
+
+### Custom Layer Types
+
+Extend DSL generator:
+
+```python
+class DSLGenerator:
+    def _generate_layer(self, params):
+        # Add custom layer support
+        if layer_type == 'custom_layer':
+            return f"CustomLayer({params})\n"
+```
+
+### Custom Backends
+
+Generated DSL works with custom backends:
+
+```python
+from neural.code_generation.custom_backend import CustomBackend
+
+backend = CustomBackend()
+code = backend.generate(ast)
+```
+
+## Best Practices
+
+### 1. Version Control
+- Commit generated DSL files
+- Track model iterations
+- Use semantic versioning
+
+### 2. Documentation
+- Document model architecture decisions
+- Include conversation context
+- Add comments to DSL files
+
+### 3. Validation
+- Parse DSL before training
+- Validate layer compatibility
+- Test with sample data
+
+### 4. Optimization
+- Profile generated models
+- Use NeuralDbg for bottlenecks
+- Iterate in Aquarium based on insights
+
+### 5. Collaboration
+- Share DSL files with team
+- Use multi-language support
+- Review generated code together
+
+## Troubleshooting Integration Issues
+
+### Issue: DSL Parse Errors
+
+**Problem**: Generated DSL won't parse
+**Solution**: 
+- Check syntax in Aquarium viewer
+- Validate with `neural compile --check-only`
+- Report generation bugs
+
+### Issue: Backend Compatibility
+
+**Problem**: Model won't compile for specific backend
+**Solution**:
+- Check backend-specific layer support
+- Use compatible layer types
+- Consult backend documentation
+
+### Issue: API Connection
+
+**Problem**: Frontend can't reach backend
+**Solution**:
+- Verify backend is running: `curl http://localhost:5000/health`
+- Check CORS settings
+- Review firewall rules
+
+## Future Integration Plans
+
+1. **Direct Compilation**: Compile DSL in Aquarium UI
+2. **Live Preview**: Real-time visualization of architecture
+3. **Training Integration**: Train models directly from UI
+4. **Model Zoo**: Save and share model templates
+5. **Cloud Integration**: Deploy models to cloud platforms
+6. **Collaborative Editing**: Real-time multi-user model building
+
+## Resources
+
+- Neural DSL Documentation: See main README.md
+- API Reference: See `backend/api.py` docstrings
+- Component Documentation: See `ARCHITECTURE.md`
+- Examples: See `EXAMPLES.md`
+
+## Support
+
+For integration issues:
+1. Check logs (frontend console, backend terminal)
+2. Verify DSL syntax
+3. Test with Neural CLI tools
+4. Report issues on GitHub
