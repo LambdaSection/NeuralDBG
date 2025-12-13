@@ -3,6 +3,7 @@ Workspace Management - Shared workspace management with access controls.
 
 Manages collaborative workspaces where multiple users can edit Neural DSL files.
 """
+from __future__ import annotations
 
 import json
 import os
@@ -12,6 +13,9 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 from neural.exceptions import WorkspaceError, AccessControlError
+from neural.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class Workspace:
@@ -253,7 +257,7 @@ class WorkspaceManager:
                 workspace = Workspace.from_dict(data, workspace_dir)
                 self.workspaces[workspace.workspace_id] = workspace
             except Exception as e:
-                print(f"Warning: Failed to load workspace {workspace_dir}: {e}")
+                logger.warning(f"Failed to load workspace {workspace_dir}: {e}")
     
     def create_workspace(
         self,

@@ -1,9 +1,10 @@
 """
-Backend of the Dynamic Visualizer
-It provides the data transformation logic that converts Neural DSL model structures into the JSON format that D3.js expects
-The model_to_d3_json method specifically creates the nodes and links structure that D3.js uses
-"""
+Backend of the Dynamic Visualizer.
 
+Provides data transformation logic that converts Neural DSL model structures
+into the JSON format that D3.js expects. The model_to_d3_json method specifically
+creates the nodes and links structure that D3.js uses.
+"""
 from __future__ import annotations
 
 import json
@@ -15,6 +16,9 @@ from graphviz import Digraph
 from matplotlib import pyplot as plt
 
 from neural.parser.parser import ModelTransformer, create_parser
+from neural.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 # Make tensorflow optional - allows tests to run without it
@@ -191,5 +195,5 @@ if __name__ == '__main__':
     model_data = ModelTransformer().transform(parsed)
 
     visualizer = NeuralVisualizer(model_data)
-    print(visualizer.model_to_d3_json())
-(visualizer.model_to_d3_json())
+    d3_json = visualizer.model_to_d3_json()
+    logger.info(f"Generated D3 JSON: {d3_json}")

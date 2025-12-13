@@ -22,6 +22,9 @@ from neural.dashboard.tensor_flow import (
 )
 from neural.shape_propagation.shape_propagator import ShapePropagator
 from neural.config.health import HealthChecker
+from neural.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 try:
     from neural.profiling.dashboard_integration import (
@@ -159,16 +162,16 @@ def get_trace_data() -> List[Dict[str, Any]]:
 # Function to print data for debugging
 def print_dashboard_data() -> None:
     global trace_data, model_data
-    print("\n=== DASHBOARD DATA ===")
-    print(f"Model data: {model_data is not None}")
+    logger.debug("=== DASHBOARD DATA ===")
+    logger.debug(f"Model data: {model_data is not None}")
     if model_data:
-        print(f"  Input: {model_data.get('input', 'None')}")
-        print(f"  Layers: {len(model_data.get('layers', []))} layers")
+        logger.debug(f"  Input: {model_data.get('input', 'None')}")
+        logger.debug(f"  Layers: {len(model_data.get('layers', []))} layers")
 
-    print(f"Trace data: {len(trace_data) if trace_data else 0} entries")
+    logger.debug(f"Trace data: {len(trace_data) if trace_data else 0} entries")
     if trace_data and len(trace_data) > 0:
-        print(f"  First entry: {trace_data[0]}")
-    print("=====================\n")
+        logger.debug(f"  First entry: {trace_data[0]}")
+    logger.debug("=====================")
 
 # Function to update dashboard data
 def update_dashboard_data(
@@ -211,7 +214,7 @@ def update_dashboard_data(
 # Print initial data when module is loaded
 print_dashboard_data()
 
-### Interval Updates ####
+### Interval Updates ####
 @app.callback(
     [Output("interval_component", "interval")],
     [Input("update_interval", "value")]
@@ -377,7 +380,7 @@ def update_trace_graph(n: int, viz_type: str, selected_layers: Optional[List[str
     return [fig]
 
 ############################
-#### FLOPS Memory Chart ####
+#### FLOPS Memory Chart ####
 ############################
 
 @app.callback(
@@ -403,7 +406,7 @@ def update_flops_memory_chart(n: int) -> List[go.Figure]:
     return [fig]
 
 ##################
-### Loss Graph ###
+### Loss Graph ###
 ##################
 
 @app.callback(
@@ -428,7 +431,7 @@ def update_loss(n: int) -> go.Figure:
 # ])
 
 ##########################
-### Architecture Graph ###
+### Architecture Graph ###
 ##########################
 
 
@@ -440,8 +443,7 @@ def update_graph(arch: str) -> go.Figure:
     """Update the architecture graph visualization."""
     global model_data, backend, trace_data
 
-    # Print debug information
-    print(f"Updating architecture graph with model_data: {model_data is not None}")
+    logger.debug(f"Updating architecture graph with model_data: {model_data is not None}")
 
     # Create a figure
     fig = go.Figure()
@@ -451,12 +453,12 @@ def update_graph(arch: str) -> go.Figure:
         # Get input shape from model data
         if 'input' in model_data and 'shape' in model_data['input']:
             input_shape = model_data['input']['shape']
-            print(f"Input shape: {input_shape}")
+            logger.debug(f"Input shape: {input_shape}")
 
             # Get layers from model data
             if 'layers' in model_data and isinstance(model_data['layers'], list):
                 layers = model_data['layers']
-                print(f"Layers: {len(layers)}")
+                logger.debug(f"Layers: {len(layers)}")
 
                 # Extract layer types for visualization
                 layer_types = []
@@ -533,11 +535,11 @@ def update_graph(arch: str) -> go.Figure:
 
                 return fig
             else:
-                print("Model data does not contain a valid 'layers' list")
+                logger.warning("Model data does not contain a valid 'layers' list")
         else:
-            print("Model data does not contain a valid 'input' with 'shape'")
+            logger.warning("Model data does not contain a valid 'input' with 'shape'")
     else:
-        print("No valid model data available")
+        logger.debug("No valid model data available")
 
     # Fallback to default behavior if no model data is available
     if arch == "A":
@@ -715,8 +717,7 @@ def update_resource_graph(n: int) -> go.Figure:
             height=400
         )
     except Exception as e:
-        # If there's an error, return an empty figure
-        print(f"Error in resource monitoring: {e}")
+        logger.error(f"Error in resource monitoring: {e}", exc_info=True)
         fig = go.Figure()
         fig.update_layout(
             title="Resource Monitoring (Error)",
@@ -760,7 +761,7 @@ def update_tensor_flow(n: int) -> go.Figure:
                     try:
                         input_shape = local_propagator.propagate(input_shape, layer, backend)
                     except Exception as e:
-                        print(f"Error propagating shape for layer {layer.get('type', 'unknown')}: {e}")
+                        logger.error(f"Error propagating shape for layer {layer.get('type', 'unknown')}: {e}")
 
                 # Store the shape history for future use
                 shape_history = local_propagator.shape_history
@@ -861,10 +862,10 @@ def update_network_visualization(n_clicks: int, _: Optional[str]) -> Tuple[go.Fi
     global model_data, backend, shape_history
 
     # Print debug information
-    print(f"Updating network visualization with n_clicks={n_clicks}")
-    print(f"Model data available: {model_data is not None}")
+    logger.debug(f"Updating network visualization with n_clicks={n_clicks}")
+    logger.debug(f"Model data available: {model_data is not None}")
     if model_data:
-        print(f"Model data keys: {model_data.keys() if isinstance(model_data, dict) else 'Not a dict'}")
+        logger.debug(f"Model data keys: {model_data.keys() if isinstance(model_data, dict) else 'Not a dict'}")
 
     # Create a default figure
     fig = go.Figure()
@@ -887,7 +888,7 @@ def update_network_visualization(n_clicks: int, _: Optional[str]) -> Tuple[go.Fi
                 if isinstance(layer, dict) and 'type' in layer:
                     layer_type = layer['type']
                     layer_types.append(layer_type)
-                    print(f"Found layer: {layer_type}")
+                    logger.debug(f"Found layer: {layer_type}")
 
             # Create a simple network visualization
             x_positions = [0]  # Input node
@@ -1032,8 +1033,7 @@ def update_computation_timeline(n_intervals: int) -> go.Figure:
     """Create a Gantt chart showing layer execution times."""
     global trace_data
 
-    # Print debug information
-    print(f"Updating computation timeline with trace_data: {len(trace_data) if trace_data else 0} entries")
+    logger.debug(f"Updating computation timeline with trace_data: {len(trace_data) if trace_data else 0} entries")
 
     # Create a figure
     fig = go.Figure()
@@ -1243,4 +1243,3 @@ if __name__ == "__main__":
     )
     print("\n" + "⚠️  DEPRECATION WARNING: Use 'neural server start' instead\n")
     app.run_server(debug=False, use_reloader=False)
-

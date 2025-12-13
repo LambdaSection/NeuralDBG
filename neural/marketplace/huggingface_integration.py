@@ -1,13 +1,16 @@
 """
 HuggingFace Hub Integration - Upload and download models from HuggingFace Hub.
 """
-
 from __future__ import annotations
 
 import os
 from pathlib import Path
 import shutil
 from typing import Any, Dict, List, Optional
+
+from neural.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 try:
@@ -94,7 +97,7 @@ class HuggingFaceIntegration:
                 exist_ok=True
             )
         except Exception as e:
-            print(f"Repository creation note: {e}")
+            logger.info(f"Repository creation note: {e}")
 
         # Prepare model card
         model_card = self._create_model_card(

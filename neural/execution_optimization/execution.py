@@ -1,6 +1,19 @@
+"""
+Execution optimization utilities for Neural DSL.
+
+Provides device selection, model optimization, and inference utilities
+for efficient model execution on various hardware.
+"""
+from __future__ import annotations
+
 import os
+from typing import Any, Dict, Optional, Union
 
 import torch
+
+from neural.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 # Only import TensorRT if not in CPU mode
@@ -13,37 +26,79 @@ if not (os.environ.get('NEURAL_FORCE_CPU', '').lower() in ['1', 'true', 'yes'] o
     except ImportError:
         pass
 
-def get_device(preferred_device="auto"):
+
+def get_device(preferred_device: Union[str, torch.device] = "auto") -> torch.device:
     """
-    Selects the best available device: GPU, CPU, or future accelerators
+    Select the best available device: GPU, CPU, or future accelerators.
 
     Args:
-        preferred_device: String ("auto", "cpu", "gpu") or torch.device object
+        preferred_device: Device preference ("auto", "cpu", "gpu", "cuda") or torch.device object
 
     Returns:
-        torch.device: The selected device
+        The selected torch.device
+
+    Examples:
+        >>> device = get_device("auto")  # Automatically selects CUDA if available
+        >>> device = get_device("cpu")   # Force CPU execution
+        >>> device = get_device(torch.device("cuda:0"))  # Specific GPU
     """
-    # If preferred_device is already a torch.device, return it
     if isinstance(preferred_device, torch.device):
         return preferred_device
 
-    # Otherwise, handle string inputs
     if isinstance(preferred_device, str):
-        if preferred_device.lower() == "gpu" and torch.cuda.is_available():
-            return torch.device("cuda")
-        elif preferred_device.lower() == "cpu":
+        device_str = preferred_device.lower()
+        
+        if device_str in ("gpu", "cuda"):
+            if torch.cuda.is_available():
+                logger.debug("Selected CUDA device")
+                return torch.device("cuda")
+            else:
+                logger.warning("CUDA requested but not available, falling back to CPU")
+                return torch.device("cpu")
+        
+        elif device_str == "cpu":
+            logger.debug("Selected CPU device")
             return torch.device("cpu")
-        elif preferred_device.lower() == "auto" and torch.cuda.is_available():
-            return torch.device("cuda")
-        else:
-            return torch.device("cpu")
+        
+        elif device_str == "auto":
+            if torch.cuda.is_available():
+                logger.debug("Auto-selected CUDA device")
+                return torch.device("cuda")
+            else:
+                logger.debug("Auto-selected CPU device (CUDA not available)")
+                return torch.device("cpu")
 
-    # Default fallback
+    logger.debug("Using default CPU device")
     return torch.device("cpu")
 
-def run_inference(model, data, execution_config):
-    """ Runs inference on the specified device """
+
+def run_inference(
+    model: torch.nn.Module,
+    data: torch.Tensor,
+    execution_config: Optional[Dict[str, Any]] = None
+) -> torch.Tensor:
+    """
+    Run inference on the specified device.
+
+    Args:
+        model: PyTorch model to run
+        data: Input tensor
+        execution_config: Configuration dict with 'device' key (default: {"device": "auto"})
+
+    Returns:
+        Output tensor on CPU
+
+    Examples:
+        >>> model = MyModel()
+        >>> data = torch.randn(1, 3, 224, 224)
+        >>> output = run_inference(model, data, {"device": "cuda"})
+    """
+    if execution_config is None:
+        execution_config = {}
+    
     device = get_device(execution_config.get("device", "auto"))
+    logger.debug(f"Running inference on {device}")
+    
     model.to(device)
     data = data.to(device)
 
@@ -52,29 +107,76 @@ def run_inference(model, data, execution_config):
 
     return output.cpu()
 
-def optimize_model_with_tensorrt(model):
-    """ Converts model to TensorRT for optimized inference """
-    # Check if TensorRT is available
+
+def optimize_model_with_tensorrt(model: torch.nn.Module) -> torch.nn.Module:
+    """
+    Convert model to TensorRT for optimized inference.
+
+    Args:
+        model: PyTorch model to optimize
+
+    Returns:
+        Optimized model (TensorRT if available, otherwise JIT traced)
+
+    Note:
+        Requires TensorRT to be installed. Falls back to standard model if unavailable.
+    """
     if not TENSORRT_AVAILABLE:
-        print("TensorRT not available, skipping optimization")
+        logger.warning("TensorRT not available, skipping optimization")
         return model
 
-    model.eval()
-    device = get_device("gpu")
+    try:
+        model.eval()
+        device = get_device("gpu")
 
-    # Dummy input for tracing
-    dummy_input = torch.randn(1, *model.input_shape).to(device)
+        if not hasattr(model, 'input_shape'):
+            logger.error("Model must have 'input_shape' attribute for TensorRT optimization")
+            return model
 
-    traced_model = torch.jit.trace(model, dummy_input)
-    trt_model = torch.jit.freeze(traced_model)
+        dummy_input = torch.randn(1, *model.input_shape).to(device)
 
-    return trt_model
+        traced_model = torch.jit.trace(model, dummy_input)
+        trt_model = torch.jit.freeze(traced_model)
 
-def run_optimized_inference(model, data, execution_config):
-    """ Runs optimized inference using TensorRT or PyTorch """
+        logger.info("Model successfully optimized with TensorRT")
+        return trt_model
+    
+    except Exception as e:
+        logger.error(f"TensorRT optimization failed: {e}", exc_info=True)
+        return model
+
+
+def run_optimized_inference(
+    model: torch.nn.Module,
+    data: torch.Tensor,
+    execution_config: Optional[Dict[str, Any]] = None
+) -> torch.Tensor:
+    """
+    Run optimized inference using TensorRT or PyTorch.
+
+    Automatically applies TensorRT optimization if available and running on GPU.
+
+    Args:
+        model: PyTorch model to run
+        data: Input tensor
+        execution_config: Configuration dict with 'device' key (default: {"device": "auto"})
+
+    Returns:
+        Output tensor on CPU
+
+    Examples:
+        >>> model = MyModel()
+        >>> data = torch.randn(1, 3, 224, 224)
+        >>> output = run_optimized_inference(model, data, {"device": "cuda"})
+    """
+    if execution_config is None:
+        execution_config = {}
+    
     device = get_device(execution_config.get("device", "auto"))
+    logger.debug(f"Running optimized inference on {device}")
 
     if device.type == "cuda" and TENSORRT_AVAILABLE:
+        logger.debug("Applying TensorRT optimization")
         model = optimize_model_with_tensorrt(model)
 
     model.to(device)

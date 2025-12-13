@@ -998,7 +998,7 @@ class ModelTransformer(lark.Transformer):
         sublayers = self._extract_value(sublayers_node) if sublayers_node else []
         try:
             if layer_type == 'DENSE':
-                print('[DEBUG basic_layer] layer=DENSE params_node=', params_node, ' raw_params=', raw_params)
+                logger.debug(f'[basic_layer] layer=DENSE params_node={params_node} raw_params={raw_params}')
         except Exception:
             pass
 
@@ -1562,7 +1562,7 @@ class ModelTransformer(lark.Transformer):
 
         opt_node = items[0]
         opt_value = self._extract_value(opt_node)
-        print(f"DEBUG: named_optimizer opt_value={opt_value} type={type(opt_value)}")
+        logger.debug(f"named_optimizer opt_value={opt_value} type={type(opt_value)}")
         
         # If opt_value is a dict (e.g. from HPO), extract the name if possible or skip validation
         if isinstance(opt_value, str):
@@ -1767,7 +1767,7 @@ class ModelTransformer(lark.Transformer):
 
     def exponential_decay(self, items: List[Any]) -> Dict[str, Any]:
         """Process ExponentialDecay learning rate schedule."""
-        print(f"DEBUG: exponential_decay items: {items}")
+        logger.debug(f"exponential_decay items: {items}")
         params = {}
         
         # items is a list of [initial_learning_rate, decay_steps, decay_rate]

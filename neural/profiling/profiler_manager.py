@@ -1,7 +1,16 @@
+"""
+Profiler Manager - Centralized profiling management.
+
+Coordinates multiple profilers for comprehensive performance analysis.
+"""
+from __future__ import annotations
+
 import json
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from pathlib import Path
+
+from neural.utils.logging import get_logger
 
 from .layer_profiler import LayerProfiler
 from .memory_profiler import MemoryLeakDetector, MemoryProfiler
@@ -10,9 +19,13 @@ from .comparative_profiler import ComparativeProfiler
 from .distributed_profiler import DistributedTrainingProfiler
 from .gpu_profiler import GPUUtilizationProfiler
 
+logger = get_logger(__name__)
+
 
 class ProfilerManager:
-    def __init__(self, enable_all: bool = True):
+    """Manages multiple profilers for comprehensive performance analysis."""
+    
+    def __init__(self, enable_all: bool = True) -> None:
         self.layer_profiler = LayerProfiler() if enable_all else None
         self.memory_profiler = MemoryProfiler() if enable_all else None
         self.memory_leak_detector = MemoryLeakDetector() if enable_all else None
@@ -22,10 +35,10 @@ class ProfilerManager:
         self.gpu_profiler = GPUUtilizationProfiler() if enable_all else None
         
         self.profiling_active = False
-        self.start_timestamp = None
-        self.end_timestamp = None
+        self.start_timestamp: Optional[float] = None
+        self.end_timestamp: Optional[float] = None
 
-    def enable_profiler(self, profiler_name: str):
+    def enable_profiler(self, profiler_name: str) -> None:
         profilers = {
             'layer': LayerProfiler,
             'memory': MemoryProfiler,
@@ -37,21 +50,28 @@ class ProfilerManager:
         }
         
         if profiler_name not in profilers:
+            logger.error(f"Unknown profiler: {profiler_name}")
             raise ValueError(f"Unknown profiler: {profiler_name}")
         
         attr_name = f"{profiler_name}_profiler" if profiler_name != 'leak' else 'memory_leak_detector'
         setattr(self, attr_name, profilers[profiler_name]())
+        logger.debug(f"Enabled profiler: {profiler_name}")
 
-    def start_profiling(self):
+    def start_profiling(self) -> None:
+        """Start all enabled profilers."""
         self.profiling_active = True
         self.start_timestamp = time.time()
         
         if self.memory_profiler:
             self.memory_profiler.start_profiling()
+        
+        logger.info("Profiling started")
 
-    def end_profiling(self):
+    def end_profiling(self) -> None:
+        """End all enabled profilers."""
         self.profiling_active = False
         self.end_timestamp = time.time()
+        logger.info(f"Profiling ended (duration: {self.end_timestamp - (self.start_timestamp or 0):.2f}s)")
 
     def profile_layer(self, layer_name: str, metadata: Optional[Dict[str, Any]] = None):
         if not self.profiling_active:
@@ -191,7 +211,8 @@ class ProfilerManager:
         
         return data
 
-    def reset_all(self):
+    def reset_all(self) -> None:
+        """Reset all profilers and clear profiling state."""
         if self.layer_profiler:
             self.layer_profiler.reset()
         if self.memory_profiler:
@@ -210,3 +231,4 @@ class ProfilerManager:
         self.profiling_active = False
         self.start_timestamp = None
         self.end_timestamp = None
+        logger.debug("All profilers reset")
