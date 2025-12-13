@@ -6,6 +6,7 @@
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
   [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-green.svg)](https://www.python.org/)
   [![CI](https://github.com/Lemniscate-world/Neural/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Lemniscate-world/Neural/actions/workflows/ci.yml)
+  [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://lemniscate-world.github.io/Neural/)
   [![Discord](https://img.shields.io/badge/Chat-Discord-7289DA)](https://discord.gg/KFku4KvS)
 </div>
 
@@ -257,8 +258,9 @@ This uses a language model under the hood (requires API key setup—see [docs/ai
 
 ## Documentation
 
-### Core Documentation
-- [Installation Guide](docs/installation.md) – Setup, dependencies, and feature groups
+**📚 [Full Documentation on GitHub Pages](https://lemniscate-world.github.io/Neural/)**
+
+Quick references:
 - [DSL Language Reference](docs/dsl.md) – Complete syntax guide
 - [Deployment Guide](docs/deployment.md) – Production export options
 - [AI Integration Guide](docs/ai_integration_guide.md) – Natural language model generation
