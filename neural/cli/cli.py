@@ -1736,5 +1736,12 @@ def explain(ctx, model_path: str, method: str, backend: str, data: Optional[str]
             traceback.print_exc()
         sys.exit(1)
 
+# Import and register monitoring commands
+try:
+    from neural.monitoring.cli_commands import monitor
+    cli.add_command(monitor)
+except ImportError:
+    pass
+
 if __name__ == '__main__':
     cli()

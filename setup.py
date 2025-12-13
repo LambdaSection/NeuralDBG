@@ -84,6 +84,11 @@ API_DEPS = [
     "websockets>=10.0",
 ]
 
+MONITORING_DEPS = [
+    "prometheus-client>=0.16.0",
+    "requests>=2.28.0",
+]
+
 setup(
     name="neural-dsl",
     version="0.3.0",
@@ -96,6 +101,7 @@ setup(
         "automl": AUTOML_DEPS,
         "distributed": DISTRIBUTED_DEPS,
         "cloud": CLOUD_DEPS,
+        "monitoring": MONITORING_DEPS,
         "visualization": VISUALIZATION_DEPS,
         "dashboard": DASHBOARD_DEPS,
         "backends": BACKEND_DEPS,
@@ -119,6 +125,7 @@ setup(
             + AUTOML_DEPS
             + DISTRIBUTED_DEPS
             + CLOUD_DEPS
+            + MONITORING_DEPS
             + VISUALIZATION_DEPS
             + DASHBOARD_DEPS
             + BACKEND_DEPS
