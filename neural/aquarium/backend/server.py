@@ -1,6 +1,7 @@
 """FastAPI server for Neural DSL backend bridge."""
 
 import asyncio
+import json
 import logging
 from typing import Any, Dict, List, Optional, Union
 
@@ -14,6 +15,7 @@ from neural.shape_propagation.shape_propagator import ShapePropagator
 
 from .process_manager import ProcessManager
 from .websocket_manager import ConnectionManager
+from .terminal_handler import TerminalManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -111,6 +113,7 @@ def create_app() -> FastAPI:
 
     process_manager = ProcessManager()
     websocket_manager = ConnectionManager()
+    terminal_manager = TerminalManager()
 
     @app.on_event("startup")
     async def startup_event():
@@ -120,6 +123,7 @@ def create_app() -> FastAPI:
     async def shutdown_event():
         logger.info("Neural DSL Backend Bridge shutting down...")
         await process_manager.cleanup()
+        terminal_manager.cleanup_all()
 
     @app.get("/")
     async def root():
@@ -359,6 +363,75 @@ def create_app() -> FastAPI:
         except Exception as e:
             logger.error(f"WebSocket error: {e}", exc_info=True)
             await websocket.close()
+
+    @app.websocket("/terminal/{session_id}")
+    async def terminal_websocket(websocket: WebSocket, session_id: str):
+        """WebSocket endpoint for terminal sessions."""
+        await websocket.accept()
+        
+        try:
+            session = terminal_manager.get_session(session_id)
+            if not session:
+                session = terminal_manager.create_session(session_id, shell="bash")
+            
+            logger.info(f"Terminal WebSocket connected for session: {session_id}")
+            
+            while True:
+                try:
+                    data = await websocket.receive_text()
+                    message = json.loads(data)
+                    
+                    if message["type"] == "command":
+                        command = message["data"]
+                        output = await session.execute_command(command)
+                        
+                        await websocket.send_text(json.dumps({
+                            "type": "output",
+                            "data": output
+                        }))
+                        
+                        await websocket.send_text(json.dumps({
+                            "type": "prompt",
+                            "data": "$ "
+                        }))
+                    
+                    elif message["type"] == "autocomplete":
+                        partial = message["data"]
+                        suggestions = session.get_autocomplete_suggestions(partial)
+                        
+                        await websocket.send_text(json.dumps({
+                            "type": "autocomplete",
+                            "suggestions": suggestions
+                        }))
+                    
+                    elif message["type"] == "change_shell":
+                        new_shell = message["shell"]
+                        success = session.change_shell(new_shell)
+                        
+                        if success:
+                            await websocket.send_text(json.dumps({
+                                "type": "shell_change",
+                                "shell": new_shell
+                            }))
+                        else:
+                            await websocket.send_text(json.dumps({
+                                "type": "output",
+                                "data": f"\x1b[1;31mFailed to change shell to {new_shell}\x1b[0m\r\n"
+                            }))
+                
+                except WebSocketDisconnect:
+                    break
+                except Exception as e:
+                    logger.error(f"Terminal command error: {e}", exc_info=True)
+                    await websocket.send_text(json.dumps({
+                        "type": "output",
+                        "data": f"\x1b[1;31mError: {str(e)}\x1b[0m\r\n"
+                    }))
+        
+        except Exception as e:
+            logger.error(f"Terminal WebSocket error: {e}", exc_info=True)
+        finally:
+            logger.info(f"Terminal WebSocket disconnected for session: {session_id}")
 
     return app
 
