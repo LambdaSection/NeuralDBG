@@ -1,0 +1,237 @@
+.hpo-trial-visualization {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.visualization-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.visualization-header h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #50E3C2;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #333;
+  border-top-color: #50E3C2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.chart-container {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.optimization-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 15px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.legend-color {
+  width: 20px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.trials-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.summary-card {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.summary-value {
+  font-size: 24px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.trials-table-container {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.trials-table-container h4 {
+  margin: 0 0 15px 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.trials-table {
+  overflow-x: auto;
+}
+
+.trials-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trials-table th {
+  background-color: #252525;
+  padding: 12px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #aaa;
+  border-bottom: 2px solid #333;
+}
+
+.trials-table td {
+  padding: 12px;
+  border-bottom: 1px solid #2a2a2a;
+  font-size: 13px;
+  color: #e0e0e0;
+}
+
+.trials-table tr:hover {
+  background-color: #252525;
+}
+
+.trials-table tr.best-trial {
+  background-color: rgba(80, 227, 194, 0.1);
+}
+
+.params-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.param-tag {
+  background-color: #333;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  color: #aaa;
+}
+
+.state-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.state-complete {
+  background-color: rgba(80, 227, 194, 0.2);
+  color: #50E3C2;
+}
+
+.state-running {
+  background-color: rgba(74, 144, 226, 0.2);
+  color: #4A90E2;
+}
+
+.state-pruned {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #FFC107;
+}
+
+.state-fail {
+  background-color: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+}
+
+.best-params-section {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.best-params-section h4 {
+  margin: 0 0 15px 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.params-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.param-item {
+  background-color: #252525;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.param-key {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.param-value {
+  font-size: 16px;
+  color: #50E3C2;
+  font-weight: 600;
+  font-family: 'Consolas', 'Monaco', monospace;
+}

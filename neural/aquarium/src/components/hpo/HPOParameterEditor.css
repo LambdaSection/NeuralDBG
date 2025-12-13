@@ -1,0 +1,108 @@
+.hpo-parameter-editor {
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 15px;
+  transition: border-color 0.2s;
+}
+
+.hpo-parameter-editor:hover {
+  border-color: #667eea;
+}
+
+.parameter-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.parameter-name-input {
+  flex: 1;
+  padding: 8px 12px;
+  background-color: #252525;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.parameter-name-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.btn-remove {
+  padding: 8px 12px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.btn-remove:hover {
+  background-color: #cc0000;
+}
+
+.parameter-config {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.config-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.config-row label {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 500;
+}
+
+.param-select,
+.param-input {
+  padding: 8px 10px;
+  background-color: #252525;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 13px;
+}
+
+.param-select:focus,
+.param-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.parameter-preview {
+  background-color: #0f0f0f;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 12px;
+  color: #888;
+}
+
+.parameter-preview strong {
+  color: #aaa;
+  margin-right: 5px;
+}
+
+.parameter-preview code {
+  color: #50E3C2;
+  font-family: 'Consolas', 'Monaco', monospace;
+  background-color: #1a1a1a;
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-top: 5px;
+  word-break: break-all;
+}
