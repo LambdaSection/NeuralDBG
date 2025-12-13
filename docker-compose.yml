@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # Redis for Celery broker and result backend
+  redis:
+    image: redis:7-alpine
+    container_name: neural-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Neural API server
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    container_name: neural-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=false
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - API_WORKERS=4
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DATABASE_URL=sqlite:////app/data/neural_api.db
+      - STORAGE_PATH=/app/data/storage
+      - EXPERIMENTS_PATH=/app/data/experiments
+      - MODELS_PATH=/app/data/models
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_PERIOD=60
+      - CORS_ORIGINS=["http://localhost:3000","http://localhost:8000"]
+    volumes:
+      - ./neural:/app/neural
+      - api-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Celery worker for async tasks
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    container_name: neural-worker
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - STORAGE_PATH=/app/data/storage
+      - EXPERIMENTS_PATH=/app/data/experiments
+      - MODELS_PATH=/app/data/models
+    volumes:
+      - ./neural:/app/neural
+      - api-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Celery Flower for monitoring
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    container_name: neural-flower
+    command: celery -A neural.api.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+      - worker
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+    driver: local
+  api-data:
+    driver: local
+
+networks:
+  default:
+    name: neural-network

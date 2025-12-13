@@ -77,10 +77,17 @@ ML_EXTRAS_DEPS = [
 ]
 
 API_DEPS = [
-    "fastapi>=0.68",
-    "uvicorn[standard]>=0.15",
-    "pydantic>=1.8",
-    "python-multipart>=0.0.5",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "celery>=5.3.0",
+    "redis>=5.0.0",
+    "flower>=2.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-multipart>=0.0.6",
+    "pydantic-settings>=2.0.0",
+    "requests>=2.31.0",
+    "sqlalchemy>=2.0.0",
     "websockets>=10.0",
 ]
 

@@ -99,6 +99,13 @@ wandb/
 runs/
 *.mlflow.db
 
+# Neural API artifacts
+neural_storage/
+neural_models/
+neural_api.db
+celerybeat-schedule
+celerybeat.pid
+
 # HPO artifacts
 hpo_report.html
 *.db  # Optuna study databases
