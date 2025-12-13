@@ -45,8 +45,7 @@ except ImportError:
     torch = None
     TORCH_AVAILABLE = False
 
-# PretrainedModelHub temporarily disabled due to triton dependency issues
-PretrainedModelHub = None
+# Pretrained model hub functionality is temporarily disabled due to dependency issues
 from neural.exceptions import (
     ShapeException, ShapeMismatchError, InvalidShapeError,
     InvalidParameterError, DependencyError
@@ -103,7 +102,7 @@ class ShapePropagator:
         self.current_layer = 0
         self.execution_trace = []  # Stores nntrace logs
         self.performance_monitor = PerformanceMonitor()
-        self.hub = PretrainedModelHub() if PretrainedModelHub else None
+        self.hub = None
         self.issues = []  # Store detected issues
         self.optimizations = []  # Store optimization suggestions
 
