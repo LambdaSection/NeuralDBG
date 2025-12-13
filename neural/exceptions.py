@@ -168,7 +168,6 @@ class DSLSyntaxError(ParserException):
         - Invalid token sequences
         - Malformed layer definitions
     """
-    """
 
 
 class DSLValidationError(ParserException):
@@ -179,7 +178,6 @@ class DSLValidationError(ParserException):
         - Invalid parameter values
         - Incompatible layer configurations
         - Missing required parameters
-    """
     """
 
 
@@ -304,7 +302,6 @@ class ShapeMismatchError(ShapeException):
         - Kernel size exceeding input dimensions
         - Incompatible shapes in concatenation/addition operations
     """
-    """
 
 
 class InvalidShapeError(ShapeException):
@@ -315,7 +312,6 @@ class InvalidShapeError(ShapeException):
         - Negative dimensions
         - Empty shapes
         - Invalid shape format
-    """
     """
 
 
@@ -363,7 +359,6 @@ class HPOException(NeuralException):
     
     Raised during HPO configuration, search, or optimization.
     """
-    """
 
 
 class InvalidHPOConfigError(HPOException):
@@ -374,7 +369,6 @@ class InvalidHPOConfigError(HPOException):
         - Invalid search space definition
         - Incompatible HPO strategy
         - Missing required HPO parameters
-    """
     """
 
 
@@ -387,7 +381,6 @@ class HPOSearchError(HPOException):
         - No valid trials found
         - Optimization failure
     """
-    """
 
 
 class TrackingException(NeuralException):
@@ -395,7 +388,6 @@ class TrackingException(NeuralException):
     Base exception for experiment tracking errors.
     
     Raised when logging experiments, metrics, or artifacts fails.
-    """
     """
 
 
@@ -424,7 +416,6 @@ class MetricLoggingError(TrackingException):
         - Backend unavailable
         - Serialization errors
     """
-    """
 
 
 class CloudException(NeuralException):
@@ -432,7 +423,6 @@ class CloudException(NeuralException):
     Base exception for cloud execution errors.
     
     Raised when executing models on cloud platforms (SageMaker, etc.).
-    """
     """
 
 
@@ -445,7 +435,6 @@ class CloudConnectionError(CloudException):
         - Network timeout
         - Invalid credentials
     """
-    """
 
 
 class CloudExecutionError(CloudException):
@@ -457,7 +446,6 @@ class CloudExecutionError(CloudException):
         - Execution timeout
         - Runtime errors on cloud platform
     """
-    """
 
 
 class VisualizationException(NeuralException):
@@ -465,7 +453,6 @@ class VisualizationException(NeuralException):
     Base exception for visualization errors.
     
     Raised when generating visualizations, graphs, or dashboards fails.
-    """
     """
 
 
@@ -536,7 +523,6 @@ class ConfigurationError(NeuralException):
         - Invalid configuration values
         - Configuration conflicts
     """
-    """
 
 
 class ExecutionError(NeuralException):
@@ -548,7 +534,6 @@ class ExecutionError(NeuralException):
         - Inference failures
         - Device errors (GPU/CPU)
     """
-    """
 
 
 class MLOpsException(NeuralException):
@@ -556,7 +541,6 @@ class MLOpsException(NeuralException):
     Base exception for MLOps-related errors.
     
     Raised during model registry, deployment, A/B testing, or audit operations.
-    """
     """
 
 
@@ -569,7 +553,6 @@ class ModelRegistryError(MLOpsException):
         - Version conflict
         - Registration failure
     """
-    """
 
 
 class ApprovalWorkflowError(MLOpsException):
@@ -580,7 +563,6 @@ class ApprovalWorkflowError(MLOpsException):
         - Approval not found
         - Invalid approval status
         - Unauthorized approval attempt
-    """
     """
 
 
@@ -593,7 +575,6 @@ class DeploymentError(MLOpsException):
         - Health check failure
         - Rollback failure
     """
-    """
 
 
 class ABTestError(MLOpsException):
@@ -604,7 +585,6 @@ class ABTestError(MLOpsException):
         - Invalid test configuration
         - Test not found
         - Statistical analysis failure
-    """
     """
 
 
@@ -617,7 +597,6 @@ class AuditLogError(MLOpsException):
         - Query failure
         - Report generation failure
     """
-    """
 
 
 class CollaborationException(NeuralException):
@@ -625,7 +604,6 @@ class CollaborationException(NeuralException):
     Base exception for collaboration-related errors.
     
     Raised during collaborative editing, workspace management, or synchronization.
-    """
     """
 
 
@@ -638,7 +616,6 @@ class WorkspaceError(CollaborationException):
         - Access denied
         - Invalid workspace configuration
     """
-    """
 
 
 class ConflictError(CollaborationException):
@@ -650,7 +627,6 @@ class ConflictError(CollaborationException):
         - Merge conflicts
         - Incompatible changes
     """
-    """
 
 
 class SyncError(CollaborationException):
@@ -661,7 +637,6 @@ class SyncError(CollaborationException):
         - Network errors
         - Version mismatch
         - Sync timeout
-    """
     """
 
 
