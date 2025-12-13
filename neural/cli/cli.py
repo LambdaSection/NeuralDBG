@@ -566,8 +566,14 @@ def run(ctx, file: str, backend: str, dataset: str, hpo: bool, device: str):
 @click.argument('file', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.option('--format', '-f', default='html', help='Output format', type=click.Choice(['html', 'png', 'svg'], case_sensitive=False))
 @click.option('--cache/--no-cache', default=True, help='Use cached visualizations if available')
+@click.option('--attention', is_flag=True, help='Visualize attention weights for transformer models')
+@click.option('--backend', '-b', default='tensorflow', help='Backend for attention visualization', type=click.Choice(['tensorflow', 'pytorch'], case_sensitive=False))
+@click.option('--data', '-d', type=click.Path(exists=True), help='Input data file for attention visualization (.npy format)')
+@click.option('--tokens', help='Comma-separated token labels for attention visualization')
+@click.option('--layer', help='Specific attention layer to visualize')
+@click.option('--head', type=int, help='Specific attention head to visualize')
 @click.pass_context
-def visualize(ctx, file: str, format: str, cache: bool):
+def visualize(ctx, file: str, format: str, cache: bool, attention: bool, backend: str, data: Optional[str], tokens: Optional[str], layer: Optional[str], head: Optional[int]):
     """Visualize network architecture and shape propagation."""
     print_command_header("visualize")
     print_info(f"Visualizing {file} in {format} format")
@@ -686,6 +692,103 @@ def visualize(ctx, file: str, format: str, cache: bool):
             print_info("Visualization cached for future use")
         except (PermissionError, IOError) as e:
             print_warning(f"Failed to cache visualization: {str(e)}")
+    
+    # Attention visualization for transformer models
+    if attention:
+        print_info("Visualizing attention weights...")
+        
+        try:
+            from neural.explainability.attention_visualizer import AttentionVisualizer
+            
+            # Parse tokens if provided
+            token_list = None
+            if tokens:
+                token_list = [t.strip() for t in tokens.split(',')]
+            
+            # Load or generate input data
+            if data:
+                input_data = np.load(data)
+                print_info(f"Loaded input data: {input_data.shape}")
+            else:
+                print_warning("No input data provided. Generating synthetic data based on model input shape.")
+                input_shape = model_data['input']['shape']
+                if input_shape:
+                    batch_size = 1
+                    input_data = np.random.randn(batch_size, *input_shape).astype(np.float32)
+                    print_info(f"Generated synthetic data with shape: {input_data.shape}")
+                else:
+                    print_error("Cannot generate synthetic data without input shape in model")
+                    sys.exit(1)
+            
+            # Create output directory for attention visualizations
+            attention_output = 'attention_outputs'
+            os.makedirs(attention_output, exist_ok=True)
+            
+            # Use the AttentionVisualizer
+            visualizer = AttentionVisualizer(model=None, backend=backend)
+            
+            with Spinner("Extracting and visualizing attention weights") as spinner:
+                if ctx.obj.get('NO_ANIMATIONS'):
+                    spinner.stop()
+                
+                results = visualizer.visualize_from_dsl(
+                    dsl_file=file,
+                    input_data=input_data,
+                    backend=backend,
+                    layer_name=layer,
+                    head_index=head,
+                    tokens=token_list,
+                    output_dir=attention_output
+                )
+            
+            if results['attention_weights']:
+                print_success(f"Attention visualization complete!")
+                print(f"\n{Colors.CYAN}Attention Analysis:{Colors.ENDC}")
+                print(f"  {Colors.BOLD}Layers with attention:{Colors.ENDC} {len(results['attention_weights'])}")
+                
+                for layer_name, weights in results['attention_weights'].items():
+                    print(f"  {Colors.BOLD}{layer_name}:{Colors.ENDC} {weights.shape}")
+                    
+                    # Analyze attention patterns
+                    analysis = visualizer.analyze_attention_patterns(weights)
+                    print(f"    - Num heads: {analysis['num_heads']}")
+                    print(f"    - Avg entropy: {analysis['avg_entropy']:.3f}")
+                    print(f"    - Avg max attention: {analysis['avg_max_attention']:.3f}")
+                    print(f"    - Diagonal strength: {analysis['avg_diagonal_strength']:.3f}")
+                
+                print(f"\n{Colors.CYAN}Output files:{Colors.ENDC}")
+                print(f"  - {Colors.GREEN}{attention_output}/attention_heatmap.png{Colors.ENDC}")
+                
+                for layer_name in results['attention_weights'].keys():
+                    heads_file = f"{attention_output}/attention_heads_{layer_name}.png"
+                    if os.path.exists(heads_file):
+                        print(f"  - {Colors.GREEN}{heads_file}{Colors.ENDC}")
+                
+                # Create interactive visualization if plotly is available
+                try:
+                    interactive_path = visualizer.create_interactive_visualization(
+                        results['attention_weights'],
+                        tokens=token_list,
+                        output_path=os.path.join(attention_output, 'attention_interactive.html')
+                    )
+                    if interactive_path:
+                        print(f"  - {Colors.GREEN}{interactive_path}{Colors.ENDC} (interactive)")
+                except Exception as e:
+                    logger.debug(f"Could not create interactive visualization: {e}")
+            else:
+                print_warning("No attention layers found in the model")
+                print_info("Make sure your model contains TransformerEncoder, MultiHeadAttention, or similar attention layers")
+        
+        except ImportError as e:
+            print_error(f"Missing dependencies for attention visualization: {str(e)}")
+            print_info("Install visualization dependencies: pip install matplotlib seaborn plotly")
+            sys.exit(1)
+        except Exception as e:
+            print_error(f"Attention visualization failed: {str(e)}")
+            if ctx.obj.get('VERBOSE'):
+                import traceback
+                traceback.print_exc()
+            sys.exit(1)
 
 @cli.command()
 @click.option('--yes', is_flag=True, help='Apply deletions; otherwise perform a dry run')

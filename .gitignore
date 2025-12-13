@@ -14,6 +14,9 @@ tests/hpo/data/MNIST/
 data/cifar-10-python.tar.gz
 data/cifar-10-batches-py/
 
+# Attention examples data
+examples/attention_examples/data/
+
 # Next.js build output and cache
 .next/
 
@@ -182,6 +185,14 @@ comparison_plots/
 # Collaboration workspaces
 neural_workspaces/
 .neural_sync/
+
+# Attention visualization outputs
+attention_outputs/
+demo_outputs_*/
+**/attention_outputs/
+**/demo_outputs_*/
+attention_interactive.html
+demo_interactive.html
 
 # Monitoring data and artifacts
 monitoring_data/
