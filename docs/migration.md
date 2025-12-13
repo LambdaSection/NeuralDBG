@@ -22,67 +22,90 @@ This guide helps you migrate your Neural DSL code between versions and from othe
 
 ### Migrating to v0.3.0
 
-**Release Date:** In Development  
-**Status:** Preview
+**Release Date:** October 18, 2025  
+**Status:** Current Release
 
-#### New Features
+#### Overview
+
+v0.3.0 is a major release introducing AI-powered development, production deployment, and comprehensive automation. 
+
+**✅ Fully backward compatible** - No breaking changes from v0.2.x
+
+#### Key Features
 
 1. **🤖 AI-Powered Development**
-   - Natural language to DSL conversion
-   - Multi-language support
+   - Natural language to DSL conversion in 12+ languages
+   - LLM integration (OpenAI, Anthropic, Ollama)
+   - Rule-based fallback (works without dependencies)
+   - CLI integration with `neural ai` command
 
-2. **🔄 Automation System**
-   - Automated releases and maintenance
-   - Blog post generation
+2. **🚀 Production Deployment**
+   - ONNX export with 10+ optimization passes
+   - TFLite export with quantization (int8, float16, dynamic)
+   - TorchScript export for PyTorch
+   - Complete TensorFlow Serving and TorchServe integration
 
-#### Breaking Changes
+3. **🔄 Automation System**
+   - Automated releases, testing, and maintenance
+   - Blog post generation and publishing
+   - Example validation and reporting
 
-**None** - v0.3.0 is fully backward compatible with v0.2.x
-
-#### New Capabilities
-
-**AI-Powered Model Creation:**
-
-```python
-from neural.ai import NaturalLanguageProcessor
-
-nlp = NaturalLanguageProcessor()
-
-# Create model from natural language
-dsl_code = nlp.process("Create a CNN for MNIST with 32 filters")
-
-# Or use the CLI
-# neural ai "Create a CNN for MNIST with 32 filters"
-```
-
-**Automated Workflows:**
+#### Quick Start
 
 ```bash
-# Automated release (maintainers only)
-python scripts/automation/master_automation.py --task release
+# Update to v0.3.0
+pip install --upgrade neural-dsl
 
-# Automated blog post generation
-python scripts/automation/master_automation.py --task blog
+# Try AI features (no extra dependencies needed)
+neural ai "Create a CNN for MNIST with 32 filters"
+
+# Try export features
+neural export examples/mnist.neural --format onnx --optimize
+
+# Try deployment
+neural export model.neural --backend tensorflow --format savedmodel \
+    --deployment tfserving --model-name my_model
 ```
 
-#### Migration Steps
+#### Detailed Migration Guide
 
-1. **Update Neural DSL:**
-   ```bash
-   pip install --upgrade neural-dsl
-   ```
+**📖 For complete upgrade instructions, troubleshooting, and examples, see:**
 
-2. **Enable AI features (optional):**
-   ```bash
-   # Install AI dependencies
-   pip install neural-dsl[ai]
-   
-   # Configure LLM provider (optional)
-   export OPENAI_API_KEY=your_key
-   # Or use free Ollama: ollama pull llama2
-   ```
+**[Complete Migration Guide v0.3.0](../MIGRATION_v0.3.0.md)**
 
-3. **No DSL changes required** - existing models work as-is
+This includes:
+- Step-by-step upgrade instructions
+- Feature migration guides
+- Common scenarios (data scientist, student, ML engineer, etc.)
+- Troubleshooting section
+- Rollback instructions
+
+#### Quick Migration
+
+**No changes required** - All v0.2.x code works in v0.3.0:
+
+```bash
+# 1. Update Neural DSL
+pip install --upgrade neural-dsl
+
+# 2. Verify installation
+neural --version
+
+# 3. Test your existing models (they work as-is)
+neural compile my_model.neural --backend tensorflow
+
+# 4. Optionally explore new features
+neural ai "Create a CNN for MNIST"
+neural export my_model.neural --format onnx
+```
+
+#### Documentation
+
+- **[Release Notes v0.3.0](releases/v0.3.0.md)** - Complete feature documentation
+- **[Migration Guide v0.3.0](../MIGRATION_v0.3.0.md)** - Detailed upgrade guide
+- **[AI Integration Guide](ai_integration_guide.md)** - Natural language features
+- **[Deployment Guide](deployment.md)** - Production deployment
+- **[Deployment Quick Start](DEPLOYMENT_QUICK_START.md)** - Get started in 5 minutes
 
 ---
 
@@ -704,15 +727,15 @@ Converting ONNX models to Neural DSL for retraining or modification.
 
 ### Version Compatibility Matrix
 
-| Neural DSL | Python | TensorFlow | PyTorch | Key Features |
-|------------|--------|------------|---------|--------------|
-| 0.3.0 | 3.8+ | 2.10+ | 1.13+ | AI-powered, Automation |
-| 0.2.9 | 3.8+ | 2.10+ | 1.13+ | Aquarium IDE, Enhanced UI |
-| 0.2.8 | 3.8+ | 2.10+ | 1.13+ | Cloud integration |
-| 0.2.7 | 3.8+ | 2.10+ | 1.13+ | Enhanced HPO |
-| 0.2.6 | 3.8+ | 2.10+ | 1.13+ | Multi-framework HPO |
-| 0.2.5 | 3.8+ | 2.10+ | 1.13+ | HPO support |
-| 0.1.x | 3.8+ | 2.10+ | 1.13+ | Initial release |
+| Neural DSL | Python | TensorFlow | PyTorch | ONNX | Key Features |
+|------------|--------|------------|---------|------|--------------|
+| 0.3.0 | 3.8-3.12 | 2.6+ | 1.10+ | 1.10+ | AI-powered, Deployment, Automation |
+| 0.2.9 | 3.8-3.11 | 2.6+ | 1.10+ | 1.10+ | Aquarium IDE, Enhanced UI |
+| 0.2.8 | 3.8-3.11 | 2.6+ | 1.10+ | 1.10+ | Cloud integration |
+| 0.2.7 | 3.8-3.11 | 2.6+ | 1.10+ | 1.10+ | Enhanced HPO |
+| 0.2.6 | 3.8-3.11 | 2.6+ | 1.10+ | 1.10+ | Multi-framework HPO |
+| 0.2.5 | 3.8-3.10 | 2.6+ | 1.10+ | - | HPO support |
+| 0.1.x | 3.8-3.10 | 2.6+ | 1.10+ | - | Initial release |
 
 ### Update Commands Quick Reference
 

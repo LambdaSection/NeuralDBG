@@ -99,9 +99,10 @@ Comprehensive learning resources for all skill levels:
 - [Deployment Guide](guides/deployment.md)
 - [Contributing Guide](guides/contributing.md)
 
-### 8. Blog
+### 8. Blog & Releases
 
-- [Release Notes](blog/releases/)
+- **[Release Notes](releases/)** - Detailed release documentation
+  - [v0.3.0 Release Notes](releases/v0.3.0.md) - Latest release (NEW!)
 - [Feature Spotlights](blog/features/)
 - [Case Studies](blog/case-studies/)
 - [Tutorials](blog/tutorials/)
@@ -291,6 +292,18 @@ pip install sphinx-rtd-theme
 - [NumPy Docstring Guide](https://numpydoc.readthedocs.io/en/latest/format.html)
 - [reStructuredText Primer](https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html)
 - [Sphinx autodoc](https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html)
+
+## Support
+
+For documentation issues:
+- Open an issue on GitHub
+- Check existing documentation
+- Refer to Sphinx documentation
+
+## License
+
+Documentation is released under the same license as Neural DSL (MIT License).
+extensions/autodoc.html)
 
 ## Support
 
