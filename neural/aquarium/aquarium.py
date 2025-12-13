@@ -38,6 +38,41 @@ app = dash.Dash(
     title="Neural Aquarium IDE"
 )
 
+# Get Flask server for health check endpoints
+server = app.server
+
+# Add health check endpoints
+try:
+    from neural.config.health import HealthChecker
+    
+    @server.route('/health')
+    def health_check():
+        """Health check endpoint for Aquarium service."""
+        return {
+            "status": "healthy",
+            "service": "aquarium",
+            "version": "0.3.0"
+        }
+    
+    @server.route('/health/live')
+    def liveness_probe():
+        """Kubernetes liveness probe."""
+        health_checker = HealthChecker()
+        if health_checker.get_liveness_status():
+            return {"status": "alive"}, 200
+        return {"status": "dead"}, 503
+    
+    @server.route('/health/ready')
+    def readiness_probe():
+        """Kubernetes readiness probe."""
+        health_checker = HealthChecker()
+        if health_checker.get_readiness_status(['aquarium']):
+            return {"status": "ready"}, 200
+        return {"status": "not ready"}, 503
+except ImportError:
+    # Health checker not available, skip health endpoints
+    pass
+
 runner_panel = RunnerPanel(app)
 
 app.layout = html.Div([

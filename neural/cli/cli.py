@@ -7,6 +7,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -905,6 +906,223 @@ def version(ctx):
 def cloud(ctx: click.Context) -> None:
     """Commands for cloud integration."""
     pass
+
+@cli.group()
+@click.pass_context
+def config(ctx):
+    """Commands for configuration management."""
+    pass
+
+@config.command('validate')
+@click.option('--services', '-s', multiple=True, help='Services to validate (api, dashboard, aquarium, marketplace, celery)')
+@click.option('--report', '-r', type=click.Path(), help='Export validation report to file')
+@click.option('--env-file', default='.env', help='Path to .env file (default: .env)')
+@click.pass_context
+def config_validate(ctx, services, report, env_file):
+    """Validate configuration before deployment."""
+    print_command_header("config validate")
+    
+    try:
+        from neural.config.validator import ConfigValidator
+        
+        # Initialize validator
+        with Spinner("Loading configuration") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            validator = ConfigValidator(env_file=env_file)
+        
+        # Validate configuration
+        with Spinner("Validating configuration") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            result = validator.validate(services=list(services) if services else None)
+        
+        # Print summary
+        print_info(result.get_summary())
+        
+        # Print issues
+        if result.issues:
+            print(f"\n{Colors.CYAN}Issues Found:{Colors.ENDC}")
+            for issue in result.issues:
+                if issue.level == 'error':
+                    print_error(f"{issue.variable}: {issue.message}")
+                    if issue.suggestion:
+                        print(f"  {Colors.YELLOW}→ Suggestion: {issue.suggestion}{Colors.ENDC}")
+                elif issue.level == 'warning':
+                    print_warning(f"{issue.variable}: {issue.message}")
+                    if issue.suggestion:
+                        print(f"  {Colors.YELLOW}→ Suggestion: {issue.suggestion}{Colors.ENDC}")
+                elif issue.level == 'info':
+                    print_info(f"{issue.variable}: {issue.message}")
+        
+        # Export report if requested
+        if report:
+            validator.export_validation_report(result, report)
+            print_success(f"Validation report exported to {report}")
+        
+        # Exit with error code if validation failed
+        if result.has_errors():
+            print_error("Configuration validation failed!")
+            sys.exit(1)
+        elif result.has_warnings():
+            print_warning("Configuration validation passed with warnings")
+        else:
+            print_success("Configuration validation passed!")
+    
+    except Exception as e:
+        print_error(f"Configuration validation failed: {str(e)}")
+        if ctx.obj.get('VERBOSE'):
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+@config.command('migrate')
+@click.argument('source', type=click.Path(exists=True))
+@click.option('--output', '-o', help='Output file path')
+@click.option('--overwrite', is_flag=True, help='Overwrite output file if it exists')
+@click.option('--direction', type=click.Choice(['yaml-to-env', 'env-to-yaml']), default='yaml-to-env', help='Migration direction')
+@click.pass_context
+def config_migrate(ctx, source, output, overwrite, direction):
+    """Migrate configuration between YAML and .env formats."""
+    print_command_header("config migrate")
+    
+    try:
+        from neural.config.migrator import ConfigMigrator
+        
+        with Spinner("Initializing migrator") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            migrator = ConfigMigrator()
+        
+        if direction == 'yaml-to-env':
+            output = output or '.env'
+            print_info(f"Migrating {source} → {output}")
+            
+            with Spinner("Converting YAML to environment variables") as spinner:
+                if ctx.obj.get('NO_ANIMATIONS'):
+                    spinner.stop()
+                env_vars = migrator.migrate_yaml_to_env(source, output, overwrite=overwrite)
+            
+            print_success(f"Migrated {len(env_vars)} configuration variables")
+            print(f"\n{Colors.CYAN}Output:{Colors.ENDC} {output}")
+        
+        elif direction == 'env-to-yaml':
+            output = output or 'config.yaml'
+            print_info(f"Migrating {source} → {output}")
+            
+            with Spinner("Converting environment variables to YAML") as spinner:
+                if ctx.obj.get('NO_ANIMATIONS'):
+                    spinner.stop()
+                config = migrator.migrate_env_to_yaml(source, output, overwrite=overwrite)
+            
+            print_success(f"Migrated configuration to YAML")
+            print(f"\n{Colors.CYAN}Output:{Colors.ENDC} {output}")
+    
+    except FileExistsError as e:
+        print_error(str(e))
+        sys.exit(1)
+    except Exception as e:
+        print_error(f"Migration failed: {str(e)}")
+        if ctx.obj.get('VERBOSE'):
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+@config.command('template')
+@click.option('--output', '-o', default='.env.example', help='Output file path')
+@click.pass_context
+def config_template(ctx, output):
+    """Generate a template .env file with all available options."""
+    print_command_header("config template")
+    
+    try:
+        from neural.config.migrator import ConfigMigrator
+        
+        with Spinner("Generating template") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            migrator = ConfigMigrator()
+            migrator.generate_env_template(output)
+        
+        print_success(f"Configuration template generated: {output}")
+        print_info("Edit this file and copy to .env for your deployment")
+    
+    except Exception as e:
+        print_error(f"Template generation failed: {str(e)}")
+        if ctx.obj.get('VERBOSE'):
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
+@config.command('check-health')
+@click.option('--services', '-s', multiple=True, help='Services to check (api, dashboard, aquarium, marketplace, redis, celery)')
+@click.option('--detailed', is_flag=True, help='Show detailed health information')
+@click.pass_context
+def config_check_health(ctx, services, detailed):
+    """Check health of all Neural DSL services."""
+    print_command_header("config check-health")
+    
+    try:
+        from neural.config.health import HealthChecker, HealthStatus
+        
+        with Spinner("Checking service health") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            health_checker = HealthChecker()
+            
+            if services:
+                results = {
+                    service: health_checker.check_service(service)
+                    for service in services
+                }
+            else:
+                results = health_checker.check_all()
+        
+        # Print results
+        print(f"\n{Colors.CYAN}Service Health Status:{Colors.ENDC}\n")
+        
+        all_healthy = True
+        for service, health in results.items():
+            status_color = {
+                HealthStatus.HEALTHY: Colors.GREEN,
+                HealthStatus.DEGRADED: Colors.YELLOW,
+                HealthStatus.UNHEALTHY: Colors.RED,
+                HealthStatus.UNKNOWN: Colors.ENDC,
+            }.get(health.status, Colors.ENDC)
+            
+            status_icon = {
+                HealthStatus.HEALTHY: '✓',
+                HealthStatus.DEGRADED: '⚠',
+                HealthStatus.UNHEALTHY: '✗',
+                HealthStatus.UNKNOWN: '?',
+            }.get(health.status, '?')
+            
+            print(f"  {status_icon} {Colors.BOLD}{service:12}{Colors.ENDC} {status_color}{health.status.value:10}{Colors.ENDC} {health.message}")
+            
+            if detailed and health.details:
+                for key, value in health.details.items():
+                    print(f"      {key}: {value}")
+            
+            if health.response_time_ms is not None:
+                print(f"      Response time: {health.response_time_ms:.2f}ms")
+            
+            if health.status != HealthStatus.HEALTHY:
+                all_healthy = False
+        
+        print()
+        
+        if all_healthy:
+            print_success("All services are healthy!")
+        else:
+            print_warning("Some services have issues")
+            sys.exit(1)
+    
+    except Exception as e:
+        print_error(f"Health check failed: {str(e)}")
+        if ctx.obj.get('VERBOSE'):
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
 
 @cli.group()
 @click.pass_context

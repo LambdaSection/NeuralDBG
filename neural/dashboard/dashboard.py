@@ -21,6 +21,7 @@ from neural.dashboard.tensor_flow import (
     create_progress_component,
 )
 from neural.shape_propagation.shape_propagator import ShapePropagator
+from neural.config.health import HealthChecker
 
 try:
     from neural.profiling.dashboard_integration import (
@@ -1196,6 +1197,32 @@ def update_distributed_profiling_chart(n: int) -> go.Figure:
     if PROFILING_AVAILABLE and profiling_data.get('distributed_metrics'):
         return create_distributed_profiling_view(profiling_data['distributed_metrics'])
     return go.Figure()
+
+# Add health check endpoints to Flask server
+@server.route('/health')
+def health_check():
+    """Health check endpoint for dashboard service."""
+    return {
+        "status": "healthy",
+        "service": "dashboard",
+        "version": "0.3.0"
+    }
+
+@server.route('/health/live')
+def liveness_probe():
+    """Kubernetes liveness probe."""
+    health_checker = HealthChecker()
+    if health_checker.get_liveness_status():
+        return {"status": "alive"}, 200
+    return {"status": "dead"}, 503
+
+@server.route('/health/ready')
+def readiness_probe():
+    """Kubernetes readiness probe."""
+    health_checker = HealthChecker()
+    if health_checker.get_readiness_status(['dashboard']):
+        return {"status": "ready"}, 200
+    return {"status": "not ready"}, 503
 
 if __name__ == "__main__":
     app.run_server(debug=False, use_reloader=False)

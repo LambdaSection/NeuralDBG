@@ -6,6 +6,10 @@ build/
 !.github/workflows/.env.example
 .qodo
 
+# Configuration validation reports
+validation_*.txt
+*_validation_report.txt
+
 # Dataset files
 data/MNIST/
 tests/data/MNIST/

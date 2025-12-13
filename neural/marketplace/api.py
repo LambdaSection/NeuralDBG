@@ -30,6 +30,13 @@ try:
 except ImportError:
     SECURITY_AVAILABLE = False
 
+try:
+    from neural.config.health import HealthChecker
+    HEALTH_CHECK_AVAILABLE = True
+except ImportError:
+    HealthChecker = None
+    HEALTH_CHECK_AVAILABLE = False
+
 
 class MarketplaceAPI:
     """REST API for Neural Marketplace."""
@@ -413,6 +420,36 @@ class MarketplaceAPI:
                     "count": len(results),
                     "results": results
                 })
+        
+        # Health check endpoints
+        @self.app.route('/health', methods=['GET'])
+        def health():
+            """Health check endpoint."""
+            return jsonify({
+                "status": "healthy",
+                "service": "marketplace",
+                "version": "0.3.0"
+            })
+        
+        @self.app.route('/health/live', methods=['GET'])
+        def liveness():
+            """Kubernetes liveness probe."""
+            if HEALTH_CHECK_AVAILABLE:
+                health_checker = HealthChecker()
+                if health_checker.get_liveness_status():
+                    return jsonify({"status": "alive"})
+                return jsonify({"status": "dead"}), 503
+            return jsonify({"status": "alive"})
+        
+        @self.app.route('/health/ready', methods=['GET'])
+        def readiness():
+            """Kubernetes readiness probe."""
+            if HEALTH_CHECK_AVAILABLE:
+                health_checker = HealthChecker()
+                if health_checker.get_readiness_status(['marketplace']):
+                    return jsonify({"status": "ready"})
+                return jsonify({"status": "not ready"}), 503
+            return jsonify({"status": "ready"})
 
     def run(self, host: str = '0.0.0.0', port: int = 5000, debug: bool = False):
         """Run the API server.
