@@ -1,0 +1,216 @@
+/* Neural DSL Monaco Editor Styles */
+
+/* Error decorations */
+.neural-dsl-error-inline {
+  background-color: rgba(255, 0, 0, 0.3);
+  border-bottom: 2px wavy #ff0000;
+}
+
+.neural-dsl-error-line {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.neural-dsl-error-glyph {
+  background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iI2ZmMDAwMCIgZD0iTTguMSAxLjFsNy4yIDEyLjZjLjEuMi4xLjUgMCAuN2wtLjIuMmMtLjIuMS0uNS4xLS43IDBMLjggMi4yYy0uMi0uMS0uMy0uNC0uMy0uN3MuMS0uNS4zLS43bDEuMy0xLjNjLjItLjIuNS0uMy43LS4zczogMS0uMXoiLz48L3N2Zz4=') center center no-repeat;
+}
+
+/* Warning decorations */
+.neural-dsl-warning-inline {
+  background-color: rgba(255, 165, 0, 0.2);
+  border-bottom: 2px wavy #ffa500;
+}
+
+.neural-dsl-warning-glyph {
+  background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iI2ZmYTUwMCIgZD0iTTguMSAxLjFsNy4yIDEyLjZjLjEuMi4xLjUgMCAuN2wtLjIuMmMtLjIuMS0uNS4xLS43IDBMLjggMi4yYy0uMi0uMS0uMy0uNC0uMy0uN3MuMS0uNS4zLS43bDEuMy0xLjNjLjItLjIuNS0uMy43LS4zczAgMS0uMXoiLz48L3N2Zz4=') center center no-repeat;
+}
+
+/* Info decorations */
+.neural-dsl-info-inline {
+  background-color: rgba(0, 100, 255, 0.1);
+  border-bottom: 1px solid #0064ff;
+}
+
+/* Bracket pair colorization enhancement */
+.monaco-editor .bracket-highlighting-0 { color: #ffd700; }
+.monaco-editor .bracket-highlighting-1 { color: #da70d6; }
+.monaco-editor .bracket-highlighting-2 { color: #87ceeb; }
+.monaco-editor .bracket-highlighting-3 { color: #fa8072; }
+.monaco-editor .bracket-highlighting-4 { color: #7cfc00; }
+.monaco-editor .bracket-highlighting-5 { color: #ff69b4; }
+
+/* Code folding icon customization */
+.monaco-editor .folding-icon {
+  opacity: 0.7;
+}
+
+.monaco-editor .folding-icon:hover {
+  opacity: 1;
+}
+
+/* Selection styling */
+.monaco-editor .selected-text {
+  background-color: rgba(38, 79, 120, 0.4);
+}
+
+/* Current line highlight */
+.monaco-editor .current-line {
+  border-left: 3px solid #007acc;
+}
+
+/* Parameter hints styling */
+.monaco-editor .parameter-hints-widget {
+  border: 1px solid #454545;
+  background-color: #252526;
+}
+
+.monaco-editor .parameter-hints-widget .signature {
+  color: #cccccc;
+}
+
+.monaco-editor .parameter-hints-widget .parameter.active {
+  color: #4fc1ff;
+  font-weight: bold;
+}
+
+/* Suggest widget (autocomplete) styling */
+.monaco-editor .suggest-widget {
+  border: 1px solid #454545;
+  background-color: #252526;
+}
+
+.monaco-editor .suggest-widget .monaco-list .monaco-list-row.focused {
+  background-color: #094771;
+}
+
+.monaco-editor .suggest-widget .details {
+  border-left: 1px solid #454545;
+  background-color: #1e1e1e;
+}
+
+/* Hover widget styling */
+.monaco-editor .monaco-hover {
+  border: 1px solid #454545;
+  background-color: #252526;
+}
+
+.monaco-editor .monaco-hover-content {
+  color: #cccccc;
+}
+
+/* Find widget styling */
+.monaco-editor .find-widget {
+  border: 1px solid #454545;
+  background-color: #252526;
+}
+
+/* Scrollbar styling */
+.monaco-editor .monaco-scrollable-element > .scrollbar > .slider {
+  background-color: rgba(121, 121, 121, 0.4);
+}
+
+.monaco-editor .monaco-scrollable-element > .scrollbar > .slider:hover {
+  background-color: rgba(100, 100, 100, 0.7);
+}
+
+.monaco-editor .monaco-scrollable-element > .scrollbar > .slider.active {
+  background-color: rgba(191, 191, 191, 0.4);
+}
+
+/* Minimap styling */
+.monaco-editor .minimap-shadow-visible {
+  box-shadow: -6px 0 6px -6px rgba(0, 0, 0, 0.4);
+}
+
+/* Custom context menu */
+.monaco-editor .context-view {
+  border: 1px solid #454545;
+  background-color: #252526;
+}
+
+/* Loading indicator */
+.neural-dsl-editor-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background-color: #1e1e1e;
+  color: #cccccc;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.neural-dsl-editor-loading::after {
+  content: "Loading Neural DSL Editor...";
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .monaco-editor .suggest-widget {
+    max-width: 90vw;
+  }
+  
+  .monaco-editor .parameter-hints-widget {
+    max-width: 90vw;
+  }
+}
+
+/* Print styles */
+@media print {
+  .monaco-editor {
+    border: none;
+  }
+  
+  .monaco-editor .minimap {
+    display: none;
+  }
+  
+  .monaco-editor .scrollbar {
+    display: none;
+  }
+}
+
+/* Accessibility enhancements */
+.monaco-editor.hc-black {
+  --high-contrast-border: #6fc3df;
+}
+
+.monaco-editor .monaco-aria-container {
+  position: absolute;
+  left: -999em;
+}
+
+/* Custom token decorations for specific patterns */
+.monaco-editor .neural-dsl-device-decorator {
+  color: #ffc66d;
+  font-weight: bold;
+}
+
+.monaco-editor .neural-dsl-hpo-decorator {
+  background-color: rgba(220, 220, 170, 0.1);
+  border: 1px solid rgba(220, 220, 170, 0.3);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.monaco-editor .neural-dsl-layer-name-decorator {
+  font-style: italic;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+/* Code lens (for future extensions) */
+.monaco-editor .codelens-decoration {
+  color: #999999;
+  font-size: 90%;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.monaco-editor .codelens-decoration:hover {
+  color: #4fc1ff;
+  cursor: pointer;
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@neural-dsl/monaco-editor",
+  "version": "1.0.0",
+  "description": "Monaco-based code editor for Neural DSL with syntax highlighting and IntelliSense",
+  "main": "index.ts",
+  "keywords": [
+    "neural-dsl",
+    "monaco-editor",
+    "code-editor",
+    "syntax-highlighting",
+    "intellisense"
+  ],
+  "dependencies": {
+    "monaco-editor": "^0.44.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  }
+}
