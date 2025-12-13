@@ -511,24 +511,39 @@ def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape:
                 logger.warning(f"Dictionary parameter without 'value' key: {dropout}, using default")
                 dropout = 0.1
         return f"nn.TransformerEncoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout})"
-    elif layer_type == "Embedding":
-        num_embeddings = params.get("input_dim", 10000)
-        if isinstance(num_embeddings, dict):
-            if 'value' in num_embeddings:
-                num_embeddings = num_embeddings['value']
+    elif layer_type == "TransformerDecoder":
+        d_model = params.get("d_model", 512)
+        if isinstance(d_model, dict):
+            if 'value' in d_model:
+                d_model = d_model['value']
             else:
-                logger.warning(f"Dictionary parameter without 'value' key: {num_embeddings}, using default")
-                num_embeddings = 10000
-        
-        embedding_dim = params.get("output_dim", 128)
-        if isinstance(embedding_dim, dict):
-            if 'value' in embedding_dim:
-                embedding_dim = embedding_dim['value']
+                logger.warning(f"Dictionary parameter without 'value' key: {d_model}, using default")
+                d_model = 512
+
+        nhead = params.get("num_heads", 8)
+        if isinstance(nhead, dict):
+            if 'value' in nhead:
+                nhead = nhead['value']
             else:
-                logger.warning(f"Dictionary parameter without 'value' key: {embedding_dim}, using default")
-                embedding_dim = 128
-        
-        return f"nn.Embedding(num_embeddings={num_embeddings}, embedding_dim={embedding_dim})"
+                logger.warning(f"Dictionary parameter without 'value' key: {nhead}, using default")
+                nhead = 8
+
+        dim_feedforward = params.get("ff_dim", 2048)
+        if isinstance(dim_feedforward, dict):
+            if 'value' in dim_feedforward:
+                dim_feedforward = dim_feedforward['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {dim_feedforward}, using default")
+                dim_feedforward = 2048
+
+        dropout = params.get("dropout", 0.1)
+        if isinstance(dropout, dict):
+            if 'value' in dropout:
+                dropout = dropout['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {dropout}, using default")
+                dropout = 0.1
+        return f"nn.TransformerDecoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout})"
     elif layer_type == "GlobalAveragePooling1D":
         return "nn.AdaptiveAvgPool1d(1)"
     elif layer_type == "GlobalAveragePooling2D":

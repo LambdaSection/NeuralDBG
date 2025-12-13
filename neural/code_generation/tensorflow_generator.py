@@ -140,6 +140,35 @@ class TensorFlowGenerator(BaseCodeGenerator):
                 f"x = layers.Dropout({dropout})(x)"
             ]
             return "\n".join(code)
+        elif layer_type == "TransformerDecoder":
+            num_heads = params.get("num_heads", 8)
+            ff_dim = params.get("ff_dim", 512)
+            dropout = params.get("dropout", 0.1)
+            d_model = params.get("d_model", ff_dim)
+            use_causal_mask = params.get("use_causal_mask", True)
+            code = [
+                "# TransformerDecoder block with cross-attention",
+                f"# Self-attention with causal masking",
+                f"decoder_norm1 = layers.LayerNormalization(epsilon=1e-6)(x)",
+            ]
+            if use_causal_mask:
+                code.append(f"# Apply causal mask for autoregressive decoding")
+                code.append(f"self_attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={d_model}, use_causal_mask=True)(decoder_norm1, decoder_norm1)")
+            else:
+                code.append(f"self_attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={d_model})(decoder_norm1, decoder_norm1)")
+            code.extend([
+                f"x = layers.Add()([x, layers.Dropout({dropout})(self_attn_output)])",
+                f"# Cross-attention with encoder output (assume encoder_output available)",
+                f"decoder_norm2 = layers.LayerNormalization(epsilon=1e-6)(x)",
+                f"cross_attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={d_model})(decoder_norm2, encoder_output, encoder_output)",
+                f"x = layers.Add()([x, layers.Dropout({dropout})(cross_attn_output)])",
+                f"# Feed-forward network",
+                f"decoder_norm3 = layers.LayerNormalization(epsilon=1e-6)(x)",
+                f"ff_output = layers.Dense({ff_dim}, activation='relu')(decoder_norm3)",
+                f"ff_output = layers.Dense({d_model})(ff_output)",
+                f"x = layers.Add()([x, layers.Dropout({dropout})(ff_output)])"
+            ])
+            return "\n".join(code)
         elif layer_type == "BatchNormalization":
             momentum = params.get("momentum", 0.99)
             epsilon = params.get("epsilon", 0.001)

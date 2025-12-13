@@ -80,8 +80,36 @@ def generate_onnx(model_data: Dict[str, Any]):
                 outputs=[output_name]
             ))
         elif layer_type == "TransformerEncoder":
-            logger.warning(f"TransformerEncoder not directly supported in ONNX, skipping layer {i}")
-            continue
+            num_heads = params.get('num_heads', 8)
+            hidden_size = params.get('d_model', 512)
+            nodes.append(helper.make_node(
+                'MultiHeadAttention',
+                inputs=[current_input, current_input, current_input],
+                outputs=[output_name],
+                num_heads=num_heads
+            ))
+        elif layer_type == "TransformerDecoder":
+            num_heads = params.get('num_heads', 8)
+            hidden_size = params.get('d_model', 512)
+            self_attn_output = f"layer_{i}_self_attn"
+            cross_attn_output = f"layer_{i}_cross_attn"
+            nodes.append(helper.make_node(
+                'MultiHeadAttention',
+                inputs=[current_input, current_input, current_input],
+                outputs=[self_attn_output],
+                num_heads=num_heads
+            ))
+            nodes.append(helper.make_node(
+                'MultiHeadAttention',
+                inputs=[self_attn_output, 'encoder_output', 'encoder_output'],
+                outputs=[cross_attn_output],
+                num_heads=num_heads
+            ))
+            nodes.append(helper.make_node(
+                'Identity',
+                inputs=[cross_attn_output],
+                outputs=[output_name]
+            ))
         elif layer_type == "Output":
             nodes.append(helper.make_node(
                 'Gemm',

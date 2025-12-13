@@ -195,11 +195,17 @@ class ShapePropagator:
         
         if layer_type == 'TransformerEncoder':
             if framework == 'tensorflow':
-                return input_shape  # Shape preserved through self-attention
+                return input_shape
             elif framework == 'pytorch':
-                return (input_shape[0], input_shape[1])  # (seq_len, d_model)
+                return (input_shape[0], input_shape[1])
 
-        start_time = time.time()  # Measure execution time
+        if layer_type == 'TransformerDecoder':
+            if framework == 'tensorflow':
+                return input_shape
+            elif framework == 'pytorch':
+                return (input_shape[0], input_shape[1])
+
+        start_time = time.time()
 
         output_shape = self._process_layer(input_shape, layer, framework)
         prev_layer = self.current_layer - 1 if self.current_layer > 0 else None
