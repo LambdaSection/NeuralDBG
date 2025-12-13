@@ -179,6 +179,10 @@ logs/
 *.neural.lock
 comparison_plots/
 
+# Collaboration workspaces
+neural_workspaces/
+.neural_sync/
+
 # Monitoring data and artifacts
 monitoring_data/
 monitoring_data_*/

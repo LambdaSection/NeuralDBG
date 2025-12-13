@@ -619,6 +619,63 @@ class AuditLogError(MLOpsException):
     pass
 
 
+class CollaborationException(NeuralException):
+    """
+    Base exception for collaboration-related errors.
+    
+    Raised during collaborative editing, workspace management, or synchronization.
+    """
+    pass
+
+
+class WorkspaceError(CollaborationException):
+    """
+    Raised when workspace operations fail.
+    
+    Examples:
+        - Workspace not found
+        - Access denied
+        - Invalid workspace configuration
+    """
+    pass
+
+
+class ConflictError(CollaborationException):
+    """
+    Raised when edit conflicts occur during collaboration.
+    
+    Examples:
+        - Concurrent edits to the same lines
+        - Merge conflicts
+        - Incompatible changes
+    """
+    pass
+
+
+class SyncError(CollaborationException):
+    """
+    Raised when synchronization fails.
+    
+    Examples:
+        - Network errors
+        - Version mismatch
+        - Sync timeout
+    """
+    pass
+
+
+class AccessControlError(CollaborationException):
+    """
+    Raised when access control validation fails.
+    
+    Examples:
+        - Insufficient permissions
+        - Invalid credentials
+        - Token expired
+    """
+    pass
+
+
 # Convenience functions for common error scenarios
 
 def raise_parser_error(
@@ -679,12 +736,17 @@ NeuralException (base)
 ├── DependencyError
 ├── ConfigurationError
 ├── ExecutionError
-└── MLOpsException
-    ├── ModelRegistryError
-    ├── ApprovalWorkflowError
-    ├── DeploymentError
-    ├── ABTestError
-    └── AuditLogError
+├── MLOpsException
+│   ├── ModelRegistryError
+│   ├── ApprovalWorkflowError
+│   ├── DeploymentError
+│   ├── ABTestError
+│   └── AuditLogError
+└── CollaborationException
+    ├── WorkspaceError
+    ├── ConflictError
+    ├── SyncError
+    └── AccessControlError
 
 Usage Examples:
 ---------------

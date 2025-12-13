@@ -100,6 +100,10 @@ API_DEPS = [
     "websockets>=10.0",
 ]
 
+COLLABORATION_DEPS = [
+    "websockets>=10.0",
+]
+
 MONITORING_DEPS = [
     "prometheus-client>=0.16.0",
     "requests>=2.28.0",

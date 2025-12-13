@@ -1528,7 +1528,6 @@ def no_code(ctx: click.Context, port: int) -> None:
     except KeyboardInterrupt:
         print_info("Server stopped by user")
 
-<<<<<<< HEAD
 @cli.command()
 @click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.option('--method', '-m', default='shap', help='Explanation method', type=click.Choice(['shap', 'lime', 'saliency', 'attention', 'feature_importance', 'counterfactual', 'all'], case_sensitive=False))
@@ -2390,6 +2389,376 @@ def data_lineage(ctx, graph_name, trace, visualize, output, format, base_dir):
     except Exception as e:
         print_error(f"Failed to process lineage: {str(e)}")
         sys.exit(1)
+
+@cli.group()
+@click.pass_context
+def collab(ctx):
+    """Commands for collaborative editing."""
+    pass
+
+@collab.command('create')
+@click.argument('workspace_name')
+@click.option('--description', '-d', help='Workspace description')
+@click.option('--user-id', '-u', required=True, help='Your user ID')
+@click.option('--base-dir', default='neural_workspaces', help='Base directory for workspaces')
+@click.pass_context
+def collab_create(ctx, workspace_name, description, user_id, base_dir):
+    """Create a new collaborative workspace."""
+    print_command_header("collab create")
+    print_info(f"Creating workspace: {workspace_name}")
+
+    try:
+        from neural.collaboration import WorkspaceManager
+
+        with Spinner("Creating workspace") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            manager = WorkspaceManager(base_dir=base_dir)
+            workspace = manager.create_workspace(workspace_name, user_id, description)
+
+        print_success("Workspace created successfully!")
+        print(f"\n{Colors.CYAN}Workspace Information:{Colors.ENDC}")
+        print(f"  {Colors.BOLD}ID:{Colors.ENDC}          {workspace.workspace_id}")
+        print(f"  {Colors.BOLD}Name:{Colors.ENDC}        {workspace.name}")
+        print(f"  {Colors.BOLD}Owner:{Colors.ENDC}       {workspace.owner}")
+        print(f"  {Colors.BOLD}Directory:{Colors.ENDC}   {workspace.workspace_dir}")
+        if description:
+            print(f"  {Colors.BOLD}Description:{Colors.ENDC} {description}")
+
+    except Exception as e:
+        print_error(f"Failed to create workspace: {str(e)}")
+        sys.exit(1)
+
+@collab.command('join')
+@click.argument('workspace_id')
+@click.option('--user-id', '-u', required=True, help='Your user ID')
+@click.option('--username', '-n', required=True, help='Your username')
+@click.option('--host', default='localhost', help='Collaboration server host')
+@click.option('--port', default=8080, type=int, help='Collaboration server port')
+@click.pass_context
+def collab_join(ctx, workspace_id, user_id, username, host, port):
+    """Join a collaborative workspace."""
+    print_command_header("collab join")
+    print_info(f"Connecting to workspace: {workspace_id}")
+
+    try:
+        import asyncio
+        import json
+
+        try:
+            import websockets
+        except ImportError:
+            print_error("websockets package required")
+            print_info("Install with: pip install websockets")
+            sys.exit(1)
+
+        async def connect_to_workspace():
+            uri = f"ws://{host}:{port}"
+            
+            with Spinner("Connecting to collaboration server") as spinner:
+                if ctx.obj.get('NO_ANIMATIONS'):
+                    spinner.stop()
+                
+                try:
+                    async with websockets.connect(uri) as websocket:
+                        auth_message = {
+                            'type': 'auth',
+                            'workspace_id': workspace_id,
+                            'user_id': user_id,
+                            'username': username
+                        }
+                        
+                        await websocket.send(json.dumps(auth_message))
+                        
+                        response = await websocket.recv()
+                        data = json.loads(response)
+                        
+                        if data.get('type') == 'auth_success':
+                            print_success(f"Connected to workspace successfully!")
+                            print(f"\n{Colors.CYAN}Connection Information:{Colors.ENDC}")
+                            print(f"  {Colors.BOLD}Workspace ID:{Colors.ENDC} {workspace_id}")
+                            print(f"  {Colors.BOLD}Username:{Colors.ENDC}     {username}")
+                            print(f"  {Colors.BOLD}Client ID:{Colors.ENDC}    {data.get('client_id')}")
+                            print(f"\n{Colors.YELLOW}Press Ctrl+C to disconnect{Colors.ENDC}\n")
+                            
+                            while True:
+                                message = await websocket.recv()
+                                msg_data = json.loads(message)
+                                
+                                if msg_data.get('type') == 'user_joined':
+                                    print(f"{Colors.GREEN}✓{Colors.ENDC} {msg_data.get('username')} joined the workspace")
+                                elif msg_data.get('type') == 'user_left':
+                                    print(f"{Colors.YELLOW}✗{Colors.ENDC} {msg_data.get('username')} left the workspace")
+                                elif msg_data.get('type') == 'edit':
+                                    print(f"{Colors.CYAN}✎{Colors.ENDC} {msg_data.get('username')} made an edit")
+                        else:
+                            print_error(f"Authentication failed: {data.get('message')}")
+                
+                except websockets.exceptions.ConnectionRefused:
+                    print_error(f"Could not connect to server at {host}:{port}")
+                    print_info("Make sure the collaboration server is running")
+                    print_info("Start server with: neural collab server")
+        
+        asyncio.run(connect_to_workspace())
+
+    except KeyboardInterrupt:
+        print_info("\nDisconnected from workspace")
+    except Exception as e:
+        print_error(f"Connection failed: {str(e)}")
+        sys.exit(1)
+
+@collab.command('server')
+@click.option('--host', default='localhost', help='Server host')
+@click.option('--port', default=8080, type=int, help='Server port')
+@click.pass_context
+def collab_server(ctx, host, port):
+    """Start the collaboration server."""
+    print_command_header("collab server")
+    print_info(f"Starting collaboration server on {host}:{port}")
+
+    try:
+        from neural.collaboration import CollaborationServer
+
+        print_success("Collaboration server starting...")
+        print(f"\n{Colors.CYAN}Server Information:{Colors.ENDC}")
+        print(f"  {Colors.BOLD}Host:{Colors.ENDC} {host}")
+        print(f"  {Colors.BOLD}Port:{Colors.ENDC} {port}")
+        print(f"\n{Colors.YELLOW}Press Ctrl+C to stop the server{Colors.ENDC}\n")
+
+        server = CollaborationServer(host=host, port=port)
+        server.start()
+
+    except ImportError:
+        print_error("Collaboration module not available")
+        print_info("Install dependencies: pip install websockets")
+        sys.exit(1)
+    except Exception as e:
+        print_error(f"Server failed: {str(e)}")
+        sys.exit(1)
+
+@collab.command('list')
+@click.option('--user-id', '-u', help='Filter by user ID')
+@click.option('--base-dir', default='neural_workspaces', help='Base directory for workspaces')
+@click.pass_context
+def collab_list(ctx, user_id, base_dir):
+    """List collaborative workspaces."""
+    print_command_header("collab list")
+
+    try:
+        from neural.collaboration import WorkspaceManager
+
+        with Spinner("Loading workspaces") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            manager = WorkspaceManager(base_dir=base_dir)
+            workspaces = manager.list_workspaces(user_id=user_id)
+
+        if not workspaces:
+            print_warning("No workspaces found")
+            return
+
+        print_success(f"Found {len(workspaces)} workspace(s)")
+        print(f"\n{Colors.CYAN}Workspaces:{Colors.ENDC}\n")
+
+        for ws in workspaces:
+            print(f"{Colors.BOLD}{ws.name}{Colors.ENDC}")
+            print(f"  ID:          {ws.workspace_id}")
+            print(f"  Owner:       {ws.owner}")
+            print(f"  Members:     {len(ws.members)}")
+            print(f"  Files:       {len(ws.files)}")
+            print(f"  Created:     {ws.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
+            print()
+
+    except Exception as e:
+        print_error(f"Failed to list workspaces: {str(e)}")
+        sys.exit(1)
+
+@collab.command('info')
+@click.argument('workspace_id')
+@click.option('--base-dir', default='neural_workspaces', help='Base directory for workspaces')
+@click.pass_context
+def collab_info(ctx, workspace_id, base_dir):
+    """Show workspace information."""
+    print_command_header("collab info")
+
+    try:
+        from neural.collaboration import WorkspaceManager
+
+        with Spinner("Loading workspace") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            manager = WorkspaceManager(base_dir=base_dir)
+            workspace = manager.get_workspace(workspace_id)
+
+        if not workspace:
+            print_error(f"Workspace not found: {workspace_id}")
+            sys.exit(1)
+
+        print(f"\n{Colors.CYAN}Workspace Information:{Colors.ENDC}")
+        print(f"  {Colors.BOLD}ID:{Colors.ENDC}          {workspace.workspace_id}")
+        print(f"  {Colors.BOLD}Name:{Colors.ENDC}        {workspace.name}")
+        print(f"  {Colors.BOLD}Owner:{Colors.ENDC}       {workspace.owner}")
+        print(f"  {Colors.BOLD}Directory:{Colors.ENDC}   {workspace.workspace_dir}")
+        print(f"  {Colors.BOLD}Created:{Colors.ENDC}     {workspace.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"  {Colors.BOLD}Updated:{Colors.ENDC}     {workspace.updated_at.strftime('%Y-%m-%d %H:%M:%S')}")
+
+        if workspace.metadata.get('description'):
+            print(f"\n{Colors.CYAN}Description:{Colors.ENDC}")
+            print(f"  {workspace.metadata['description']}")
+
+        print(f"\n{Colors.CYAN}Members ({len(workspace.members)}):{Colors.ENDC}")
+        for member in workspace.members:
+            role = workspace.get_role(member)
+            print(f"  - {member} ({role})")
+
+        if workspace.files:
+            print(f"\n{Colors.CYAN}Files ({len(workspace.files)}):{Colors.ENDC}")
+            for filename in workspace.files:
+                print(f"  - {filename}")
+
+    except Exception as e:
+        print_error(f"Failed to get workspace info: {str(e)}")
+        sys.exit(1)
+
+@collab.command('sync')
+@click.argument('workspace_id')
+@click.option('--user-id', '-u', required=True, help='Your user ID')
+@click.option('--base-dir', default='neural_workspaces', help='Base directory for workspaces')
+@click.pass_context
+def collab_sync(ctx, workspace_id, user_id, base_dir):
+    """Sync workspace with version control."""
+    print_command_header("collab sync")
+    print_info(f"Synchronizing workspace: {workspace_id}")
+
+    try:
+        from neural.collaboration import WorkspaceManager, GitIntegration, SyncManager
+
+        with Spinner("Loading workspace") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            manager = WorkspaceManager(base_dir=base_dir)
+            workspace = manager.get_workspace(workspace_id)
+
+        if not workspace:
+            print_error(f"Workspace not found: {workspace_id}")
+            sys.exit(1)
+
+        if not workspace.has_member(user_id):
+            print_error("You are not a member of this workspace")
+            sys.exit(1)
+
+        with Spinner("Initializing Git") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            git = GitIntegration(workspace.workspace_dir)
+            
+            if not git.is_repo():
+                git.init_repo()
+                print_info("Initialized Git repository")
+
+        with Spinner("Checking workspace status") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            status = git.get_status()
+
+        if status['modified'] or status['untracked']:
+            print(f"\n{Colors.CYAN}Workspace Status:{Colors.ENDC}")
+            
+            if status['modified']:
+                print(f"\n  Modified files:")
+                for f in status['modified']:
+                    print(f"    {Colors.YELLOW}M{Colors.ENDC} {f}")
+            
+            if status['untracked']:
+                print(f"\n  Untracked files:")
+                for f in status['untracked']:
+                    print(f"    {Colors.YELLOW}?{Colors.ENDC} {f}")
+            
+            if click.confirm("\nCommit changes?", default=True):
+                git.add_files(['.'])
+                commit_msg = click.prompt("Commit message", default="Update workspace")
+                git.commit(commit_msg, author_name=user_id, author_email=f"{user_id}@neural.local")
+                print_success("Changes committed")
+        else:
+            print_info("No changes to commit")
+
+    except Exception as e:
+        print_error(f"Sync failed: {str(e)}")
+        sys.exit(1)
+
+@collab.command('add-member')
+@click.argument('workspace_id')
+@click.argument('member_user_id')
+@click.option('--role', default='member', type=click.Choice(['viewer', 'member', 'admin']), help='Member role')
+@click.option('--owner-id', '-o', required=True, help='Your user ID (must be owner)')
+@click.option('--base-dir', default='neural_workspaces', help='Base directory for workspaces')
+@click.pass_context
+def collab_add_member(ctx, workspace_id, member_user_id, role, owner_id, base_dir):
+    """Add a member to workspace."""
+    print_command_header("collab add-member")
+
+    try:
+        from neural.collaboration import WorkspaceManager
+
+        with Spinner("Loading workspace") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            manager = WorkspaceManager(base_dir=base_dir)
+            workspace = manager.get_workspace(workspace_id)
+
+        if not workspace:
+            print_error(f"Workspace not found: {workspace_id}")
+            sys.exit(1)
+
+        if workspace.owner != owner_id:
+            print_error("Only workspace owner can add members")
+            sys.exit(1)
+
+        workspace.add_member(member_user_id, role)
+        manager.update_workspace(workspace)
+
+        print_success(f"Added {member_user_id} to workspace as {role}")
+
+    except Exception as e:
+        print_error(f"Failed to add member: {str(e)}")
+        sys.exit(1)
+
+@collab.command('remove-member')
+@click.argument('workspace_id')
+@click.argument('member_user_id')
+@click.option('--owner-id', '-o', required=True, help='Your user ID (must be owner)')
+@click.option('--base-dir', default='neural_workspaces', help='Base directory for workspaces')
+@click.pass_context
+def collab_remove_member(ctx, workspace_id, member_user_id, owner_id, base_dir):
+    """Remove a member from workspace."""
+    print_command_header("collab remove-member")
+
+    try:
+        from neural.collaboration import WorkspaceManager
+
+        with Spinner("Loading workspace") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            manager = WorkspaceManager(base_dir=base_dir)
+            workspace = manager.get_workspace(workspace_id)
+
+        if not workspace:
+            print_error(f"Workspace not found: {workspace_id}")
+            sys.exit(1)
+
+        if workspace.owner != owner_id:
+            print_error("Only workspace owner can remove members")
+            sys.exit(1)
+
+        workspace.remove_member(member_user_id)
+        manager.update_workspace(workspace)
+
+        print_success(f"Removed {member_user_id} from workspace")
+
+    except Exception as e:
+        print_error(f"Failed to remove member: {str(e)}")
+        sys.exit(1)
+
 
 if __name__ == '__main__':
     cli()
