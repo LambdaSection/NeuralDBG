@@ -30,7 +30,7 @@ def get_data(
     batch_size: int, 
     train: bool = True, 
     backend: str = 'pytorch'
-) -> Any:
+) -> Union[torch.utils.data.DataLoader, tf.data.Dataset]:
     datasets = {'MNIST': MNIST, 'CIFAR10': CIFAR10}
     dataset = datasets.get(dataset_name, MNIST)(root='./data', train=train, transform=ToTensor(), download=True)
     if backend == 'pytorch':
@@ -168,9 +168,9 @@ class DynamicPTModel(nn.Module):
         hpo_params: List[Dict[str, Any]]
     ) -> None:
         super().__init__()
-        self.model_dict = model_dict
-        self.layers = nn.ModuleList()
-        self.shape_propagator = ShapePropagator(debug=False)
+        self.model_dict: Dict[str, Any] = model_dict
+        self.layers: nn.ModuleList = nn.ModuleList()
+        self.shape_propagator: ShapePropagator = ShapePropagator(debug=False)
         input_shape_raw = model_dict['input']['shape']  # (28, 28, 1)
         input_shape = (None, input_shape_raw[-1], *input_shape_raw[:-1])  # (None, 1, 28, 28)
         current_shape = input_shape
@@ -277,7 +277,7 @@ class DynamicTFModel(tf.keras.Model):
         hpo_params: List[Dict[str, Any]]
     ) -> None:
         super().__init__()
-        self.layers_list = []
+        self.layers_list: List[Any] = []
         input_shape = model_dict['input']['shape']
         in_features = prod(input_shape)
         for layer in model_dict['layers']:
@@ -312,9 +312,9 @@ class DynamicTFModel(tf.keras.Model):
 # Training Method
 def train_model(
     model: Union[DynamicPTModel, DynamicTFModel], 
-    optimizer: Any, 
-    train_loader: Any, 
-    val_loader: Any, 
+    optimizer: Union[optim.Optimizer, Any], 
+    train_loader: Union[torch.utils.data.DataLoader, tf.data.Dataset], 
+    val_loader: Union[torch.utils.data.DataLoader, tf.data.Dataset], 
     backend: str = 'pytorch', 
     epochs: int = 1, 
     execution_config: Optional[Dict[str, Any]] = None
