@@ -113,10 +113,37 @@ print(f"GPU Available: {executor.is_gpu_available}")
 ### Google Colab
 
 **Features:**
-- Free GPU/TPU access
+- Free GPU/TPU access (Tesla T4, P100, V100)
 - Google Drive integration
 - ngrok tunnel support for dashboards
-- Longer training times
+- Longer training times (up to 12 hours)
+- **NEW:** Full notebook interface support
+- **NEW:** Interactive debugging with NeuralDbg
+- **NEW:** Automatic environment initialization
+
+**Quick Start:**
+```python
+# Option 1: Use CloudExecutor directly
+from neural.cloud.cloud_execution import CloudExecutor
+
+executor = CloudExecutor()  # Auto-detects Colab environment
+model_path = executor.compile_model(dsl_code, backend='tensorflow')
+results = executor.run_model(model_path, dataset='MNIST', epochs=5)
+
+# Option 2: Use the Notebook Interface (NEW!)
+from neural.cloud.notebook_interface import start_notebook_interface
+
+# This creates a pre-configured notebook with helper functions
+start_notebook_interface('colab', port=8888)
+```
+
+**Pre-built Notebook Template:**
+
+We provide a comprehensive Colab notebook with all features pre-configured:
+
+📓 [Neural DSL Colab Quick Start](../docs/colab/neural_colab_quickstart.ipynb)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Lemniscate-world/Neural/blob/main/docs/colab/neural_colab_quickstart.ipynb)
 
 **Example:**
 ```python

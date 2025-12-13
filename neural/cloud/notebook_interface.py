@@ -213,8 +213,71 @@ print("Neural DSL is ready to use!")
             logger.info("SageMaker notebook initialized with Neural DSL")
 
         elif self.platform.lower() == 'colab':
-            logger.error("Colab notebook interface is not supported yet")
-            raise NotImplementedError("Colab notebook interface is not supported yet")
+            # Colab doesn't require explicit notebook creation like Kaggle/SageMaker
+            # The environment is already initialized when code runs
+            logger.info("Initializing Colab environment with Neural DSL...")
+            
+            # Initialize the Colab environment with Neural DSL
+            init_code = """
+# Install Neural DSL
+!pip install -q git+https://github.com/Lemniscate-world/Neural.git
+
+# Import the cloud module
+from neural.cloud.cloud_execution import CloudExecutor
+
+# Initialize the cloud executor
+executor = CloudExecutor()
+print(f"Detected environment: {executor.environment}")
+print(f"GPU available: {executor.is_gpu_available}")
+
+# Define helper functions
+def run_dsl(dsl_code, backend='tensorflow', dataset='MNIST', epochs=5):
+    # Compile the model
+    model_path = executor.compile_model(dsl_code, backend=backend)
+    print(f"Model compiled to: {model_path}")
+
+    # Run the model
+    results = executor.run_model(model_path, dataset=dataset, epochs=epochs)
+    print(f"Model execution results: {results}")
+
+    return model_path, results
+
+def visualize_model(dsl_code, output_format='png'):
+    # Visualize the model
+    viz_path = executor.visualize_model(dsl_code, output_format=output_format)
+    print(f"Model visualization saved to: {viz_path}")
+    
+    # Display in Colab
+    from IPython.display import Image, display
+    if output_format in ['png', 'jpg', 'jpeg']:
+        display(Image(filename=viz_path))
+
+    return viz_path
+
+def debug_model(dsl_code, backend='tensorflow', setup_tunnel=True):
+    # Start the NeuralDbg dashboard
+    dashboard_info = executor.start_debug_dashboard(dsl_code, backend=backend, setup_tunnel=setup_tunnel)
+    print(f"Dashboard URL (local): {dashboard_info['dashboard_url']}")
+    if dashboard_info.get('tunnel_url'):
+        print(f"Dashboard URL (public): {dashboard_info['tunnel_url']}")
+        print(f"\\nAccess your dashboard at: {dashboard_info['tunnel_url']}")
+
+    return dashboard_info
+
+print("Neural DSL is ready to use in Colab!")
+print("\\nQuick start:")
+print("  1. Define your model: dsl_code = '''network MyModel { ... }'''")
+print("  2. Compile and run: run_dsl(dsl_code)")
+print("  3. Visualize: visualize_model(dsl_code)")
+print("  4. Debug: debug_model(dsl_code)")
+"""
+            
+            result = self.remote.execute_on_colab(init_code)
+            if not result['success']:
+                logger.error(f"Failed to initialize Colab environment: {result.get('error', 'Unknown error')}")
+                raise CloudExecutionError(f"Failed to initialize Colab environment: {result.get('error', 'Unknown error')}")
+
+            logger.info("Colab environment initialized with Neural DSL")
 
     def _create_notebook_file(self):
         """Create the notebook file."""
@@ -435,6 +498,8 @@ print("Neural DSL is ready to use!")
             if not self.notebook_name:
                 return {'success': False, 'error': "No SageMaker notebook available"}
             return self.remote.execute_on_sagemaker(self.notebook_name, cell_code)
+        elif self.platform.lower() == 'colab':
+            return self.remote.execute_on_colab(cell_code)
         else:
             return {'success': False, 'error': f"Unsupported platform: {self.platform}"}
 
@@ -468,6 +533,10 @@ print("Neural DSL is ready to use!")
                 logger.info(f"Deleted SageMaker notebook: {self.notebook_name}")
             else:
                 logger.warning(f"Failed to delete SageMaker notebook: {self.notebook_name}")
+        
+        elif self.platform.lower() == 'colab':
+            # Colab doesn't require explicit cleanup, environment is ephemeral
+            logger.info("Colab environment cleanup completed")
 
         # Clean up the remote connection
         self.remote.cleanup()
