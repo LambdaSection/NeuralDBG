@@ -63,6 +63,19 @@ venv*/
 # Social media content
 social_media/
 
+# Blog publishing - generated content
+docs/blog/*.md
+docs/social/*.txt
+docs/blog/
+docs/social/
+
+# API credentials (never commit)
+.env
+.env.local
+*.key
+*_token.txt
+api_keys.json
+
 # Project-local roadmap and vision (not for distribution)
 ROADMAP.md
 VISION.md

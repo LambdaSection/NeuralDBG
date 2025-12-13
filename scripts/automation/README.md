@@ -2,11 +2,21 @@
 
 This directory contains automation scripts for:
 - Blog post generation
+- Blog publishing (Dev.to, Medium)
 - GitHub releases
 - PyPI publishing
 - Example validation
 - Test automation
 - Social media posts
+
+## Documentation
+
+- **[QUICK_START.md](QUICK_START.md)** - 5-minute setup guide
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Technical architecture and design
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Complete implementation details
+- **[CHECKLIST.md](CHECKLIST.md)** - Setup and publishing checklists
+- **[FILES_OVERVIEW.md](FILES_OVERVIEW.md)** - Overview of all files
+- **[example_usage.py](example_usage.py)** - Programmatic usage examples
 
 ## Scripts
 
@@ -89,6 +99,134 @@ python scripts/automation/social_media_generator.py
 - `docs/social/twitter_v{version}.txt`
 - `docs/social/linkedin_v{version}.txt`
 
+### `devto_publisher.py`
+Automates publishing articles to Dev.to via API.
+
+**Features:**
+- Frontmatter parsing (YAML)
+- Article creation and updates
+- Draft/published status control
+- Tag management (max 4 tags)
+- Canonical URL support
+- Error handling and logging
+
+**Setup:**
+1. Get API key from https://dev.to/settings/extensions
+2. Set environment variable:
+   ```bash
+   export DEVTO_API_KEY="your_api_key_here"
+   ```
+
+**Usage:**
+```bash
+# Publish single article as draft
+python scripts/automation/devto_publisher.py --file docs/blog/devto_v0.3.0_release.md
+
+# Publish immediately (not as draft)
+python scripts/automation/devto_publisher.py --file article.md --publish
+
+# Publish all devto_*.md files in directory
+python scripts/automation/devto_publisher.py --directory docs/blog
+
+# Update existing articles
+python scripts/automation/devto_publisher.py --directory docs/blog --update
+```
+
+**Frontmatter Format:**
+```yaml
+---
+title: Article Title
+published: false
+description: Brief description
+tags: python, machinelearning, deeplearning, neuralnetworks
+canonical_url: https://example.com/original-article
+series: Series Name
+---
+```
+
+### `medium_publisher.py`
+Automates publishing articles to Medium via API.
+
+**Features:**
+- Markdown content support
+- Draft/public/unlisted status
+- Tag management (max 5 tags)
+- Canonical URL support
+- Publication support
+- License configuration
+
+**Setup:**
+1. Get API token from https://medium.com/me/settings/security
+2. Set environment variable:
+   ```bash
+   export MEDIUM_API_TOKEN="your_token_here"
+   ```
+
+**Usage:**
+```bash
+# Publish single article as draft
+python scripts/automation/medium_publisher.py --file docs/blog/medium_v0.3.0_release.md
+
+# Publish as public post
+python scripts/automation/medium_publisher.py --file article.md --status public
+
+# Publish to a publication
+python scripts/automation/medium_publisher.py --file article.md --publication-id abc123
+
+# List your publications
+python scripts/automation/medium_publisher.py --list-publications
+
+# Publish all medium_*.md files
+python scripts/automation/medium_publisher.py --directory docs/blog
+```
+
+**Frontmatter Format:**
+```yaml
+---
+title: Article Title
+status: draft
+tags: python, machine-learning, deep-learning
+canonical_url: https://example.com/original-article
+license: all-rights-reserved
+---
+```
+
+### `master_automation.py`
+Orchestrates all automation tasks including marketing automation.
+
+**Features:**
+- Blog post generation
+- Social media post generation
+- Dev.to publishing
+- Medium publishing
+- Test automation
+- Example validation
+- Full release workflow
+
+**Usage:**
+```bash
+# Generate blog posts only
+python scripts/automation/master_automation.py --blog
+
+# Generate and publish to Dev.to (as draft)
+python scripts/automation/master_automation.py --blog --publish-devto
+
+# Generate and publish to Medium (as draft)
+python scripts/automation/master_automation.py --blog --publish-medium
+
+# Full marketing automation
+python scripts/automation/master_automation.py --marketing --publish-devto --publish-medium
+
+# Publish immediately (not as draft)
+python scripts/automation/master_automation.py --marketing --publish-devto --devto-public --publish-medium --medium-status public
+
+# Run daily tasks
+python scripts/automation/master_automation.py --daily
+
+# Full release workflow
+python scripts/automation/master_automation.py --release --version-type patch
+```
+
 ## GitHub Actions
 
 ### Automated Release Workflow
@@ -135,11 +273,22 @@ Located at `.github/workflows/periodic_tasks.yml`
 2. **Python packages**:
    ```bash
    pip install build twine pytest pytest-json-report
+   
+   # For publishing to Dev.to and Medium
+   pip install requests
    ```
 
-3. **GitHub Actions Secrets** (if publishing to PyPI):
+3. **API Credentials** (for blog publishing):
+   - **Dev.to**: Get API key from https://dev.to/settings/extensions
+     - Set `DEVTO_API_KEY` environment variable
+   - **Medium**: Get API token from https://medium.com/me/settings/security
+     - Set `MEDIUM_API_TOKEN` environment variable
+
+4. **GitHub Actions Secrets** (if publishing to PyPI):
    - `PYPI_API_TOKEN` - PyPI API token
    - `TEST_PYPI_API_TOKEN` - TestPyPI API token (optional)
+   - `DEVTO_API_KEY` - Dev.to API key (optional, for automated publishing)
+   - `MEDIUM_API_TOKEN` - Medium API token (optional, for automated publishing)
 
 ## Workflow
 
@@ -158,6 +307,45 @@ Located at `.github/workflows/periodic_tasks.yml`
    - Review and edit blog posts
    - Post to social media
    - Update documentation
+
+### Marketing Automation Workflow
+
+1. **Generate content**:
+   ```bash
+   python scripts/automation/master_automation.py --marketing
+   ```
+   This generates:
+   - Blog posts for Medium and Dev.to
+   - Social media posts for Twitter/X and LinkedIn
+
+2. **Review and edit** generated content in:
+   - `docs/blog/` - Blog post files
+   - `docs/social/` - Social media post files
+
+3. **Publish automatically**:
+   ```bash
+   # Publish to Dev.to as draft
+   python scripts/automation/master_automation.py --marketing --publish-devto
+   
+   # Publish to Medium as draft
+   python scripts/automation/master_automation.py --marketing --publish-medium
+   
+   # Publish everywhere immediately
+   python scripts/automation/master_automation.py --marketing \
+     --publish-devto --devto-public \
+     --publish-medium --medium-status public
+   ```
+
+4. **Or publish manually** using individual publishers:
+   ```bash
+   # Dev.to
+   python scripts/automation/devto_publisher.py --file docs/blog/devto_v0.3.0_release.md
+   
+   # Medium
+   python scripts/automation/medium_publisher.py --file docs/blog/medium_v0.3.0_release.md
+   ```
+
+5. **Post to social media** using content from `docs/social/`
 
 ### Automated Daily Tasks
 
@@ -197,6 +385,28 @@ Check API tokens in GitHub Secrets or use `--test-pypi` first.
 
 ### Tests fail
 Review test output and fix issues before releasing.
+
+### Dev.to API errors
+- **401 Unauthorized**: Check that `DEVTO_API_KEY` is set correctly
+- **422 Unprocessable Entity**: Check article format and required fields (title, body)
+- **Rate limiting**: Dev.to has rate limits; wait before retrying
+- **Duplicate article**: Use `--update` flag to update existing articles
+
+### Medium API errors
+- **401 Unauthorized**: Check that `MEDIUM_API_TOKEN` is set correctly
+- **Invalid token**: Regenerate token from Medium settings
+- **403 Forbidden**: Check publication permissions if publishing to a publication
+- **Rate limiting**: Medium has rate limits; wait before retrying
+
+### Missing requests library
+If you get `ImportError: requests library required`:
+```bash
+pip install requests
+```
+
+### Article not updating
+- For Dev.to: Check that article title matches exactly (case-sensitive)
+- For Medium: Medium API doesn't support updates; each publish creates a new post
 
 ## Future Enhancements
 
