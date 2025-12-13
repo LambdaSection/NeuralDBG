@@ -3,6 +3,7 @@ lemniscate/
 build/
 *.pyc
 .env
+!.github/workflows/.env.example
 .qodo
 
 # Dataset files
@@ -75,6 +76,13 @@ docs/social/
 *.key
 *_token.txt
 api_keys.json
+
+# Marketing automation workflow artifacts
+devto_url.txt
+medium_url.txt
+twitter_url.txt
+linkedin_id.txt
+urls/
 
 # Project-local roadmap and vision (not for distribution)
 ROADMAP.md

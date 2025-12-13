@@ -41,7 +41,24 @@ docs/
 - [Troubleshooting Guide](troubleshooting.md) - Fix common issues (NEW!)
 - [Migration Guide](migration.md) - Version upgrades and framework migration (NEW!)
 
-### 2. Neural DSL Reference
+### 2. Marketing Automation ⭐ NEW
+
+Complete marketing automation for release announcements across multiple platforms.
+
+- [📘 Marketing Automation Guide](MARKETING_AUTOMATION_GUIDE.md) - Complete documentation
+- [⚡ Quick Reference](MARKETING_AUTOMATION_QUICK_REF.md) - Quick commands and tips
+- [🔧 Setup Guide](MARKETING_AUTOMATION_SETUP.md) - Step-by-step API setup
+- [📊 Workflow Diagram](MARKETING_AUTOMATION_DIAGRAM.md) - Visual workflow overview
+- [✅ Setup Checklist](../.github/MARKETING_AUTOMATION_CHECKLIST.md) - Track your setup progress
+
+**Features:**
+- ✅ Automatic blog publishing (Dev.to, Medium)
+- ✅ Social media posting (Twitter/X, LinkedIn)
+- ✅ GitHub Discussions updates
+- ✅ Comprehensive error handling
+- ✅ One-click deployment
+
+### 3. Neural DSL Reference
 
 - [DSL Syntax](DSL.md)
 - [Layer Reference](layers.md)
@@ -49,14 +66,14 @@ docs/
 - [Training Configuration](training.md)
 - [Hyperparameter Specification](hyperparameters.md)
 
-### 3. CLI Reference
+### 4. CLI Reference
 
 - [Command-Line Interface](cli-reference.md)
 - [Command Reference](commands.md)
 - [Configuration Options](configuration.md)
 - [Environment Variables](environment.md)
 
-### 4. API Reference
+### 5. API Reference
 
 - [Parser API](api/parser.md)
 - [Code Generation API](api/code-generation.md)
@@ -65,7 +82,7 @@ docs/
 - [Dashboard API](api/dashboard.md)
 - [HPO API](api/hpo.md)
 
-### 5. Tutorials
+### 6. Tutorials
 
 Comprehensive learning resources for all skill levels:
 
@@ -83,7 +100,7 @@ Comprehensive learning resources for all skill levels:
   - [MNIST with Comments](../examples/mnist_commented.neural) - Line-by-line CNN guide (NEW!)
   - [Sentiment Analysis with Comments](../examples/sentiment_analysis_commented.neural) - LSTM tutorial (NEW!)
 
-### 6. Examples
+### 7. Examples
 
 - [Basic Examples](examples/basic/)
 - [Computer Vision Examples](examples/computer-vision/)
@@ -91,7 +108,7 @@ Comprehensive learning resources for all skill levels:
 - [Reinforcement Learning Examples](examples/reinforcement-learning/)
 - [Generative Models Examples](examples/generative/)
 
-### 7. Guides
+### 8. Guides
 
 - [Best Practices](guides/best-practices.md)
 - [Performance Optimization](guides/performance.md)
@@ -99,7 +116,7 @@ Comprehensive learning resources for all skill levels:
 - [Deployment Guide](guides/deployment.md)
 - [Contributing Guide](guides/contributing.md)
 
-### 8. Blog & Releases
+### 9. Blog & Releases
 
 - **[Release Notes](releases/)** - Detailed release documentation
   - [v0.3.0 Release Notes](releases/v0.3.0.md) - Latest release (NEW!)
@@ -292,18 +309,6 @@ pip install sphinx-rtd-theme
 - [NumPy Docstring Guide](https://numpydoc.readthedocs.io/en/latest/format.html)
 - [reStructuredText Primer](https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html)
 - [Sphinx autodoc](https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html)
-
-## Support
-
-For documentation issues:
-- Open an issue on GitHub
-- Check existing documentation
-- Refer to Sphinx documentation
-
-## License
-
-Documentation is released under the same license as Neural DSL (MIT License).
-extensions/autodoc.html)
 
 ## Support
 

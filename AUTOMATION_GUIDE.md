@@ -4,12 +4,14 @@
 
 Neural DSL now has comprehensive automation for:
 - ✅ **Blog Post Generation** - Auto-generate posts from CHANGELOG
+- ✅ **Blog Publishing** - Auto-publish to Dev.to and Medium via API
+- ✅ **Social Media Posting** - Auto-post to Twitter/X and LinkedIn via API
+- ✅ **GitHub Discussions** - Auto-create release announcements
 - ✅ **GitHub Releases** - Automated version bumping and releases
 - ✅ **PyPI Publishing** - Automated package publishing
 - ✅ **Post-Release Automation** - Version updates, discussions, deployments, notifications
 - ✅ **Example Validation** - Validate all examples automatically
 - ✅ **Test Automation** - Run tests and generate reports
-- ✅ **Social Media Posts** - Generate posts for Twitter, LinkedIn
 - ✅ **Periodic Tasks** - Daily automated maintenance
 
 ## Quick Start
@@ -140,6 +142,36 @@ python scripts/automation/social_media_generator.py
 
 ## GitHub Actions Workflows
 
+### Marketing Automation (`.github/workflows/marketing_automation.yml`) ⭐ NEW
+
+**The complete marketing automation solution!**
+
+**Triggers:**
+- Release publication (automatic)
+- Manual dispatch
+
+**Actions:**
+1. Validate API secrets
+2. Generate blog posts and social media content
+3. Publish to Dev.to via API (immediate)
+4. Publish to Medium via API (draft)
+5. Post to Twitter/X via API
+6. Post to LinkedIn via API
+7. Create GitHub Discussion with announcement
+8. Commit generated files to repository
+
+**Features:**
+- ✅ Comprehensive error handling
+- ✅ Secret validation before publishing
+- ✅ Continue-on-error for individual platforms
+- ✅ Detailed workflow summary
+- ✅ Artifact upload for all generated content
+
+**Documentation:**
+- [Full Guide](docs/MARKETING_AUTOMATION_GUIDE.md)
+- [Quick Reference](docs/MARKETING_AUTOMATION_QUICK_REF.md)
+- [Workflows README](.github/workflows/README.md)
+
 ### Automated Release (`.github/workflows/automated_release.yml`)
 
 **Triggers:**
@@ -246,13 +278,25 @@ python scripts/automation/master_automation.py --daily
 
 ### GitHub Actions Setup
 
-1. **Secrets** (if publishing to PyPI):
+1. **Secrets for PyPI Publishing:**
    - `PYPI_API_TOKEN` - PyPI API token
    - `TEST_PYPI_API_TOKEN` - TestPyPI API token (optional)
 
-2. **Permissions:**
-   - Contents: write (for releases)
+2. **Secrets for Marketing Automation:**
+   - `DEVTO_API_KEY` - Dev.to API key
+   - `MEDIUM_API_KEY` - Medium integration token
+   - `MEDIUM_USER_ID` - Medium user ID (optional)
+   - `TWITTER_API_KEY` - Twitter API key
+   - `TWITTER_API_SECRET` - Twitter API secret
+   - `TWITTER_ACCESS_TOKEN` - Twitter access token
+   - `TWITTER_ACCESS_TOKEN_SECRET` - Twitter access token secret
+   - `LINKEDIN_ACCESS_TOKEN` - LinkedIn access token
+   - `LINKEDIN_PERSON_URN` - LinkedIn person URN (optional)
+
+3. **Permissions:**
+   - Contents: write (for releases and commits)
    - Actions: read (for workflows)
+   - Discussions: write (for announcements)
 
 ## Customization
 
@@ -302,6 +346,9 @@ Edit `scripts/automation/release_automation.py`:
 
 ## Future Enhancements
 
+- [x] ~~Automated blog post publishing to Dev.to and Medium~~ ✅ DONE
+- [x] ~~Automated social media posting to Twitter/X and LinkedIn~~ ✅ DONE
+- [x] ~~Automated GitHub Discussions creation~~ ✅ DONE
 - [ ] Automated documentation generation
 - [ ] Automated example generation from templates
 - [ ] Automated dependency updates (Dependabot)
@@ -310,6 +357,7 @@ Edit `scripts/automation/release_automation.py`:
 - [ ] Automated changelog generation from commits
 - [ ] Automated translation of blog posts
 - [ ] Automated newsletter generation
+- [ ] Hashnode and other blog platform support
 
 ## Support
 
