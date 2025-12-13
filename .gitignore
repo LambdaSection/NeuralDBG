@@ -291,3 +291,8 @@ neural/aquarium/npm-debug.log*
 neural/aquarium/yarn-debug.log*
 neural/aquarium/yarn-error.log*
 neural/aquarium/coverage/
+
+# Aquarium IDE configuration and user data
+.aquarium/
+neural/aquarium/src/components/settings/__pycache__/
+neural/aquarium/__pycache__/
