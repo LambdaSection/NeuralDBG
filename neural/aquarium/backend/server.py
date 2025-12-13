@@ -4,9 +4,11 @@ import asyncio
 import json
 import logging
 from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse, JSONResponse
 from pydantic import BaseModel, Field
 
 from neural.code_generation.code_generator import generate_code
@@ -432,6 +434,117 @@ def create_app() -> FastAPI:
             logger.error(f"Terminal WebSocket error: {e}", exc_info=True)
         finally:
             logger.info(f"Terminal WebSocket disconnected for session: {session_id}")
+
+    @app.get("/api/examples/list")
+    async def list_examples():
+        """List available example models."""
+        try:
+            examples_dir = Path(__file__).parent.parent / 'examples'
+            examples = []
+            
+            if not examples_dir.exists():
+                return JSONResponse(content={'examples': [], 'count': 0})
+            
+            for example_file in examples_dir.glob('*.neural'):
+                with open(example_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                name = example_file.stem.replace('_', ' ').title()
+                category = 'General'
+                tags = []
+                complexity = 'Intermediate'
+                
+                if 'cnn' in example_file.stem.lower() or 'conv' in content.lower():
+                    category = 'Computer Vision'
+                    tags.extend(['cnn', 'computer-vision'])
+                elif 'lstm' in content.lower() or 'rnn' in content.lower():
+                    category = 'NLP'
+                    tags.extend(['nlp', 'recurrent'])
+                elif 'gan' in example_file.stem.lower() or 'vae' in example_file.stem.lower():
+                    category = 'Generative'
+                    tags.extend(['generative'])
+                
+                if 'mnist' in example_file.stem.lower():
+                    description = 'Convolutional Neural Network for MNIST digit classification'
+                    tags.append('mnist')
+                    complexity = 'Beginner'
+                elif 'text' in example_file.stem.lower():
+                    description = 'LSTM network for text classification and sentiment analysis'
+                    tags.append('text')
+                    complexity = 'Beginner'
+                else:
+                    description = f'Neural network model: {name}'
+                
+                examples.append({
+                    'name': name,
+                    'path': str(example_file.relative_to(examples_dir.parent)),
+                    'description': description,
+                    'category': category,
+                    'tags': tags,
+                    'complexity': complexity
+                })
+            
+            return JSONResponse(content={'examples': examples, 'count': len(examples)})
+        except Exception as e:
+            logger.error(f"Failed to list examples: {e}", exc_info=True)
+            return JSONResponse(content={'error': str(e), 'examples': []}, status_code=500)
+
+    @app.get("/api/examples/load")
+    async def load_example(path: str):
+        """Load an example model file."""
+        try:
+            full_path = Path(__file__).parent.parent / path
+            
+            if not full_path.exists():
+                raise HTTPException(status_code=404, detail='Example file not found')
+            
+            if not full_path.is_file() or not str(full_path).endswith('.neural'):
+                raise HTTPException(status_code=400, detail='Invalid example file')
+            
+            with open(full_path, 'r', encoding='utf-8') as f:
+                code = f.read()
+            
+            return JSONResponse(content={
+                'code': code,
+                'path': path,
+                'name': full_path.stem
+            })
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to load example: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.get("/api/docs/{doc_path:path}")
+    async def get_documentation(doc_path: str):
+        """Serve documentation files."""
+        try:
+            docs_dir = Path(__file__).parent.parent
+            search_paths = [
+                docs_dir / doc_path,
+                docs_dir / doc_path.upper(),
+                docs_dir.parent.parent / 'docs' / doc_path,
+                docs_dir.parent.parent / 'docs' / doc_path.upper(),
+            ]
+            
+            file_path = None
+            for path in search_paths:
+                if path.exists() and path.is_file():
+                    file_path = path
+                    break
+            
+            if not file_path:
+                raise HTTPException(status_code=404, detail='Documentation file not found')
+            
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            return PlainTextResponse(content=content)
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to load documentation: {e}", exc_info=True)
+            raise HTTPException(status_code=500, detail=str(e))
 
     return app
 
