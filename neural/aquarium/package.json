@@ -1,7 +1,9 @@
 {
   "name": "neural-aquarium",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
+  "description": "Visual IDE for Neural DSL with integrated debugger",
+  "main": "src/index.js",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
@@ -18,12 +20,25 @@
     "typescript": "^4.9.4",
     "web-vitals": "^2.1.4"
   },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "keywords": [
+    "neural",
+    "dsl",
+    "debugger",
+    "ide",
+    "machine-learning"
+  ],
+  "author": "Neural DSL Team",
+  "license": "MIT",
   "eslintConfig": {
     "extends": [
       "react-app",

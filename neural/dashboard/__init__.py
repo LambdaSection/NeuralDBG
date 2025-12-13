@@ -1,44 +1,28 @@
-from neural.dashboard.dashboard import (
-    app,
-    server,
-    update_dashboard_data,
-    breakpoint_manager,
-    anomaly_detector,
-    profiler,
-    BreakpointManager,
-    AnomalyDetector,
-    PerformanceProfiler
-)
+"""
+Neural Dashboard Module
+Provides debugging and visualization tools for neural networks.
+"""
+
+from neural.dashboard.dashboard import app, server
 
 try:
-    from neural.dashboard.profiler_utils import (
-        layer_profiler,
-        breakpoint_helper,
-        anomaly_monitor,
-        LayerExecutionWrapper,
-        initialize_helpers
+    from neural.dashboard.debugger_backend import (
+        create_debugger_backend,
+        setup_debugger_routes,
+        DebuggerBackend,
     )
-    _profiler_utils_available = True
+    DEBUGGER_AVAILABLE = True
 except ImportError:
-    _profiler_utils_available = False
+    DEBUGGER_AVAILABLE = False
+    create_debugger_backend = None
+    setup_debugger_routes = None
+    DebuggerBackend = None
 
 __all__ = [
     'app',
     'server',
-    'update_dashboard_data',
-    'breakpoint_manager',
-    'anomaly_detector',
-    'profiler',
-    'BreakpointManager',
-    'AnomalyDetector',
-    'PerformanceProfiler'
+    'create_debugger_backend',
+    'setup_debugger_routes',
+    'DebuggerBackend',
+    'DEBUGGER_AVAILABLE',
 ]
-
-if _profiler_utils_available:
-    __all__.extend([
-        'layer_profiler',
-        'breakpoint_helper',
-        'anomaly_monitor',
-        'LayerExecutionWrapper',
-        'initialize_helpers'
-    ])

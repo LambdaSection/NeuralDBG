@@ -1,0 +1,258 @@
+.execution-timeline {
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: #252526;
+  border-bottom: 1px solid #3e3e42;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.timeline-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #cccccc;
+}
+
+.timeline-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat {
+  display: flex;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.stat-label {
+  color: #858585;
+  font-weight: 500;
+}
+
+.stat-value {
+  color: #cccccc;
+  font-weight: 600;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.stat-value.phase-idle {
+  color: #6c6c6c;
+}
+
+.stat-value.phase-forward {
+  color: #4caf50;
+}
+
+.stat-value.phase-backward {
+  color: #ff9800;
+}
+
+.stat-value.phase-complete {
+  color: #2196f3;
+}
+
+.timeline-canvas-container {
+  padding: 20px;
+  background-color: #1e1e1e;
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
+
+.timeline-canvas {
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  background-color: #252526;
+  max-width: 100%;
+  height: auto;
+}
+
+.timeline-progress {
+  padding: 15px 20px;
+  background-color: #252526;
+  border-top: 1px solid #3e3e42;
+  border-bottom: 1px solid #3e3e42;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.progress-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #cccccc;
+  font-weight: 500;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #3e3e42;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.progress-fill.forward {
+  background: linear-gradient(90deg, #4caf50, #66bb6a);
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.progress-fill.backward {
+  background: linear-gradient(90deg, #ff9800, #ffa726);
+  box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+}
+
+.timeline-legend {
+  padding: 15px 20px;
+  background-color: #1e1e1e;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.timeline-legend h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #cccccc;
+}
+
+.legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background-color: #252526;
+  border-radius: 4px;
+  border: 1px solid #3e3e42;
+  transition: all 0.2s ease;
+}
+
+.legend-item:hover {
+  background-color: #2d2d30;
+}
+
+.legend-item.current {
+  border-color: #ffeb3b;
+  box-shadow: 0 0 8px rgba(255, 235, 59, 0.3);
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  flex: 1;
+  font-size: 12px;
+  color: #cccccc;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.legend-time {
+  font-size: 11px;
+  color: #858585;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  min-width: 80px;
+  text-align: right;
+}
+
+.legend-flops {
+  font-size: 11px;
+  color: #4dabf7;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  min-width: 100px;
+  text-align: right;
+}
+
+.no-data {
+  padding: 20px;
+  text-align: center;
+  color: #858585;
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* Scrollbar styling */
+.execution-timeline::-webkit-scrollbar,
+.timeline-legend::-webkit-scrollbar {
+  width: 8px;
+}
+
+.execution-timeline::-webkit-scrollbar-track,
+.timeline-legend::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.execution-timeline::-webkit-scrollbar-thumb,
+.timeline-legend::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 4px;
+}
+
+.execution-timeline::-webkit-scrollbar-thumb:hover,
+.timeline-legend::-webkit-scrollbar-thumb:hover {
+  background: #4e4e4e;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .timeline-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .timeline-stats {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .timeline-canvas {
+    width: 100%;
+  }
+
+  .legend-item {
+    flex-wrap: wrap;
+  }
+
+  .legend-flops {
+    width: 100%;
+    text-align: left;
+    margin-left: 26px;
+  }
+}
