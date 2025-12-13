@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """
 Alternative approach to trace imports in Neural CLI.
+
+Usage: python tools/profiler/trace_imports_alt.py
 """
 
 import os

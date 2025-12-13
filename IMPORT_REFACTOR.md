@@ -156,7 +156,7 @@ This configuration ensures:
 #### setup.py
 - **Fixed**: Import ordering (find_packages, setup)
 
-#### profiler/trace_imports.py
+#### tools/profiler/trace_imports.py
 - **Fixed**: Import ordering
 
 ### Examples

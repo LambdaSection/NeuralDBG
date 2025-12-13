@@ -2,6 +2,8 @@
 """
 Trace all imports made when importing neural.cli.
 This helps identify which modules are being imported and in what order.
+
+Usage: python tools/profiler/trace_imports.py
 """
 
 import os

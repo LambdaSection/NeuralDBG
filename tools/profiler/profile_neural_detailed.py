@@ -2,6 +2,8 @@
 """
 Detailed profiling of the Neural CLI startup time.
 This script uses the cProfile module to get detailed information about what's taking time.
+
+Usage: python tools/profiler/profile_neural_detailed.py
 """
 
 import cProfile

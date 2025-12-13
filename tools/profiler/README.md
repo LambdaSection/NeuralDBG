@@ -1,12 +1,23 @@
-# Neural CLI Profiler
+# Neural CLI Startup Profiler
+
+> **Note**: These are development tools for profiling the CLI startup time. For runtime profiling of neural network execution, see [`neural/profiling/`](../../neural/profiling/).
 
 <p align="center">
-  <img src="../docs/images/profiler_workflow.png" alt="Profiler Workflow" width="600"/>
+  <img src="../../docs/images/profiler_workflow.png" alt="Profiler Workflow" width="600"/>
 </p>
 
-This directory contains tools for profiling the Neural CLI performance, particularly focusing on startup time and import behavior. These tools help identify performance bottlenecks and guide optimization efforts.
+This directory contains development tools for profiling the Neural CLI startup performance, particularly focusing on import time and dependency loading. These tools were used to identify and optimize startup bottlenecks during development.
 
-## Available Profiling Tools
+## Purpose
+
+These tools help repository maintainers:
+- Measure CLI startup time
+- Identify slow imports
+- Trace dependency loading
+- Optimize lazy loading strategies
+- Verify performance improvements
+
+## Available Tools
 
 ### 1. `profile_neural.py`
 
@@ -14,7 +25,7 @@ A simple profiler that measures how long it takes to import various modules used
 
 **Usage:**
 ```bash
-python profiler/profile_neural.py
+python tools/profiler/profile_neural.py
 ```
 
 **Output:**
@@ -27,7 +38,7 @@ A more detailed profiler that uses Python's `cProfile` module to get function-le
 
 **Usage:**
 ```bash
-python profiler/profile_neural_detailed.py
+python tools/profiler/profile_neural_detailed.py
 ```
 
 **Output:**
@@ -40,7 +51,7 @@ Traces all imports made when importing the Neural CLI, helping to identify which
 
 **Usage:**
 ```bash
-python profiler/trace_imports.py
+python tools/profiler/trace_imports.py
 ```
 
 **Output:**
@@ -53,7 +64,7 @@ An alternative approach to tracing imports that checks which specific modules fr
 
 **Usage:**
 ```bash
-python profiler/trace_imports_alt.py
+python tools/profiler/trace_imports_alt.py
 ```
 
 **Output:**
@@ -62,7 +73,7 @@ python profiler/trace_imports_alt.py
 - Sample of new modules loaded
 - Import statements in the Neural CLI
 
-## Performance Optimization
+## Historical Context
 
 These profiling tools were used to identify performance bottlenecks in the Neural CLI, particularly the slow startup time caused by eager loading of heavy dependencies like TensorFlow, PyTorch, and JAX.
 
@@ -74,23 +85,9 @@ The main optimizations implemented based on these profiling results include:
 
 These optimizations have significantly improved the startup time of the Neural CLI, especially for simple commands like `version` and `help` that don't require the heavy ML frameworks.
 
-## Profiling Methodology
-
-<p align="center">
-  <img src="../docs/images/profiling_methodology.png" alt="Profiling Methodology" width="600"/>
-</p>
-
-The profiling process follows these steps:
-
-1. **Baseline Measurement**: Establish a baseline of the current performance
-2. **Bottleneck Identification**: Use profiling tools to identify bottlenecks
-3. **Optimization Implementation**: Implement optimizations to address bottlenecks
-4. **Verification**: Measure performance after optimizations to verify improvements
-5. **Iteration**: Repeat the process until performance goals are met
-
 ## Profiling Results
 
-The profiling tools have identified several key bottlenecks in the Neural CLI:
+The profiling tools identified several key bottlenecks in the Neural CLI:
 
 | Module | Import Time (Before) | Import Time (After) | Improvement |
 |--------|----------------------|---------------------|-------------|
@@ -104,14 +101,26 @@ The profiling tools have identified several key bottlenecks in the Neural CLI:
 
 These results show a dramatic improvement in startup time, with the total time reduced from over a minute to less than a second for basic commands.
 
-## Future Profiling Work
+## Relationship to `neural/profiling/`
 
-Future profiling efforts will focus on:
+These tools are **development-focused** and target CLI startup performance. They are distinct from:
 
-1. **Memory Usage**: Profiling memory usage during execution
-2. **Command Execution Time**: Profiling the execution time of specific commands
-3. **Parallelization Opportunities**: Identifying opportunities for parallel execution
-4. **Caching Strategies**: Evaluating different caching strategies for frequently used data
+- **`neural/profiling/`**: Production runtime profiling for neural network layer execution
+  - Layer-by-layer timing
+  - Memory profiling
+  - GPU utilization
+  - Bottleneck analysis
+  - Dashboard integration
+  - See [`neural/profiling/README.md`](../../neural/profiling/README.md)
+
+## When to Use These Tools
+
+Run these profiling tools when:
+- Investigating CLI startup performance regressions
+- Adding new dependencies that might affect startup time
+- Implementing new lazy loading strategies
+- Optimizing import paths
+- Verifying performance improvements
 
 ## Resources
 
@@ -119,3 +128,4 @@ Future profiling efforts will focus on:
 - [cProfile Documentation](https://docs.python.org/3/library/profile.html#module-cProfile)
 - [Memory Profiler](https://pypi.org/project/memory-profiler/)
 - [Scalene Profiler](https://github.com/plasma-umass/scalene)
+- [docs/PERFORMANCE.md](../../docs/PERFORMANCE.md) - Performance optimization guide

@@ -2,6 +2,8 @@
 
 Advanced profiling and debugging tools for neural networks, extending NeuralDbg with comprehensive performance analysis capabilities.
 
+> **Note**: These tools profile runtime neural network execution (layers, memory, GPU, etc.). For CLI startup profiling tools, see [`tools/profiler/`](../../tools/profiler/).
+
 ## Features
 
 ### 1. Layer-by-Layer Profiling (`LayerProfiler`)

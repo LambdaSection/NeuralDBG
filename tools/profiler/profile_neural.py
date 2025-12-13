@@ -2,6 +2,8 @@
 """
 Profile the startup time of the Neural CLI.
 This script measures how long it takes to import various modules.
+
+Usage: python tools/profiler/profile_neural.py
 """
 
 import time

@@ -122,6 +122,17 @@ parser = lark.Lark(
 
 ## Profiling and Benchmarks
 
+### CLI Startup Profiling Tools
+
+Development tools for profiling CLI startup time are located in `tools/profiler/`:
+
+- `profile_neural.py` - Simple import time profiler
+- `profile_neural_detailed.py` - Detailed cProfile profiling
+- `trace_imports.py` - Import tracing tool
+- `trace_imports_alt.py` - Alternative import tracing
+
+See [`tools/profiler/README.md`](../tools/profiler/README.md) for usage details.
+
 ### Performance Tests
 
 Located in `tests/performance/`:

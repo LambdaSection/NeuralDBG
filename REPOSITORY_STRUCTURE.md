@@ -20,7 +20,7 @@ Neural/
 │   └── visualization/     # Visualization tools
 ├── neuralpaper/           # NeuralPaper.ai implementation
 ├── Aquarium/              # Specialized IDE for neural network development
-├── profiler/              # Performance profiling tools
+├── tools/                 # Development and maintenance tools
 └── tests/                 # Test suite
 ```
 
@@ -119,13 +119,20 @@ Specialized IDE for neural network development:
 - **src-tauri**: Rust backend for the Aquarium IDE
 - **README.md**: Documentation for the Aquarium IDE
 
-### `profiler/`
+### `tools/`
 
-Performance profiling tools:
+Development and maintenance tools for repository maintainers:
 
-- **Startup Profiling**: Tools for profiling the startup time of the Neural CLI
-- **Import Tracing**: Tools for tracing imports and identifying bottlenecks
-- **Performance Optimization**: Tools for optimizing performance
+- **profiler/**: CLI startup time profiling tools (used during development)
+  - **profile_neural.py**: Simple import time profiler
+  - **profile_neural_detailed.py**: Detailed cProfile profiling
+  - **trace_imports.py**: Import tracing tool
+  - **trace_imports_alt.py**: Alternative import tracing approach
+  - **README.md**: Profiler tools documentation
+- **cli_invoke.py**: CLI testing helper
+- **import_check.py**: Dependency verification tool
+
+Note: These tools are distinct from `neural/profiling/`, which provides runtime profiling for neural network execution in production.
 
 ### `tests/`
 
