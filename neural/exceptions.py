@@ -684,6 +684,7 @@ def raise_codegen_error(
 
 
 # Exception hierarchy overview (for documentation):
+
 """
 Exception Hierarchy:
 --------------------
