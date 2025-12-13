@@ -7,6 +7,9 @@ CORE_DEPS = [
     "lark>=1.1.5",
     "numpy>=1.23.0",
     "pyyaml>=6.0.1",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-dotenv>=1.0.0",
 ]
 
 # Optional dependencies grouped by feature

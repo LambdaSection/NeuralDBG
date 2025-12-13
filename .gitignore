@@ -82,6 +82,9 @@ docs/social/
 # API credentials (never commit)
 .env
 .env.local
+.env.production
+.env.staging
+.env.development
 *.key
 *_token.txt
 api_keys.json
@@ -95,6 +98,12 @@ neural/security/security_config.yaml
 *.key
 ssl_cert/
 ssl_keys/
+
+# Configuration backups and exports
+config_export.yaml
+config_export.json
+config_backup.yaml
+config_backup.json
 
 # Marketing automation workflow artifacts
 devto_url.txt
