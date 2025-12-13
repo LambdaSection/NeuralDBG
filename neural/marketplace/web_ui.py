@@ -16,6 +16,8 @@ try:
 except ImportError:
     DASH_AVAILABLE = False
 
+from .community_features import CommunityFeatures
+from .discord_bot import DiscordWebhook
 from .huggingface_integration import HuggingFaceIntegration
 from .registry import ModelRegistry
 from .search import SemanticSearch
@@ -27,7 +29,8 @@ class MarketplaceUI:
     def __init__(
         self,
         registry_dir: str = "neural_marketplace_registry",
-        hf_token: Optional[str] = None
+        hf_token: Optional[str] = None,
+        discord_webhook: Optional[str] = None
     ):
         """Initialize marketplace UI.
 
@@ -37,6 +40,8 @@ class MarketplaceUI:
             Registry directory
         hf_token : str, optional
             HuggingFace API token
+        discord_webhook : str, optional
+            Discord webhook URL for notifications
         """
         if not DASH_AVAILABLE:
             raise ImportError(
@@ -46,6 +51,12 @@ class MarketplaceUI:
 
         self.registry = ModelRegistry(registry_dir)
         self.search = SemanticSearch(self.registry)
+        self.community = CommunityFeatures()
+
+        try:
+            self.discord = DiscordWebhook(discord_webhook) if discord_webhook else None
+        except ImportError:
+            self.discord = None
 
         try:
             self.hf = HuggingFaceIntegration(hf_token)
@@ -82,6 +93,8 @@ class MarketplaceUI:
                         dbc.NavItem(dbc.NavLink("Browse", href="#", id="nav-browse", active=True)),
                         dbc.NavItem(dbc.NavLink("Upload", href="#", id="nav-upload")),
                         dbc.NavItem(dbc.NavLink("My Models", href="#", id="nav-my-models")),
+                        dbc.NavItem(dbc.NavLink("Community", href="#", id="nav-community")),
+                        dbc.NavItem(dbc.NavLink("Leaderboard", href="#", id="nav-leaderboard")),
                         dbc.NavItem(dbc.NavLink("HuggingFace", href="#", id="nav-hf")) if self.hf_available else None,
                     ], pills=True),
                 ], fluid=True),

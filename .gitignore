@@ -213,6 +213,13 @@ neural_marketplace_registry/
 demo_registry/
 downloaded_models/
 
+# Community features data
+marketplace_community/
+educational_resources/
+university_licenses/
+discord_community/
+community_events/
+
 # No-code interface artifacts
 neural/no_code/saved_models/
 neural/no_code/exported_models/

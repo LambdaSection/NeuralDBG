@@ -1,72 +1,79 @@
-# Repository Setup Status
+# Setup Status
 
-## Current State
+## Completed Steps
 
-The repository has been checked and the following was found:
+1. ✅ **Virtual Environment Created**: `.venv` directory has been created successfully
+   - Location: `.venv/`
+   - Python version: 3.14.0
+   - Convention follows `.gitignore` specification (`.venv/` is ignored)
 
-### Virtual Environment
-- **Status**: ✓ EXISTS
-- **Location**: `.venv` (following gitignore convention)
-- **Python Version**: Python 3.11.0
-- **Base Path**: Previously created from `C:\Users\itsni\AppData\Local\Programs\Python\Python311`
+## Required Manual Steps
 
-### Installed Packages
-The virtual environment already contains many packages including:
-- `neural.exe` - Neural DSL CLI tool
-- `pip.exe`, `pytest.exe`, `ruff.exe` - Development tools
-- Core dependencies: click, lark, numpy, pyyaml (verified via setup.py)
-- ML frameworks: tensorflow, torch, onnx
-- Testing: pytest, hypothesis
-- Linting: ruff
-- Dashboard: dash, flask
-- HPO: optuna
-- And many more...
+Due to security restrictions in the execution environment, the following steps need to be completed manually:
 
-### Project Structure
-The neural DSL project structure is complete with all modules:
-- `neural/cli/` - CLI commands
-- `neural/parser/` - DSL parser
-- `neural/code_generation/` - Code generators
-- `neural/dashboard/` - NeuralDbg debugger
-- `neural/hpo/` - Hyperparameter optimization
-- `neural/automl/` - AutoML and NAS
-- `neural/integrations/` - ML platform connectors
-- And all other modules
+### 2. Activate Virtual Environment
 
-## What Was Attempted
-
-Due to security restrictions on pip commands in this environment, the following standard setup steps could not be executed directly:
-1. `pip install -e .` (install package in editable mode)
-2. `pip install -r requirements-dev.txt` (install dev dependencies)
-
-## Next Steps (If Needed)
-
-If you need to verify or reinstall the package, you can run these commands manually in a PowerShell terminal:
-
+**Windows PowerShell:**
 ```powershell
-# Activate the virtual environment
 .\.venv\Scripts\Activate.ps1
-
-# Install the package in editable mode with core dependencies
-pip install -e .
-
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Or install with all optional features
-pip install -e ".[full]"
 ```
 
-## Available Commands (from AGENTS.md)
+**Windows Command Prompt:**
+```cmd
+.venv\Scripts\activate.bat
+```
 
-Once setup is complete, you can use:
+### 3. Install Core Package
 
-- **Lint**: `python -m ruff check .` or `python -m pylint neural/`
-- **Test**: `python -m pytest tests/ -v`
-- **Dev Server**: 
-  - NeuralDbg: `python neural/dashboard/dashboard.py` (port 8050)
-  - No-code GUI: `python neural/no_code/no_code.py` (port 8051)
+Install the package in editable mode with core dependencies:
+```powershell
+pip install -e .
+```
 
-## Conclusion
+### 4. Install Development Dependencies
 
-✓ The repository appears to be **already set up** with a functional virtual environment containing all necessary dependencies. The virtual environment should be ready to use for development, build, lint, and test operations.
+Install testing, linting, and other dev tools:
+```powershell
+pip install -r requirements-dev.txt
+```
+
+### Alternative: Install with All Features
+
+If you want all optional features (backends, HPO, AutoML, etc.):
+```powershell
+pip install -e ".[full]"
+pip install -r requirements-dev.txt
+```
+
+## Verification Commands
+
+After completing the manual steps, verify the installation:
+
+### Test the installation:
+```powershell
+pytest tests/ -v
+```
+
+### Run linting:
+```powershell
+python -m ruff check .
+```
+
+### Test the CLI:
+```powershell
+neural --help
+```
+
+## Project Structure
+
+- **Virtual Environment**: `.venv/` (created)
+- **Core Dependencies**: click, lark, numpy, pyyaml
+- **Optional Features**: backends, hpo, automl, visualization, dashboard, integrations, teams, federated
+- **Dev Dependencies**: pytest, ruff, pylint, mypy, pre-commit
+
+## Next Steps
+
+1. Activate the virtual environment
+2. Run: `pip install -e .`
+3. Run: `pip install -r requirements-dev.txt`
+4. Verify with: `neural --help` and `pytest tests/ -v`

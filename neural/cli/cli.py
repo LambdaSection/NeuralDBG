@@ -2360,6 +2360,13 @@ try:
 except ImportError:
     pass
 
+# Import and register community commands
+try:
+    from .community_commands import community_cli
+    cli.add_command(community_cli)
+except ImportError:
+    pass
+
 @cli.group()
 @click.pass_context
 def marketplace(ctx):
