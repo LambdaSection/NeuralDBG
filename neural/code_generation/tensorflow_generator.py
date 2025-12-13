@@ -192,6 +192,27 @@ class TensorFlowGenerator(BaseCodeGenerator):
         elif layer_type == "Dropout":
             rate = params.get("rate", 0.5)
             return f"layers.Dropout(rate={rate})"
+        elif layer_type == "Embedding":
+            input_dim = params.get("input_dim", 10000)
+            output_dim = params.get("output_dim", 128)
+            mask_zero = params.get("mask_zero", False)
+            code = f"layers.Embedding(input_dim={input_dim}, output_dim={output_dim}"
+            if mask_zero:
+                code += f", mask_zero={mask_zero}"
+            code += ")"
+            return code
+        elif layer_type == "GlobalAveragePooling1D":
+            return "layers.GlobalAveragePooling1D()"
+        elif layer_type == "GlobalAveragePooling2D":
+            return "layers.GlobalAveragePooling2D()"
+        elif layer_type == "GlobalAveragePooling3D":
+            return "layers.GlobalAveragePooling3D()"
+        elif layer_type == "GlobalMaxPooling1D":
+            return "layers.GlobalMaxPooling1D()"
+        elif layer_type == "GlobalMaxPooling2D":
+            return "layers.GlobalMaxPooling2D()"
+        elif layer_type == "GlobalMaxPooling3D":
+            return "layers.GlobalMaxPooling3D()"
         elif layer_type == "Output":
             units = params.get("units", 10)
             activation = params.get("activation", "softmax")

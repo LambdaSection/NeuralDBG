@@ -477,6 +477,36 @@ def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape:
                 logger.warning(f"Dictionary parameter without 'value' key: {dropout}, using default")
                 dropout = 0.1
         return f"nn.TransformerEncoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout})"
+    elif layer_type == "Embedding":
+        num_embeddings = params.get("input_dim", 10000)
+        if isinstance(num_embeddings, dict):
+            if 'value' in num_embeddings:
+                num_embeddings = num_embeddings['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {num_embeddings}, using default")
+                num_embeddings = 10000
+        
+        embedding_dim = params.get("output_dim", 128)
+        if isinstance(embedding_dim, dict):
+            if 'value' in embedding_dim:
+                embedding_dim = embedding_dim['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {embedding_dim}, using default")
+                embedding_dim = 128
+        
+        return f"nn.Embedding(num_embeddings={num_embeddings}, embedding_dim={embedding_dim})"
+    elif layer_type == "GlobalAveragePooling1D":
+        return "nn.AdaptiveAvgPool1d(1)"
+    elif layer_type == "GlobalAveragePooling2D":
+        return "nn.AdaptiveAvgPool2d(1)"
+    elif layer_type == "GlobalAveragePooling3D":
+        return "nn.AdaptiveAvgPool3d(1)"
+    elif layer_type == "GlobalMaxPooling1D":
+        return "nn.AdaptiveMaxPool1d(1)"
+    elif layer_type == "GlobalMaxPooling2D":
+        return "nn.AdaptiveMaxPool2d(1)"
+    elif layer_type == "GlobalMaxPooling3D":
+        return "nn.AdaptiveMaxPool3d(1)"
     else:
         warnings.warn(f"Unsupported layer type '{layer_type}' for pytorch. Skipping.", UserWarning)
         return None

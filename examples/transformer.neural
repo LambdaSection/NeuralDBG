@@ -1,17 +1,24 @@
 network TransformerModel {
-  input: (100, 512)  # Sequence length, embedding dim
+  input: (None, 100)
+  
   layers:
-    Embedding(input_dim:10000, output_dim:512)
-    TransformerEncoder(num_heads:8, ff_dim:2048)
+    Embedding(input_dim=10000, output_dim=512)
+    Dropout(rate=0.1)
+    TransformerEncoder(num_heads=8, ff_dim=2048, dropout=0.1)
+    TransformerEncoder(num_heads=8, ff_dim=2048, dropout=0.1)
     GlobalAveragePooling1D()
-    Dense(units:128, activation:"relu")
-    Output(units:10, activation:"softmax")
+    Dense(units=128, activation="relu")
+    Dropout(rate=0.5)
+    Output(units=10, activation="softmax")
 
   loss: "sparse_categorical_crossentropy"
-  optimizer: Adam(learning_rate:0.0001)
+  optimizer: Adam(learning_rate=0.0001)
+  metrics: ["accuracy"]
+  
   train {
     epochs: 20
     batch_size: 64
+    validation_split: 0.2
   }
 }
 

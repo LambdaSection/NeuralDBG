@@ -42,6 +42,52 @@ def generate_onnx(model_data: Dict[str, Any]):
                 outputs=[output_name],
                 num_heads=num_heads
             ))
+        elif layer_type == "Dense":
+            nodes.append(helper.make_node(
+                'Gemm',
+                inputs=[current_input],
+                outputs=[output_name]
+            ))
+        elif layer_type == "Dropout":
+            nodes.append(helper.make_node(
+                'Dropout',
+                inputs=[current_input],
+                outputs=[output_name],
+                ratio=params.get('rate', 0.5)
+            ))
+        elif layer_type == "Embedding":
+            nodes.append(helper.make_node(
+                'Gather',
+                inputs=[current_input],
+                outputs=[output_name]
+            ))
+        elif layer_type == "GlobalAveragePooling1D":
+            nodes.append(helper.make_node(
+                'GlobalAveragePool',
+                inputs=[current_input],
+                outputs=[output_name]
+            ))
+        elif layer_type == "GlobalAveragePooling2D":
+            nodes.append(helper.make_node(
+                'GlobalAveragePool',
+                inputs=[current_input],
+                outputs=[output_name]
+            ))
+        elif layer_type in ["GlobalMaxPooling1D", "GlobalMaxPooling2D"]:
+            nodes.append(helper.make_node(
+                'GlobalMaxPool',
+                inputs=[current_input],
+                outputs=[output_name]
+            ))
+        elif layer_type == "TransformerEncoder":
+            logger.warning(f"TransformerEncoder not directly supported in ONNX, skipping layer {i}")
+            continue
+        elif layer_type == "Output":
+            nodes.append(helper.make_node(
+                'Gemm',
+                inputs=[current_input],
+                outputs=[output_name]
+            ))
 
         current_input = output_name
 
