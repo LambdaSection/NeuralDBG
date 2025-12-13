@@ -1,0 +1,92 @@
+# Neural DSL Benchmark Configuration
+# This file defines benchmark tasks and settings
+
+version: "1.0"
+
+# General settings
+settings:
+  output_dir: "benchmark_results"
+  report_dir: "benchmark_reports"
+  verbose: true
+  generate_plots: true
+  save_raw_data: true
+
+# Frameworks to benchmark
+frameworks:
+  - neural_dsl
+  - keras
+  - pytorch_lightning
+  - fastai
+  - ludwig
+
+# Benchmark tasks
+tasks:
+  - name: "MNIST_Classification"
+    description: "Handwritten digit classification"
+    dataset: "mnist"
+    model_type: "cnn"
+    epochs: 5
+    batch_size: 32
+    input_shape: [28, 28, 1]
+    num_classes: 10
+    metrics:
+      - accuracy
+      - loss
+    
+  - name: "CIFAR10_Classification"
+    description: "Object recognition in natural images"
+    dataset: "cifar10"
+    model_type: "cnn"
+    epochs: 10
+    batch_size: 64
+    input_shape: [32, 32, 3]
+    num_classes: 10
+    metrics:
+      - accuracy
+      - loss
+
+# Metrics to collect
+metrics:
+  code_metrics:
+    - lines_of_code
+    - setup_complexity
+    - readability_score
+    - import_count
+  
+  performance_metrics:
+    - training_time
+    - inference_time
+    - throughput
+    - peak_memory
+  
+  model_metrics:
+    - accuracy
+    - loss
+    - parameter_count
+    - model_size
+    - error_rate
+
+# Report settings
+report:
+  format: ["html", "markdown", "json"]
+  include_plots: true
+  include_code_samples: true
+  include_reproducibility_script: true
+  
+  plots:
+    - comparison_overview
+    - lines_of_code
+    - training_time
+    - inference_time
+    - model_accuracy
+    - model_size
+    - setup_complexity
+    - code_readability
+
+# Reproducibility settings
+reproducibility:
+  random_seed: 42
+  save_models: false
+  save_predictions: false
+  include_system_info: true
+  include_dependencies: true

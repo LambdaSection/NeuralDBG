@@ -231,6 +231,11 @@ _run_setup.py
 _setup_env.py
 do_install.bat
 setup.ps1
+_install.bat
+_install_packages.py
+_setup_env.ps1
+SETUP_INSTRUCTIONS.md
+_SETUP_COMPLETE_README.md
 
 # Sphinx documentation
 docs/_build/
@@ -256,7 +261,12 @@ Thumbs.db
 
 # Benchmark results
 benchmark_results/
+benchmark_reports/
 tests/benchmarks/benchmark_results/
+tests/benchmarks/example_results/
+tests/benchmarks/example_reports/
+example_results/
+example_reports/
 
 # Security scanning reports
 bandit-report.json
