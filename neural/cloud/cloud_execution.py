@@ -18,6 +18,8 @@ CloudExecutor
     Main class for cloud execution management
 """
 
+from __future__ import annotations
+
 import importlib
 import os
 import shutil
@@ -148,7 +150,7 @@ class CloudExecutor:
             return 2
         return 1
 
-    def _apply_cloud_optimizations(self):
+    def _apply_cloud_optimizations(self) -> None:
         """Apply cloud-specific optimizations."""
         if self.environment == 'kaggle':
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -163,9 +165,9 @@ class CloudExecutor:
             os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
             os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
 
-    def _retry_operation(self, operation, *args, **kwargs):
+    def _retry_operation(self, operation: Any, *args: Any, **kwargs: Any) -> Any:
         """Retry an operation with exponential backoff."""
-        last_exception = None
+        last_exception: Optional[Exception] = None
         for attempt in range(self.retry_attempts):
             try:
                 return operation(*args, **kwargs)
@@ -250,7 +252,7 @@ class CloudExecutor:
                 print_error(error_msg)
             raise CloudCompilationError(error_msg) from e
 
-    def _validate_model_data(self, model_data: Dict[str, Any]):
+    def _validate_model_data(self, model_data: Dict[str, Any]) -> None:
         """Validate model data structure."""
         if not isinstance(model_data, dict):
             raise CloudCompilationError("Model data must be a dictionary")
@@ -572,7 +574,7 @@ class CloudExecutor:
 
     def get_environment_info(self) -> Dict[str, Any]:
         """Get comprehensive environment information."""
-        info = {
+        info: Dict[str, Any] = {
             'environment': self.environment,
             'gpu_available': self.is_gpu_available,
             'optimization_level': self.optimization_level,
@@ -596,9 +598,9 @@ class CloudExecutor:
 
         return info
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Clean up temporary files and processes with error handling."""
-        errors = []
+        errors: List[str] = []
 
         try:
             if self.temp_dir.exists():
@@ -628,7 +630,7 @@ class CloudExecutor:
 class RemoteConnection:
     """Class for handling remote connections in cloud environments."""
     
-    def __init__(self, host: str = "localhost", port: int = 8080, timeout: int = 30):
+    def __init__(self, host: str = "localhost", port: int = 8080, timeout: int = 30) -> None:
         """
         Initialize remote connection.
         
@@ -637,10 +639,10 @@ class RemoteConnection:
             port: Remote port
             timeout: Connection timeout in seconds
         """
-        self.host = host
-        self.port = port
-        self.timeout = timeout
-        self.connected = False
+        self.host: str = host
+        self.port: int = port
+        self.timeout: int = timeout
+        self.connected: bool = False
         logger.info(f"RemoteConnection initialized for {host}:{port}")
         
     def connect(self) -> bool:

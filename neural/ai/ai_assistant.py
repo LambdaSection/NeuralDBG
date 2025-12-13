@@ -4,8 +4,10 @@ AI Assistant for Neural DSL
 Main interface for AI-powered features including natural language to DSL conversion.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Optional, Dict, List
+from typing import Any, Dict, Optional
 from .natural_language_processor import NaturalLanguageProcessor, IntentType, DSLGenerator
 from .llm_integration import LLMIntegration
 from .multi_language import MultiLanguageSupport
@@ -20,7 +22,7 @@ class NeuralAIAssistant:
     Provides natural language to DSL conversion with multi-language support.
     """
     
-    def __init__(self, use_llm: bool = True, llm_provider: Optional[str] = None):
+    def __init__(self, use_llm: bool = True, llm_provider: Optional[str] = None) -> None:
         """
         Initialize AI Assistant.
         
@@ -28,12 +30,12 @@ class NeuralAIAssistant:
             use_llm: Whether to use LLM for advanced processing (default: True)
             llm_provider: Specific LLM provider to use ('openai', 'anthropic', 'ollama', or None for auto)
         """
-        self.nlp = NaturalLanguageProcessor()
-        self.dsl_generator = DSLGenerator()
-        self.multi_lang = MultiLanguageSupport()
+        self.nlp: NaturalLanguageProcessor = NaturalLanguageProcessor()
+        self.dsl_generator: DSLGenerator = DSLGenerator()
+        self.multi_lang: MultiLanguageSupport = MultiLanguageSupport()
         
-        self.use_llm = use_llm
-        self.llm = None
+        self.use_llm: bool = use_llm
+        self.llm: Optional[LLMIntegration] = None
         if use_llm:
             try:
                 self.llm = LLMIntegration(provider=llm_provider)
@@ -41,7 +43,7 @@ class NeuralAIAssistant:
                 logger.warning("LLM not available: %s. Using rule-based processing.", e)
                 self.use_llm = False
     
-    def chat(self, user_input: str, context: Optional[Dict] = None) -> Dict[str, any]:
+    def chat(self, user_input: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Process user input and generate response.
         
@@ -127,7 +129,6 @@ class NeuralAIAssistant:
         """Get the current model as DSL."""
         return self.dsl_generator.get_full_model()
     
-    def reset(self):
+    def reset(self) -> None:
         """Reset the assistant state."""
         self.dsl_generator = DSLGenerator()
-

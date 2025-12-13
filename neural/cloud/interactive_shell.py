@@ -4,6 +4,8 @@ Interactive Shell for Neural Cloud Integration
 This module provides an interactive shell for executing Neural DSL commands on cloud platforms.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import cmd
@@ -55,7 +57,7 @@ Available commands:
 """
     prompt = '🔮 neural-cloud> '
 
-    def __init__(self, platform: str, remote_connection=None, quiet: bool = False):
+    def __init__(self, platform: str, remote_connection: Optional[RemoteConnection] = None, quiet: bool = False) -> None:
         """
         Initialize the shell.
 
@@ -65,17 +67,17 @@ Available commands:
             quiet: Whether to suppress output
         """
         super().__init__()
-        self.platform = platform
-        self.temp_dir = Path(tempfile.mkdtemp(prefix="neural_cloud_shell_"))
-        self.history_file = self.temp_dir / "history.json"
-        self.history = []
-        self.kernel_id = None
-        self.notebook_name = None
-        self.quiet = quiet
+        self.platform: str = platform
+        self.temp_dir: Path = Path(tempfile.mkdtemp(prefix="neural_cloud_shell_"))
+        self.history_file: Path = self.temp_dir / "history.json"
+        self.history: List[Dict[str, Any]] = []
+        self.kernel_id: Optional[str] = None
+        self.notebook_name: Optional[str] = None
+        self.quiet: bool = quiet
 
         # Initialize the remote connection
         if remote_connection:
-            self.remote = remote_connection
+            self.remote: RemoteConnection = remote_connection
         else:
             self.remote = RemoteConnection()
 
@@ -88,7 +90,7 @@ Available commands:
         # Load history
         self._load_history()
 
-    def _connect_to_platform(self):
+    def _connect_to_platform(self) -> None:
         """Connect to the cloud platform."""
         if not self.quiet:
             print(f"Connecting to {self.platform}...")
@@ -112,7 +114,7 @@ Available commands:
         if not self.quiet:
             print(f"Successfully connected to {self.platform}!")
 
-    def _create_execution_environment(self):
+    def _create_execution_environment(self) -> None:
         """Create a kernel or notebook for execution."""
         if not self.quiet:
             print(f"Creating execution environment on {self.platform}...")
@@ -290,7 +292,7 @@ print("Neural DSL is ready to use!")
                 print("Colab interactive shell is not supported yet")
             sys.exit(1)
 
-    def _load_history(self):
+    def _load_history(self) -> None:
         """Load command history."""
         if self.history_file.exists():
             try:
@@ -299,7 +301,7 @@ print("Neural DSL is ready to use!")
             except Exception as e:
                 logger.warning(f"Failed to load history: {e}")
 
-    def _save_history(self):
+    def _save_history(self) -> None:
         """Save command history."""
         try:
             with open(self.history_file, 'w') as f:
@@ -307,7 +309,7 @@ print("Neural DSL is ready to use!")
         except Exception as e:
             logger.warning(f"Failed to save history: {e}")
 
-    def _add_to_history(self, command: str, result: Dict[str, Any]):
+    def _add_to_history(self, command: str, result: Dict[str, Any]) -> None:
         """Add a command to history."""
         self.history.append({
             'timestamp': time.time(),
@@ -465,7 +467,7 @@ dashboard_info = debug_model(dsl_code, backend='{backend}', setup_tunnel={setup_
         else:
             return {'success': False, 'error': f"Unsupported platform: {self.platform}"}
 
-    def do_run(self, arg):
+    def do_run(self, arg: str) -> None:
         """
         Run a Neural DSL file on the cloud platform.
 
@@ -529,7 +531,7 @@ dashboard_info = debug_model(dsl_code, backend='{backend}', setup_tunnel={setup_
         else:
             print(f"Execution failed: {result.get('error', 'Unknown error')}")
 
-    def do_visualize(self, arg):
+    def do_visualize(self, arg: str) -> None:
         """
         Visualize a Neural DSL file on the cloud platform.
 
@@ -581,7 +583,7 @@ dashboard_info = debug_model(dsl_code, backend='{backend}', setup_tunnel={setup_
         else:
             print(f"Visualization failed: {result.get('error', 'Unknown error')}")
 
-    def do_debug(self, arg):
+    def do_debug(self, arg: str) -> None:
         """
         Debug a Neural DSL file on the cloud platform.
 
@@ -637,7 +639,7 @@ dashboard_info = debug_model(dsl_code, backend='{backend}', setup_tunnel={setup_
         else:
             print(f"Debugging failed: {result.get('error', 'Unknown error')}")
 
-    def do_shell(self, arg):
+    def do_shell(self, arg: str) -> None:
         """
         Execute a shell command on the cloud platform.
 
@@ -694,7 +696,7 @@ dashboard_info = debug_model(dsl_code, backend='{backend}', setup_tunnel={setup_
         else:
             print(f"Command execution failed: {result.get('error', 'Unknown error')}")
 
-    def do_python(self, arg):
+    def do_python(self, arg: str) -> None:
         """
         Execute Python code on the cloud platform.
 
@@ -770,7 +772,7 @@ dashboard_info = debug_model(dsl_code, backend='{backend}', setup_tunnel={setup_
         else:
             print(f"Code execution failed: {result.get('error', 'Unknown error')}")
 
-    def do_history(self, arg):
+    def do_history(self, arg: str) -> None:
         """
         Show command history.
 
@@ -794,20 +796,20 @@ dashboard_info = debug_model(dsl_code, backend='{backend}', setup_tunnel={setup_
             status = "✓" if entry['success'] else "✗"
             print(f"{i+1}. [{timestamp}] {status} {entry['command']}")
 
-    def do_exit(self, _):
+    def do_exit(self, _: str) -> bool:
         """Exit the shell."""
         return self._cleanup()
 
-    def do_quit(self, _):
+    def do_quit(self, _: str) -> bool:
         """Exit the shell."""
         return self._cleanup()
 
-    def do_EOF(self, _):
+    def do_EOF(self, _: str) -> bool:
         """Exit the shell on Ctrl+D."""
         print()  # Add a newline
         return self._cleanup()
 
-    def _cleanup(self):
+    def _cleanup(self) -> bool:
         """Clean up resources."""
         if not self.quiet:
             print("Cleaning up...")
@@ -834,18 +836,18 @@ dashboard_info = debug_model(dsl_code, backend='{backend}', setup_tunnel={setup_
             print("Goodbye!")
         return True
 
-    def emptyline(self):
+    def emptyline(self) -> None:
         """Do nothing on empty line."""
         pass
 
-    def default(self, line):
+    def default(self, line: str) -> None:
         """Handle unknown commands."""
         if not self.quiet:
             print(f"Unknown command: {line}")
             print("Type 'help' or '?' to list available commands.")
 
 
-def start_interactive_shell(platform: str, remote_connection=None, quiet: bool = False):
+def start_interactive_shell(platform: str, remote_connection: Optional[RemoteConnection] = None, quiet: bool = False) -> None:
     """
     Start an interactive shell for the specified cloud platform.
 

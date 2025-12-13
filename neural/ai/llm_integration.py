@@ -5,6 +5,8 @@ Provides abstraction for different LLM providers (OpenAI, Anthropic, Open-Source
 Supports both API-based and local LLM execution.
 """
 
+from __future__ import annotations
+
 from typing import Optional, Dict, List, Any
 import os
 import json
@@ -14,7 +16,7 @@ from neural.exceptions import DependencyError, ConfigurationError
 class LLMProvider:
     """Base class for LLM providers."""
     
-    def generate(self, prompt: str, **kwargs) -> str:
+    def generate(self, prompt: str, **kwargs: Any) -> str:
         """Generate text from prompt."""
         raise NotImplementedError
     
@@ -26,7 +28,7 @@ class LLMProvider:
 class OpenAIProvider(LLMProvider):
     """OpenAI GPT-4/GPT-3.5 integration."""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "gpt-4") -> None:
         """
         Initialize OpenAI provider.
         
@@ -34,9 +36,9 @@ class OpenAIProvider(LLMProvider):
             api_key: OpenAI API key (or from OPENAI_API_KEY env var)
             model: Model to use (gpt-4, gpt-3.5-turbo, etc.)
         """
-        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
-        self.model = model
-        self._client = None
+        self.api_key: Optional[str] = api_key or os.getenv('OPENAI_API_KEY')
+        self.model: str = model
+        self._client: Any = None
         
         if self.api_key:
             try:
@@ -49,7 +51,7 @@ class OpenAIProvider(LLMProvider):
         """Check if OpenAI is available."""
         return self._client is not None
     
-    def generate(self, prompt: str, **kwargs) -> str:
+    def generate(self, prompt: str, **kwargs: Any) -> str:
         """Generate text using OpenAI."""
         if not self.is_available():
             raise DependencyError(
@@ -85,7 +87,7 @@ Respond only with the Neural DSL code, no explanations unless asked."""
 class AnthropicProvider(LLMProvider):
     """Anthropic Claude integration."""
     
-    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-opus-20240229"):
+    def __init__(self, api_key: Optional[str] = None, model: str = "claude-3-opus-20240229") -> None:
         """
         Initialize Anthropic provider.
         
@@ -93,9 +95,9 @@ class AnthropicProvider(LLMProvider):
             api_key: Anthropic API key (or from ANTHROPIC_API_KEY env var)
             model: Model to use
         """
-        self.api_key = api_key or os.getenv('ANTHROPIC_API_KEY')
-        self.model = model
-        self._client = None
+        self.api_key: Optional[str] = api_key or os.getenv('ANTHROPIC_API_KEY')
+        self.model: str = model
+        self._client: Any = None
         
         if self.api_key:
             try:
@@ -108,7 +110,7 @@ class AnthropicProvider(LLMProvider):
         """Check if Anthropic is available."""
         return self._client is not None
     
-    def generate(self, prompt: str, **kwargs) -> str:
+    def generate(self, prompt: str, **kwargs: Any) -> str:
         """Generate text using Anthropic Claude."""
         if not self.is_available():
             raise RuntimeError("Anthropic client not available. Install anthropic package and set API key.")
@@ -133,7 +135,7 @@ Respond only with the Neural DSL code."""
 class OllamaProvider(LLMProvider):
     """Ollama (local LLM) integration."""
     
-    def __init__(self, model: str = "llama2", base_url: str = "http://localhost:11434"):
+    def __init__(self, model: str = "llama2", base_url: str = "http://localhost:11434") -> None:
         """
         Initialize Ollama provider.
         
@@ -141,9 +143,9 @@ class OllamaProvider(LLMProvider):
             model: Ollama model name (llama2, mistral, etc.)
             base_url: Ollama server URL
         """
-        self.model = model
-        self.base_url = base_url
-        self._available = False
+        self.model: str = model
+        self.base_url: str = base_url
+        self._available: bool = False
         
         # Check if Ollama is available
         try:
@@ -157,7 +159,7 @@ class OllamaProvider(LLMProvider):
         """Check if Ollama is available."""
         return self._available
     
-    def generate(self, prompt: str, **kwargs) -> str:
+    def generate(self, prompt: str, **kwargs: Any) -> str:
         """Generate text using Ollama."""
         if not self.is_available():
             raise RuntimeError("Ollama not available. Make sure Ollama is running.")
@@ -196,21 +198,21 @@ class LLMIntegration:
     Automatically selects available provider or allows manual selection.
     """
     
-    def __init__(self, provider: Optional[str] = None):
+    def __init__(self, provider: Optional[str] = None) -> None:
         """
         Initialize LLM integration.
         
         Args:
             provider: Provider to use ('openai', 'anthropic', 'ollama', or None for auto)
         """
-        self.providers = {
+        self.providers: Dict[str, LLMProvider] = {
             'openai': OpenAIProvider(),
             'anthropic': AnthropicProvider(),
             'ollama': OllamaProvider()
         }
         
         if provider:
-            self.current_provider = self.providers.get(provider)
+            self.current_provider: Optional[LLMProvider] = self.providers.get(provider)
         else:
             # Auto-select first available provider
             self.current_provider = self._auto_select_provider()
@@ -231,7 +233,7 @@ class LLMIntegration:
         """Check if any LLM provider is available."""
         return self.current_provider is not None and self.current_provider.is_available()
     
-    def generate_dsl(self, natural_language: str, context: Optional[Dict] = None) -> str:
+    def generate_dsl(self, natural_language: str, context: Optional[Dict[str, Any]] = None) -> str:
         """
         Generate Neural DSL from natural language.
         
@@ -253,7 +255,7 @@ class LLMIntegration:
         
         return dsl_code
     
-    def _build_prompt(self, natural_language: str, context: Optional[Dict] = None) -> str:
+    def _build_prompt(self, natural_language: str, context: Optional[Dict[str, Any]] = None) -> str:
         """Build prompt for LLM."""
         prompt = f"Convert this natural language description into Neural DSL code:\n\n"
         prompt += f"{natural_language}\n\n"
@@ -282,4 +284,3 @@ class LLMIntegration:
         
         # Return as-is if no pattern found
         return response.strip()
-

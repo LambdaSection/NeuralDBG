@@ -4,12 +4,14 @@ Jupyter Kernel for Neural Cloud Integration
 This module provides a Jupyter kernel for executing Neural DSL code on cloud platforms.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import json
 import logging
 import argparse
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
 
 # Configure logging
 logging.basicConfig(
@@ -44,18 +46,18 @@ class NeuralCloudKernel(Kernel):
     }
     banner = "Neural Cloud Kernel - Execute Neural DSL code on cloud platforms"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """Initialize the kernel."""
         super().__init__(**kwargs)
-        self.platform = kwargs.get('platform', 'kaggle')
-        self.remote = None
-        self.kernel_id = None
-        self.notebook_name = None
+        self.platform: str = kwargs.get('platform', 'kaggle')
+        self.remote: Any = None
+        self.kernel_id: Optional[str] = None
+        self.notebook_name: Optional[str] = None
 
         # Initialize the remote connection
         self._initialize_remote_connection()
 
-    def _initialize_remote_connection(self):
+    def _initialize_remote_connection(self) -> None:
         """Initialize the remote connection."""
         logger.info(f"Initializing remote connection to {self.platform}...")
 
@@ -203,8 +205,8 @@ print("Neural DSL is ready to use!")
         except Exception as e:
             logger.error(f"Failed to initialize remote connection: {e}")
 
-    def do_execute(self, code: str, silent: bool, store_history=True,
-                  user_expressions=None, allow_stdin=False) -> Dict[str, Any]:
+    def do_execute(self, code: str, silent: bool, store_history: bool = True,
+                  user_expressions: Optional[Dict[str, Any]] = None, allow_stdin: bool = False) -> Dict[str, Any]:
         """
         Execute code on the cloud platform.
 

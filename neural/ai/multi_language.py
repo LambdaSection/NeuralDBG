@@ -4,8 +4,10 @@ Multi-Language Support for Neural AI
 Provides translation and language detection for natural language processing.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 import os
 
 logger = logging.getLogger(__name__)
@@ -14,12 +16,12 @@ logger = logging.getLogger(__name__)
 class LanguageDetector:
     """Detects the language of input text."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize language detector."""
-        self._detector = None
+        self._detector: Any = None
         self._initialize_detector()
     
-    def _initialize_detector(self):
+    def _initialize_detector(self) -> None:
         """Initialize language detection library."""
         try:
             from langdetect import detect, DetectorFactory
@@ -61,12 +63,12 @@ class LanguageDetector:
 class Translator:
     """Translates text between languages."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize translator."""
-        self._translator = None
+        self._translator: Any = None
         self._initialize_translator()
     
-    def _initialize_translator(self):
+    def _initialize_translator(self) -> None:
         """Initialize translation library."""
         try:
             from googletrans import Translator
@@ -124,7 +126,7 @@ class MultiLanguageSupport:
     Handles language detection and translation for natural language processing.
     """
     
-    SUPPORTED_LANGUAGES = {
+    SUPPORTED_LANGUAGES: Dict[str, str] = {
         'en': 'English',
         'fr': 'French',
         'es': 'Spanish',
@@ -139,10 +141,10 @@ class MultiLanguageSupport:
         'hi': 'Hindi'
     }
     
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize multi-language support."""
-        self.detector = LanguageDetector()
-        self.translator = Translator()
+        self.detector: LanguageDetector = LanguageDetector()
+        self.translator: Translator = Translator()
     
     def process(self, text: str, target_lang: str = 'en') -> Dict[str, str]:
         """
@@ -161,7 +163,7 @@ class MultiLanguageSupport:
         """
         detected = self.detector.detect(text)
         
-        result = {
+        result: Dict[str, str] = {
             'original': text,
             'detected_lang': detected,
             'translated': text,
@@ -183,4 +185,3 @@ class MultiLanguageSupport:
     def get_language_name(self, lang_code: str) -> str:
         """Get human-readable language name."""
         return self.SUPPORTED_LANGUAGES.get(lang_code, lang_code)
-

@@ -5,9 +5,11 @@ Converts natural language descriptions into Neural DSL code.
 Supports multiple languages through translation layer.
 """
 
+from __future__ import annotations
+
 import re
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class IntentType(Enum):
@@ -32,9 +34,9 @@ class NaturalLanguageProcessor:
     2. LLM-based intent extraction (future enhancement)
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the natural language processor."""
-        self.layer_keywords = {
+        self.layer_keywords: Dict[str, List[str]] = {
             'conv2d': ['convolutional', 'conv', 'cnn', 'conv2d', 'convolution'],
             'dense': ['dense', 'fully connected', 'fc', 'linear'],
             'dropout': ['dropout', 'drop'],
@@ -46,7 +48,7 @@ class NaturalLanguageProcessor:
             'output': ['output', 'final layer', 'classification']
         }
         
-        self.activation_keywords = {
+        self.activation_keywords: Dict[str, List[str]] = {
             'relu': ['relu', 'rectified linear unit'],
             'sigmoid': ['sigmoid'],
             'tanh': ['tanh', 'hyperbolic tangent'],
@@ -54,7 +56,7 @@ class NaturalLanguageProcessor:
             'linear': ['linear', 'none']
         }
         
-        self.optimizer_keywords = {
+        self.optimizer_keywords: Dict[str, List[str]] = {
             'adam': ['adam'],
             'sgd': ['sgd', 'stochastic gradient descent'],
             'rmsprop': ['rmsprop', 'rms prop'],
@@ -62,7 +64,7 @@ class NaturalLanguageProcessor:
             'adamax': ['adamax', 'adam ax']
         }
         
-        self.loss_keywords = {
+        self.loss_keywords: Dict[str, List[str]] = {
             'categorical_crossentropy': ['categorical crossentropy', 'categorical cross entropy', 'crossentropy'],
             'binary_crossentropy': ['binary crossentropy', 'binary cross entropy'],
             'mse': ['mse', 'mean squared error', 'mean square error'],
@@ -93,7 +95,7 @@ class NaturalLanguageProcessor:
         
         return 'en'
     
-    def extract_intent(self, text: str) -> Tuple[IntentType, Dict]:
+    def extract_intent(self, text: str) -> Tuple[IntentType, Dict[str, Any]]:
         """
         Extract user intent from natural language text.
         
@@ -127,9 +129,9 @@ class NaturalLanguageProcessor:
         
         return (IntentType.UNKNOWN, {'text': text})
     
-    def _extract_create_model_intent(self, text: str) -> Tuple[IntentType, Dict]:
+    def _extract_create_model_intent(self, text: str) -> Tuple[IntentType, Dict[str, Any]]:
         """Extract parameters for creating a new model."""
-        params = {}
+        params: Dict[str, Any] = {}
         text_lower = text.lower()
         
         # Extract model name
@@ -161,13 +163,13 @@ class NaturalLanguageProcessor:
         
         return (IntentType.CREATE_MODEL, params)
     
-    def _extract_add_layer_intent(self, text: str) -> Tuple[IntentType, Dict]:
+    def _extract_add_layer_intent(self, text: str) -> Tuple[IntentType, Dict[str, Any]]:
         """Extract parameters for adding a layer."""
-        params = {}
+        params: Dict[str, Any] = {}
         text_lower = text.lower()
         
         # Detect layer type
-        layer_type = None
+        layer_type: Optional[str] = None
         for dsl_type, keywords in self.layer_keywords.items():
             if any(keyword in text_lower for keyword in keywords):
                 layer_type = dsl_type
@@ -213,9 +215,9 @@ class NaturalLanguageProcessor:
         
         return (IntentType.ADD_LAYER, params)
     
-    def _extract_modify_intent(self, text: str) -> Tuple[IntentType, Dict]:
+    def _extract_modify_intent(self, text: str) -> Tuple[IntentType, Dict[str, Any]]:
         """Extract parameters for modifying model configuration."""
-        params = {}
+        params: Dict[str, Any] = {}
         text_lower = text.lower()
         
         # Check for optimizer
@@ -250,9 +252,9 @@ class DSLGenerator:
     Generates Neural DSL code from extracted intents.
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the DSL generator."""
-        self.current_model = {
+        self.current_model: Dict[str, Any] = {
             'name': 'MyModel',
             'input_shape': (28, 28, 1),
             'layers': [],
@@ -261,7 +263,7 @@ class DSLGenerator:
             'num_classes': 10
         }
     
-    def generate_from_intent(self, intent_type: IntentType, params: Dict) -> str:
+    def generate_from_intent(self, intent_type: IntentType, params: Dict[str, Any]) -> str:
         """
         Generate DSL code from intent and parameters.
         
@@ -283,7 +285,7 @@ class DSLGenerator:
         else:
             return ""
     
-    def _generate_model(self, params: Dict) -> str:
+    def _generate_model(self, params: Dict[str, Any]) -> str:
         """Generate a complete model DSL."""
         self.current_model.update(params)
         
@@ -305,7 +307,7 @@ class DSLGenerator:
         
         return dsl
     
-    def _generate_layer(self, params: Dict) -> str:
+    def _generate_layer(self, params: Dict[str, Any]) -> str:
         """Generate a layer DSL snippet."""
         layer_type = params.get('layer_type')
         
@@ -337,13 +339,13 @@ class DSLGenerator:
         
         return ""
     
-    def _generate_optimizer(self, params: Dict) -> str:
+    def _generate_optimizer(self, params: Dict[str, Any]) -> str:
         """Generate optimizer DSL snippet."""
         opt_name = params.get('optimizer', 'adam')
         lr = params.get('learning_rate', 0.001)
         return f"    optimizer: {opt_name.title()}(learning_rate={lr})\n"
     
-    def _generate_loss(self, params: Dict) -> str:
+    def _generate_loss(self, params: Dict[str, Any]) -> str:
         """Generate loss DSL snippet."""
         loss = params.get('loss', 'categorical_crossentropy')
         return f"    loss: \"{loss}\"\n"
@@ -351,4 +353,3 @@ class DSLGenerator:
     def get_full_model(self) -> str:
         """Get the complete current model as DSL."""
         return self._generate_model(self.current_model)
-

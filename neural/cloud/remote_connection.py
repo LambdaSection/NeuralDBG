@@ -781,7 +781,7 @@ print(f"GPU available: {executor.is_gpu_available}")
             logger.error(f"Failed to delete SageMaker notebook: {e}")
             return False
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         """Clean up resources."""
         import shutil
         shutil.rmtree(self.temp_dir)
