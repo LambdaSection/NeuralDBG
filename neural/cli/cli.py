@@ -1528,5 +1528,213 @@ def no_code(ctx: click.Context, port: int) -> None:
     except KeyboardInterrupt:
         print_info("Server stopped by user")
 
+@cli.command()
+@click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.option('--method', '-m', default='shap', help='Explanation method', type=click.Choice(['shap', 'lime', 'saliency', 'attention', 'feature_importance', 'counterfactual', 'all'], case_sensitive=False))
+@click.option('--backend', '-b', default='tensorflow', help='Model backend', type=click.Choice(['tensorflow', 'pytorch'], case_sensitive=False))
+@click.option('--data', '-d', type=click.Path(exists=True), help='Input data file (numpy .npy format)')
+@click.option('--output', '-o', default='explanations', help='Output directory for explanations')
+@click.option('--num-samples', type=int, default=10, help='Number of samples to explain')
+@click.option('--generate-model-card', is_flag=True, help='Generate a model card')
+@click.pass_context
+def explain(ctx, model_path: str, method: str, backend: str, data: Optional[str], output: str, num_samples: int, generate_model_card: bool):
+    """Explain model predictions using various interpretability methods."""
+    print_command_header("explain")
+    print_info(f"Explaining model: {model_path}")
+    
+    import os
+    os.makedirs(output, exist_ok=True)
+    
+    try:
+        if backend == 'tensorflow':
+            import tensorflow as tf
+            model = tf.keras.models.load_model(model_path)
+        elif backend == 'pytorch':
+            import torch
+            model = torch.load(model_path)
+        else:
+            print_error(f"Unsupported backend: {backend}")
+            sys.exit(1)
+        
+        print_success(f"Loaded {backend} model")
+        
+        if data:
+            import numpy as np
+            input_data = np.load(data)
+            print_info(f"Loaded input data: {input_data.shape}")
+            
+            if len(input_data) > num_samples:
+                input_data = input_data[:num_samples]
+                print_info(f"Using first {num_samples} samples")
+        else:
+            print_warning("No input data provided. Using synthetic data for demonstration.")
+            import numpy as np
+            if backend == 'tensorflow':
+                input_shape = model.input_shape[1:]
+            else:
+                input_shape = tuple(model.parameters()).__next__().shape[1:]
+            input_data = np.random.randn(num_samples, *input_shape).astype(np.float32)
+        
+        from neural.explainability import ModelExplainer
+        
+        with Spinner("Initializing explainer") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            explainer = ModelExplainer(
+                model=model,
+                backend=backend,
+                task_type='classification'
+            )
+        
+        print_success("Explainer initialized")
+        
+        if method == 'shap' or method == 'all':
+            print_info("Generating SHAP explanations...")
+            try:
+                with Spinner("Computing SHAP values") as spinner:
+                    if ctx.obj.get('NO_ANIMATIONS'):
+                        spinner.stop()
+                    shap_results = explainer.explain_prediction(input_data[0], method='shap')
+                
+                print_success("SHAP explanations generated")
+                print(f"  {Colors.CYAN}SHAP values shape:{Colors.ENDC} {shap_results['shap_values'].shape if hasattr(shap_results['shap_values'], 'shape') else 'N/A'}")
+            except Exception as e:
+                print_warning(f"SHAP explanation failed: {str(e)}")
+        
+        if method == 'lime' or method == 'all':
+            print_info("Generating LIME explanations...")
+            try:
+                with Spinner("Computing LIME explanations") as spinner:
+                    if ctx.obj.get('NO_ANIMATIONS'):
+                        spinner.stop()
+                    lime_results = explainer.explain_prediction(input_data[0], method='lime')
+                
+                print_success("LIME explanations generated")
+                if 'feature_weights' in lime_results:
+                    print(f"  {Colors.CYAN}Top features:{Colors.ENDC}")
+                    for feature, weight in list(lime_results['feature_weights'].items())[:5]:
+                        print(f"    - {feature}: {weight:.4f}")
+            except Exception as e:
+                print_warning(f"LIME explanation failed: {str(e)}")
+        
+        if method == 'saliency' or method == 'all':
+            print_info("Generating saliency maps...")
+            try:
+                with Spinner("Computing saliency maps") as spinner:
+                    if ctx.obj.get('NO_ANIMATIONS'):
+                        spinner.stop()
+                    saliency_results = explainer.explain_prediction(input_data[0], method='saliency')
+                
+                output_path = os.path.join(output, 'saliency_map.png')
+                from neural.explainability.saliency_maps import SaliencyMapGenerator
+                saliency_gen = SaliencyMapGenerator(model, backend)
+                saliency_gen.visualize(
+                    saliency_results['saliency_map'],
+                    input_data[0],
+                    output_path=output_path
+                )
+                print_success(f"Saliency map saved to {output_path}")
+            except Exception as e:
+                print_warning(f"Saliency map generation failed: {str(e)}")
+        
+        if method == 'attention' or method == 'all':
+            print_info("Visualizing attention weights...")
+            try:
+                with Spinner("Extracting attention weights") as spinner:
+                    if ctx.obj.get('NO_ANIMATIONS'):
+                        spinner.stop()
+                    attention_results = explainer.visualize_attention(input_data[0])
+                
+                if attention_results['attention_weights']:
+                    print_success(f"Extracted attention from {len(attention_results['attention_weights'])} layers")
+                else:
+                    print_warning("No attention layers found in model")
+            except Exception as e:
+                print_warning(f"Attention visualization failed: {str(e)}")
+        
+        if method == 'feature_importance' or method == 'all':
+            print_info("Ranking feature importance...")
+            try:
+                with Spinner("Computing feature importance") as spinner:
+                    if ctx.obj.get('NO_ANIMATIONS'):
+                        spinner.stop()
+                    importance_results = explainer.rank_features(input_data, method='gradient')
+                
+                print_success("Feature importance computed")
+                print(f"  {Colors.CYAN}Top 5 features:{Colors.ENDC}")
+                for i, (feature, score) in enumerate(importance_results['rankings'][:5]):
+                    print(f"    {i+1}. {feature}: {score:.4f}")
+                
+                output_path = os.path.join(output, 'feature_importance.png')
+                from neural.explainability.feature_importance import FeatureImportanceRanker
+                ranker = FeatureImportanceRanker(model, backend)
+                ranker.plot_importance(
+                    importance_results['importance_scores'],
+                    top_k=20,
+                    output_path=output_path
+                )
+                print_success(f"Feature importance plot saved to {output_path}")
+            except Exception as e:
+                print_warning(f"Feature importance ranking failed: {str(e)}")
+        
+        if method == 'counterfactual' or method == 'all':
+            print_info("Generating counterfactual explanations...")
+            try:
+                with Spinner("Computing counterfactuals") as spinner:
+                    if ctx.obj.get('NO_ANIMATIONS'):
+                        spinner.stop()
+                    cf_results = explainer.generate_counterfactuals(input_data[0], num_samples=3)
+                
+                print_success(f"Generated {len(cf_results['counterfactuals'])} counterfactuals")
+                print(f"  {Colors.CYAN}Distances:{Colors.ENDC} {[f'{d:.3f}' for d in cf_results['distances']]}")
+                
+                output_path = os.path.join(output, 'counterfactuals.png')
+                from neural.explainability.counterfactual import CounterfactualGenerator
+                cf_gen = CounterfactualGenerator(model, backend)
+                cf_gen.visualize_counterfactuals(
+                    cf_results['original_input'],
+                    cf_results['counterfactuals'],
+                    output_path=output_path
+                )
+                print_success(f"Counterfactual visualization saved to {output_path}")
+            except Exception as e:
+                print_warning(f"Counterfactual generation failed: {str(e)}")
+        
+        if generate_model_card:
+            print_info("Generating model card...")
+            try:
+                from neural.explainability.model_card import ModelCardGenerator
+                
+                model_info = {
+                    'model_name': os.path.basename(model_path),
+                    'framework': backend,
+                    'model_type': 'Neural Network',
+                    'model_details': {
+                        'model_path': model_path,
+                        'backend': backend
+                    }
+                }
+                
+                card_gen = ModelCardGenerator()
+                card_path = os.path.join(output, 'model_card.md')
+                card_gen.generate(model_info, card_path)
+                print_success(f"Model card saved to {card_path}")
+            except Exception as e:
+                print_warning(f"Model card generation failed: {str(e)}")
+        
+        print_success("Explanation completed!")
+        print(f"\n{Colors.CYAN}Output directory:{Colors.ENDC} {output}")
+        
+    except ImportError as e:
+        print_error(f"Missing dependencies: {str(e)}")
+        print_info("Install explainability dependencies: pip install shap lime scikit-image")
+        sys.exit(1)
+    except Exception as e:
+        print_error(f"Explanation failed: {str(e)}")
+        if ctx.obj.get('VERBOSE'):
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)
+
 if __name__ == '__main__':
     cli()
