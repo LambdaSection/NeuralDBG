@@ -485,6 +485,23 @@ def create_alerts_html(alert_summary: dict) -> html.Div:
 
 
 if __name__ == '__main__':
+    import warnings
+    warnings.warn(
+        "\n" + "="*70 + "\n"
+        "⚠️  DEPRECATION WARNING\n"
+        "="*70 + "\n"
+        "Running neural/monitoring/dashboard.py directly is deprecated.\n"
+        "Use the unified server instead:\n\n"
+        "  neural server start\n\n"
+        "The unified server provides monitoring in the Monitor tab,\n"
+        "along with Debug and Build features in a single interface.\n\n"
+        "This entry point will be removed in v0.4.0.\n"
+        "See neural/dashboard/DEPRECATED.md for migration guide.\n"
+        + "="*70,
+        DeprecationWarning,
+        stacklevel=2
+    )
+    print("\n" + "⚠️  DEPRECATION WARNING: Use 'neural server start' instead\n")
     app = create_app()
     
     ssl_context = None

@@ -867,6 +867,54 @@ def clean(ctx, yes: bool, clean_all: bool):
     print_success(f"Removed {removed} item(s)")
 
 @cli.command()
+@click.option('--host', default='localhost', help='Server host address')
+@click.option('--port', default=8050, type=int, help='Server port')
+@click.option('--no-browser', is_flag=True, help='Do not open browser automatically')
+@click.option('--features', multiple=True, help='Specific features to enable (e.g., debug, nocode, monitoring)')
+@click.pass_context
+def server(ctx, host: str, port: int, no_browser: bool, features: tuple):
+    """Start unified Neural DSL web server (dashboard, builder, monitoring)."""
+    print_command_header("server")
+    
+    try:
+        from neural.server import start_server
+        from neural.config import get_config
+        
+        config = get_config()
+        
+        if features:
+            print_info(f"Starting server with features: {', '.join(features)}")
+            feature_list = list(features)
+        else:
+            enabled = config.get_all_enabled_features()
+            print_info(f"Starting server with enabled features: {', '.join(enabled)}")
+            feature_list = None
+        
+        print_success(f"Server will start on http://{host}:{port}")
+        print_info("Press Ctrl+C to stop the server")
+        
+        if not no_browser and not ctx.obj.get('NO_ANIMATIONS'):
+            print_info("Opening browser...")
+            import webbrowser
+            import threading
+            def open_browser():
+                time.sleep(1.5)
+                webbrowser.open(f"http://{host}:{port}")
+            threading.Thread(target=open_browser, daemon=True).start()
+        
+        start_server(host=host, port=port, debug=False, features=feature_list)
+        
+    except ImportError as e:
+        print_error(f"Server dependencies not installed: {e}")
+        print_info("Install with: pip install -e \".[dashboard]\"")
+        sys.exit(1)
+    except KeyboardInterrupt:
+        print_info("\nServer stopped by user")
+    except Exception as e:
+        print_error(f"Failed to start server: {e}")
+        sys.exit(1)
+
+@cli.command()
 @click.pass_context
 def version(ctx):
     """Show the version of Neural CLI and dependencies."""

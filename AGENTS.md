@@ -38,7 +38,8 @@ Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[a
 - **Build**: N/A (pure Python, no build step)
 - **Lint**: `python -m ruff check .` or `python -m pylint neural/`
 - **Test**: `python -m pytest tests/ -v` or `pytest --cov=neural --cov-report=term`
-- **Dev Server**: `python neural/dashboard/dashboard.py` (NeuralDbg on :8050) or `python neural/no_code/no_code.py` (No-code GUI on :8051)
+- **Dev Server**: `neural server start` (Unified interface on :8050 with Debug/Build/Monitor tabs)
+  - Legacy (deprecated): `python neural/dashboard/dashboard.py` or `python neural/no_code/no_code.py`
 
 ## Tech Stack
 - **Language**: Python 3.8+ with type hints

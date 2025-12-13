@@ -1225,5 +1225,22 @@ def readiness_probe():
     return {"status": "not ready"}, 503
 
 if __name__ == "__main__":
+    import warnings
+    warnings.warn(
+        "\n" + "="*70 + "\n"
+        "⚠️  DEPRECATION WARNING\n"
+        "="*70 + "\n"
+        "Running neural/dashboard/dashboard.py directly is deprecated.\n"
+        "Use the unified server instead:\n\n"
+        "  neural server start\n\n"
+        "The unified server provides all dashboard features in a single\n"
+        "tabbed interface (Debug, Build, Monitor, Settings).\n\n"
+        "This entry point will be removed in v0.4.0.\n"
+        "See neural/dashboard/DEPRECATED.md for migration guide.\n"
+        + "="*70,
+        DeprecationWarning,
+        stacklevel=2
+    )
+    print("\n" + "⚠️  DEPRECATION WARNING: Use 'neural server start' instead\n")
     app.run_server(debug=False, use_reloader=False)
 
