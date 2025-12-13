@@ -154,6 +154,9 @@ packages.*
 /sample_*.py
 /_temp_*.py
 /_temp_*.ps1
+.temp_downloads/
+install_packages.py
+verify_integrations.py
 
 # Model export and deployment artifacts
 *.onnx
