@@ -119,6 +119,11 @@ TEAMS_DEPS = [
     "pyyaml>=6.0.1",
 ]
 
+FEDERATED_DEPS = [
+    "numpy>=1.23.0",
+    "pyyaml>=6.0.1",
+]
+
 setup(
     name="neural-dsl",
     version="0.3.0",
@@ -141,6 +146,7 @@ setup(
         "api": API_DEPS,
         "data": DATA_DEPS,
         "teams": TEAMS_DEPS,
+        "federated": FEDERATED_DEPS,
         # Convenience bundles
         "dev": [
             "pytest>=7.0.0",
@@ -168,6 +174,7 @@ setup(
             + API_DEPS
             + DATA_DEPS
             + TEAMS_DEPS
+            + FEDERATED_DEPS
         ),
         "docs": [
             "sphinx>=5.0",

@@ -20,9 +20,10 @@ pip install -r requirements-dev.txt     # Install development dependencies (reco
 - **Cloud**: pygithub, selenium (cloud integrations)
 - **Integrations**: requests, boto3, google-cloud, azure (ML platform connectors)
 - **Teams**: click, pyyaml (multi-tenancy and team management)
+- **Federated**: numpy, pyyaml (federated learning with privacy and compression)
 - **Dev**: pytest, ruff, pylint, mypy, pre-commit (development tools)
 
-Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[automl]"`, `pip install -e ".[integrations]"`, or `pip install -e ".[distributed]"`
+Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[automl]"`, `pip install -e ".[integrations]"`, `pip install -e ".[distributed]"`, `pip install -e ".[teams]"`, or `pip install -e ".[federated]"`
 
 ## Commands
 - **Build**: N/A (pure Python, no build step)
@@ -47,6 +48,7 @@ Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[a
 - `neural/automl/` - AutoML and Neural Architecture Search (NAS)
 - `neural/integrations/` - ML platform connectors (Databricks, SageMaker, Vertex AI, Azure ML, Paperspace, Run:AI)
 - `neural/teams/` - Multi-tenancy, team management, RBAC, quotas, analytics, and billing
+- `neural/federated/` - Federated learning (client-server architecture, differential privacy, secure aggregation, compression)
 
 ## Code Style
 - Follow PEP 8, 100-char line length (Ruff configured)
