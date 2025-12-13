@@ -123,6 +123,15 @@ FEDERATED_DEPS = [
     "pyyaml>=6.0.1",
 ]
 
+EDUCATION_DEPS = [
+    "nbformat>=5.0",
+    "jupyter>=1.0.0",
+    "dash>=2.18.2",
+    "dash-bootstrap-components>=1.0.0",
+    "plotly>=5.18",
+    "requests>=2.28.0",
+]
+
 setup(
     name="neural-dsl",
     version="0.3.0",
@@ -146,6 +155,7 @@ setup(
         "data": DATA_DEPS,
         "teams": TEAMS_DEPS,
         "federated": FEDERATED_DEPS,
+        "education": EDUCATION_DEPS,
         # Convenience bundles
         "dev": [
             "pytest>=7.0.0",
@@ -174,6 +184,7 @@ setup(
             + DATA_DEPS
             + TEAMS_DEPS
             + FEDERATED_DEPS
+            + EDUCATION_DEPS
         ),
         "docs": [
             "sphinx>=5.0",

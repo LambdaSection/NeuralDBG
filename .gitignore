@@ -558,3 +558,11 @@ packages.*
 *.gen.*
 *_generated.*
 *_gen.*
+
+# Education module artifacts
+neural_education_tutorials/
+neural_education_progress/
+neural_education_assignments/
+neural_education_curriculum/
+neural_education_data/
+*.ipynb_checkpoints/

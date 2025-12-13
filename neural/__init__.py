@@ -139,6 +139,13 @@ except Exception as e:
     collaboration = None  # Mark as unavailable
     warnings.warn(f"Collaboration module unavailable: {e}")
 
+# Education module - teaching and learning features
+try:
+    from . import education  # Education features (tutorials, assignments, grading, LMS)
+except Exception as e:
+    education = None  # Mark as unavailable
+    warnings.warn(f"Education module unavailable: {e}")
+
 
 def check_dependencies() -> Dict[str, bool]:
     """
@@ -183,6 +190,7 @@ def check_dependencies() -> Dict[str, bool]:
         "utils": utils is not None,  # Utils available?
         "mlops": mlops is not None,  # MLOps available?
         "collaboration": collaboration is not None,  # Collaboration available?
+        "education": education is not None,  # Education available?
     }
 
 
@@ -241,6 +249,7 @@ __all__ = [
     "utils",
     "mlops",
     "collaboration",
+    "education",
     # Helper function
     "check_dependencies",
 ]

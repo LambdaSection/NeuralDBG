@@ -21,9 +21,10 @@ pip install -r requirements-dev.txt     # Install development dependencies (reco
 - **Integrations**: requests, boto3, google-cloud, azure (ML platform connectors)
 - **Teams**: click, pyyaml (multi-tenancy and team management)
 - **Federated**: numpy, pyyaml (federated learning with privacy and compression)
+- **Education**: nbformat, jupyter, dash, plotly (interactive tutorials, assignments, grading, LMS integration)
 - **Dev**: pytest, ruff, pylint, mypy, pre-commit (development tools)
 
-Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[automl]"`, `pip install -e ".[integrations]"`, `pip install -e ".[distributed]"`, `pip install -e ".[teams]"`, or `pip install -e ".[federated]"`
+Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[automl]"`, `pip install -e ".[integrations]"`, `pip install -e ".[education]"`, `pip install -e ".[distributed]"`, `pip install -e ".[teams]"`, or `pip install -e ".[federated]"`
 
 ## Commands
 - **Build**: N/A (pure Python, no build step)
@@ -49,6 +50,7 @@ Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[a
 - `neural/integrations/` - ML platform connectors (Databricks, SageMaker, Vertex AI, Azure ML, Paperspace, Run:AI)
 - `neural/teams/` - Multi-tenancy, team management, RBAC, quotas, analytics, and billing
 - `neural/federated/` - Federated learning (client-server architecture, differential privacy, secure aggregation, compression)
+- `neural/education/` - Interactive tutorials, assignments, grading, progress tracking, LMS integration, teacher dashboard
 
 ## Code Style
 - Follow PEP 8, 100-char line length (Ruff configured)
