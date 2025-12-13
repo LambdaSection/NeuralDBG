@@ -15,6 +15,17 @@ HPO_DEPS = [
     "scikit-learn>=1.0",
 ]
 
+AUTOML_DEPS = [
+    "optuna>=3.0",
+    "scikit-learn>=1.0",
+    "scipy>=1.7",
+]
+
+DISTRIBUTED_DEPS = [
+    "ray>=2.0.0",
+    "dask[distributed]>=2023.0.0",
+]
+
 CLOUD_DEPS = [
     "pygithub>=1.59",
     "selenium>=4.0",
@@ -82,6 +93,8 @@ setup(
     extras_require={
         # Individual feature groups
         "hpo": HPO_DEPS,
+        "automl": AUTOML_DEPS,
+        "distributed": DISTRIBUTED_DEPS,
         "cloud": CLOUD_DEPS,
         "visualization": VISUALIZATION_DEPS,
         "dashboard": DASHBOARD_DEPS,
@@ -103,6 +116,8 @@ setup(
         "full": (
             CORE_DEPS
             + HPO_DEPS
+            + AUTOML_DEPS
+            + DISTRIBUTED_DEPS
             + CLOUD_DEPS
             + VISUALIZATION_DEPS
             + DASHBOARD_DEPS

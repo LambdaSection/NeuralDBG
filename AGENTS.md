@@ -13,12 +13,14 @@ pip install -r requirements-dev.txt     # Install development dependencies (reco
 - **Core**: click, lark, numpy, pyyaml (minimal DSL functionality)
 - **Backends**: torch, tensorflow, onnx (ML framework support)
 - **HPO**: optuna, scikit-learn (hyperparameter optimization)
+- **AutoML**: optuna, scikit-learn, scipy (automated ML and NAS)
+- **Distributed**: ray, dask (distributed computing for AutoML)
 - **Visualization**: matplotlib, graphviz, plotly, networkx (charts and diagrams)
 - **Dashboard**: dash, flask (NeuralDbg interface)
 - **Cloud**: pygithub, selenium (cloud integrations)
 - **Dev**: pytest, ruff, pylint, mypy, pre-commit (development tools)
 
-Install specific feature groups: `pip install -e ".[hpo]"` or `pip install -e ".[visualization]"`
+Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[automl]"`, or `pip install -e ".[distributed]"`
 
 ## Commands
 - **Build**: N/A (pure Python, no build step)
@@ -39,6 +41,8 @@ Install specific feature groups: `pip install -e ".[hpo]"` or `pip install -e ".
 - `neural/shape_propagation/` - Shape validation and propagation
 - `neural/dashboard/` - NeuralDbg real-time debugger
 - `neural/no_code/` - No-code web interface
+- `neural/hpo/` - Hyperparameter optimization (Optuna integration)
+- `neural/automl/` - AutoML and Neural Architecture Search (NAS)
 
 ## Code Style
 - Follow PEP 8, 100-char line length (Ruff configured)

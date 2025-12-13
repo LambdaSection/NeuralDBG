@@ -105,6 +105,18 @@ hpo_report.html
 ray_results/  # Ray Tune results
 *.log  # Log files
 
+# AutoML artifacts
+automl_results/  # AutoML search results
+checkpoint_*.json  # AutoML checkpoints
+final_results.json  # AutoML final results
+importance_plot.png
+importance_uncertainty.png
+interaction_heatmap.png
+marginal_effects.png
+optimization_history.png
+parallel_coordinates.png
+gp_importance.png
+
 # Test artifacts
 .hypothesis/
 .pytest_cache/
