@@ -229,14 +229,8 @@ class ReleaseAutomation:
             print("    python -m build")
             print("    python -m twine upload dist/*")
         
-        # 7. Generate blog posts
-        print("\n=== Blog Generation ===\n")
-        try:
-            from .blog_generator import BlogGenerator
-            generator = BlogGenerator(version=new_version)
-            generator.save_blog_posts()
-        except Exception as e:
-            print(f"⚠ Blog generation failed: {e}")
+        # 7. Release complete
+
         
         print("\n" + "=" * 70)
         print("✅ Release complete!")
