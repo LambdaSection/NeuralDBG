@@ -1528,6 +1528,7 @@ def no_code(ctx: click.Context, port: int) -> None:
     except KeyboardInterrupt:
         print_info("Server stopped by user")
 
+<<<<<<< HEAD
 @cli.command()
 @click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.option('--method', '-m', default='shap', help='Explanation method', type=click.Choice(['shap', 'lime', 'saliency', 'attention', 'feature_importance', 'counterfactual', 'all'], case_sensitive=False))
@@ -2151,6 +2152,243 @@ def marketplace_hub_download(ctx, repo_id, filename, output, revision):
         sys.exit(1)
     except Exception as e:
         print_error(f"Download failed: {str(e)}")
+        sys.exit(1)
+
+@cli.group()
+@click.pass_context
+def data(ctx):
+    """Commands for data versioning and lineage tracking."""
+    pass
+
+@data.command('version')
+@click.argument('dataset_path', type=click.Path(exists=True))
+@click.option('--version', '-v', default=None, help='Version name (auto-generated if not provided)')
+@click.option('--metadata', '-m', help='Metadata as JSON string')
+@click.option('--tags', '-t', multiple=True, help='Tags for this version')
+@click.option('--no-copy', is_flag=True, help='Do not copy data (just track)')
+@click.option('--base-dir', default='.neural_data', help='Base directory for data storage')
+@click.pass_context
+def data_version(ctx, dataset_path, version, metadata, tags, no_copy, base_dir):
+    """Create a new version of a dataset."""
+    print_command_header("data version")
+    print_info(f"Creating version for dataset: {dataset_path}")
+    
+    try:
+        from neural.data import DatasetVersionManager
+        
+        manager = DatasetVersionManager(base_dir=base_dir)
+        
+        metadata_dict = json.loads(metadata) if metadata else {}
+        tags_list = list(tags) if tags else []
+        
+        with Spinner("Creating dataset version") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            
+            dataset_version = manager.create_version(
+                dataset_path=dataset_path,
+                version=version,
+                metadata=metadata_dict,
+                tags=tags_list,
+                copy_data=not no_copy,
+            )
+        
+        print_success("Dataset version created!")
+        print(f"\n{Colors.CYAN}Version Information:{Colors.ENDC}")
+        print(f"  {Colors.BOLD}Version:{Colors.ENDC}    {dataset_version.version}")
+        print(f"  {Colors.BOLD}Checksum:{Colors.ENDC}   {dataset_version.checksum[:16]}...")
+        print(f"  {Colors.BOLD}Created:{Colors.ENDC}    {dataset_version.created_at}")
+        if tags_list:
+            print(f"  {Colors.BOLD}Tags:{Colors.ENDC}       {', '.join(tags_list)}")
+    
+    except Exception as e:
+        print_error(f"Failed to create dataset version: {str(e)}")
+        sys.exit(1)
+
+@data.command('list')
+@click.option('--tags', '-t', multiple=True, help='Filter by tags')
+@click.option('--format', '-f', type=click.Choice(['table', 'json']), default='table', help='Output format')
+@click.option('--base-dir', default='.neural_data', help='Base directory for data storage')
+@click.pass_context
+def data_list(ctx, tags, format, base_dir):
+    """List all dataset versions."""
+    print_command_header("data list")
+    
+    try:
+        from neural.data import DatasetVersionManager
+        
+        manager = DatasetVersionManager(base_dir=base_dir)
+        versions = manager.list_versions(tags=list(tags) if tags else None)
+        
+        if not versions:
+            print_warning("No dataset versions found")
+            return
+        
+        if format == 'json':
+            print(json.dumps([v.to_dict() for v in versions], indent=2))
+        else:
+            print(f"\n{Colors.CYAN}Dataset Versions:{Colors.ENDC}")
+            print(f"  {Colors.BOLD}{'Version':<20} {'Checksum':<20} {'Created':<20} {'Tags':<20}{Colors.ENDC}")
+            print(f"  {'-' * 80}")
+            for v in versions:
+                version_str = v.version[:18] + '..' if len(v.version) > 20 else v.version
+                checksum_str = v.checksum[:18] + '..' if len(v.checksum) > 20 else v.checksum
+                created_str = v.created_at.split('T')[0] + ' ' + v.created_at.split('T')[1][:8] if 'T' in v.created_at else v.created_at[:20]
+                tags_str = ', '.join(v.tags[:3]) if v.tags else ''
+                if len(v.tags) > 3:
+                    tags_str += '...'
+                print(f"  {version_str:<20} {checksum_str:<20} {created_str:<20} {tags_str:<20}")
+    
+    except Exception as e:
+        print_error(f"Failed to list dataset versions: {str(e)}")
+        sys.exit(1)
+
+@data.command('validate')
+@click.argument('dataset_path', type=click.Path(exists=True))
+@click.option('--rules', '-r', multiple=True, help='Specific rules to apply')
+@click.option('--save', is_flag=True, help='Save validation results')
+@click.option('--name', default='dataset', help='Dataset name for saved results')
+@click.option('--base-dir', default='.neural_data', help='Base directory for data storage')
+@click.pass_context
+def data_validate(ctx, dataset_path, rules, save, name, base_dir):
+    """Validate dataset quality."""
+    print_command_header("data validate")
+    print_info(f"Validating dataset: {dataset_path}")
+    
+    try:
+        from neural.data import DataQualityValidator
+        import numpy as np
+        
+        validator = DataQualityValidator(base_dir=base_dir)
+        
+        try:
+            if dataset_path.endswith('.npy'):
+                data = np.load(dataset_path)
+            elif dataset_path.endswith('.npz'):
+                data = np.load(dataset_path)['data']
+            else:
+                try:
+                    import pandas as pd
+                    data = pd.read_csv(dataset_path)
+                except ImportError:
+                    data = np.loadtxt(dataset_path)
+        except Exception as e:
+            print_warning(f"Could not load data for validation: {str(e)}")
+            print_info("Proceeding with validation rules check only")
+            data = None
+        
+        rules_list = list(rules) if rules else None
+        
+        with Spinner("Validating dataset") as spinner:
+            if ctx.obj.get('NO_ANIMATIONS'):
+                spinner.stop()
+            
+            if save and data is not None:
+                results = validator.validate_and_save(data, name, rules_list)
+            elif data is not None:
+                results = validator.validate(data, rules_list)
+            else:
+                results = []
+        
+        if results:
+            print_success("Validation complete!")
+            print(f"\n{Colors.CYAN}Validation Results:{Colors.ENDC}")
+            
+            passed = sum(1 for r in results if r.passed)
+            total = len(results)
+            
+            print(f"  {Colors.BOLD}Total Rules:{Colors.ENDC} {total}")
+            print(f"  {Colors.BOLD}Passed:{Colors.ENDC}      {Colors.GREEN}{passed}{Colors.ENDC}")
+            print(f"  {Colors.BOLD}Failed:{Colors.ENDC}      {Colors.RED}{total - passed}{Colors.ENDC}")
+            
+            print(f"\n{Colors.CYAN}Details:{Colors.ENDC}")
+            for result in results:
+                status_color = Colors.GREEN if result.passed else Colors.RED
+                status = "PASS" if result.passed else "FAIL"
+                print(f"  {status_color}[{status}]{Colors.ENDC} {result.rule_name}: {result.message}")
+        else:
+            print_warning("No validation results")
+            print_info("Available rules:")
+            for rule_name in validator.list_rules():
+                print(f"  - {rule_name}")
+    
+    except Exception as e:
+        print_error(f"Validation failed: {str(e)}")
+        sys.exit(1)
+
+@data.command('lineage')
+@click.argument('graph_name')
+@click.option('--trace', help='Node ID to trace lineage from')
+@click.option('--visualize', '-v', is_flag=True, help='Generate lineage visualization')
+@click.option('--output', '-o', help='Output path for visualization')
+@click.option('--format', '-f', type=click.Choice(['table', 'json']), default='table', help='Output format')
+@click.option('--base-dir', default='.neural_data', help='Base directory for data storage')
+@click.pass_context
+def data_lineage(ctx, graph_name, trace, visualize, output, format, base_dir):
+    """Show or visualize data lineage."""
+    print_command_header("data lineage")
+    
+    try:
+        from neural.data import LineageTracker
+        
+        tracker = LineageTracker(base_dir=base_dir)
+        graph = tracker.get_graph(graph_name)
+        
+        if not graph:
+            print_error(f"Lineage graph not found: {graph_name}")
+            print_info("Available graphs:")
+            for name in tracker.list_graphs():
+                print(f"  - {name}")
+            sys.exit(1)
+        
+        if trace:
+            with Spinner("Tracing lineage") as spinner:
+                if ctx.obj.get('NO_ANIMATIONS'):
+                    spinner.stop()
+                
+                lineage = tracker.get_full_lineage(graph_name, trace)
+            
+            print_success(f"Lineage traced for node: {trace}")
+            
+            if format == 'json':
+                print(json.dumps({
+                    "upstream": [n.to_dict() for n in lineage['upstream']],
+                    "downstream": [n.to_dict() for n in lineage['downstream']],
+                }, indent=2))
+            else:
+                print(f"\n{Colors.CYAN}Upstream Dependencies:{Colors.ENDC}")
+                for node in lineage['upstream']:
+                    print(f"  {Colors.BOLD}{node.node_type}:{Colors.ENDC} {node.name} ({node.node_id})")
+                
+                print(f"\n{Colors.CYAN}Downstream Consumers:{Colors.ENDC}")
+                for node in lineage['downstream']:
+                    print(f"  {Colors.BOLD}{node.node_type}:{Colors.ENDC} {node.name} ({node.node_id})")
+        
+        if visualize:
+            with Spinner("Generating lineage visualization") as spinner:
+                if ctx.obj.get('NO_ANIMATIONS'):
+                    spinner.stop()
+                
+                viz_path = tracker.visualize_lineage(graph_name, output)
+            
+            print_success(f"Lineage visualization saved: {viz_path}")
+        
+        if not trace and not visualize:
+            print_info(f"Lineage graph: {graph_name}")
+            print(f"\n{Colors.CYAN}Graph Statistics:{Colors.ENDC}")
+            print(f"  {Colors.BOLD}Total Nodes:{Colors.ENDC}  {len(graph.nodes)}")
+            print(f"  {Colors.BOLD}Total Edges:{Colors.ENDC}  {len(graph.edges)}")
+            
+            node_types = {}
+            for node in graph.nodes.values():
+                node_types[node.node_type] = node_types.get(node.node_type, 0) + 1
+            
+            print(f"\n{Colors.CYAN}Node Types:{Colors.ENDC}")
+            for ntype, count in node_types.items():
+                print(f"  {Colors.BOLD}{ntype}:{Colors.ENDC} {count}")
+    
+    except Exception as e:
+        print_error(f"Failed to process lineage: {str(e)}")
         sys.exit(1)
 
 if __name__ == '__main__':

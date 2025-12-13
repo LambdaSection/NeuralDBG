@@ -197,6 +197,13 @@ neural/no_code/examples/*.neural
 neural/no_code/examples/*_tf.py
 neural/no_code/examples/*_torch.py
 
+# Data versioning and lineage tracking
+.neural_data/
+.neural_data_*/
+*.dvc
+.dvc/
+.dvc_cache/
+
 # Examples generated artifacts
 examples/**/*_tensorflow.py
 examples/**/*_pytorch.py

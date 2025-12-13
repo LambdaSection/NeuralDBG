@@ -105,6 +105,11 @@ MONITORING_DEPS = [
     "requests>=2.28.0",
 ]
 
+DATA_DEPS = [
+    "dvc>=2.0",
+    "pandas>=1.3",
+]
+
 setup(
     name="neural-dsl",
     version="0.3.0",
@@ -125,6 +130,7 @@ setup(
         "utils": UTILS_DEPS,
         "ml-extras": ML_EXTRAS_DEPS,
         "api": API_DEPS,
+        "data": DATA_DEPS,
         # Convenience bundles
         "dev": [
             "pytest>=7.0.0",
@@ -150,6 +156,7 @@ setup(
             + UTILS_DEPS
             + ML_EXTRAS_DEPS
             + API_DEPS
+            + DATA_DEPS
         ),
         "docs": [
             "sphinx>=5.0",
