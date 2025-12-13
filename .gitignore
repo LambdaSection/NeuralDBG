@@ -374,6 +374,12 @@ neural/aquarium/electron/tmp/
 neural/aquarium/electron/temp/
 neural/aquarium/electron/*.tmp
 
+# Plugin system user directories and caches
+.neural_aquarium/
+neural/aquarium/src/plugins/examples/npm_plugin_example/node_modules/
+neural/aquarium/src/plugins/examples/npm_plugin_example/dist/
+neural/aquarium/src/plugins/__pycache__/
+
 # Release automation artifacts
 release_notes*.md
 release_summary.md
