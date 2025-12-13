@@ -649,7 +649,6 @@ class AccessControlError(CollaborationException):
         - Invalid credentials
         - Token expired
     """
-    """
 
 
 # Convenience functions for common error scenarios
