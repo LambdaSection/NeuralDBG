@@ -238,6 +238,7 @@ setup.ps1
 _install.bat
 _install_packages.py
 _setup_env.ps1
+_setup_venv.bat
 SETUP_INSTRUCTIONS.md
 _SETUP_COMPLETE_README.md
 _setup.bat
