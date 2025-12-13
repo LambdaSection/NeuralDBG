@@ -114,6 +114,11 @@ DATA_DEPS = [
     "pandas>=1.3",
 ]
 
+TEAMS_DEPS = [
+    "click>=8.1.3",
+    "pyyaml>=6.0.1",
+]
+
 setup(
     name="neural-dsl",
     version="0.3.0",
@@ -135,6 +140,7 @@ setup(
         "ml-extras": ML_EXTRAS_DEPS,
         "api": API_DEPS,
         "data": DATA_DEPS,
+        "teams": TEAMS_DEPS,
         # Convenience bundles
         "dev": [
             "pytest>=7.0.0",
@@ -161,6 +167,7 @@ setup(
             + ML_EXTRAS_DEPS
             + API_DEPS
             + DATA_DEPS
+            + TEAMS_DEPS
         ),
         "docs": [
             "sphinx>=5.0",

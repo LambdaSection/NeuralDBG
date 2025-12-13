@@ -1776,6 +1776,13 @@ try:
 except ImportError:
     pass
 
+# Import and register teams commands
+try:
+    from neural.teams.cli_commands import teams
+    cli.add_command(teams)
+except ImportError:
+    pass
+
 @cli.group()
 @click.pass_context
 def marketplace(ctx):

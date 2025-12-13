@@ -344,3 +344,8 @@ example_ab_tests/
 example_deployments/
 example_audit_logs/
 example_audit_trail.json
+
+# Team management and multi-tenancy
+neural_organizations/
+team_dashboard.json
+*.billing.json
