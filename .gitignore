@@ -306,7 +306,6 @@ neural/aquarium/backend/temp/
 # Neural Aquarium (React/Node.js frontend)
 neural/aquarium/node_modules/
 neural/aquarium/dist/
-neural/aquarium/build/
 neural/aquarium/.vite/
 neural/aquarium/package-lock.json
 neural/aquarium/yarn.lock
@@ -320,6 +319,28 @@ neural/aquarium/npm-debug.log*
 neural/aquarium/yarn-debug.log*
 neural/aquarium/yarn-error.log*
 neural/aquarium/coverage/
+
+# Electron Builder / Aquarium packaging
+neural/aquarium/build/dist/
+neural/aquarium/build/*.dmg
+neural/aquarium/build/*.pkg
+neural/aquarium/build/*.app
+neural/aquarium/build/*.exe
+neural/aquarium/build/*.msi
+neural/aquarium/build/*.deb
+neural/aquarium/build/*.rpm
+neural/aquarium/build/*.AppImage
+neural/aquarium/build/*.snap
+neural/aquarium/build/*.zip
+neural/aquarium/build/*.tar.gz
+neural/aquarium/build/icon.iconset/
+neural/aquarium/build/placeholder.png
+neural/aquarium/build/*.pfx
+neural/aquarium/build/*.p12
+neural/aquarium/build/*.cer
+neural/aquarium/build/*.pem
+neural/aquarium/build/certificate.*
+neural/aquarium/electron/node_modules/
 
 # Aquarium IDE configuration and user data
 .aquarium/
