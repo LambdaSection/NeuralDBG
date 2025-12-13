@@ -257,10 +257,20 @@ This uses a language model under the hood (requires API key setup—see [docs/ai
 
 ## Documentation
 
+### Core Documentation
+- [Installation Guide](docs/installation.md) – Setup, dependencies, and feature groups
 - [DSL Language Reference](docs/dsl.md) – Complete syntax guide
 - [Deployment Guide](docs/deployment.md) – Production export options
 - [AI Integration Guide](docs/ai_integration_guide.md) – Natural language model generation
+
+### Quick References
+- [Transformer Reference](docs/transformer_reference.md) – TransformerEncoder quick reference
+- [Automation Reference](docs/AUTOMATION_REFERENCE.md) – Release and distribution automation
+- [Documentation Index](docs/DOCUMENTATION_INDEX.md) – Complete documentation guide
+
+### Contributing
 - [Contributing Guide](CONTRIBUTING.md) – How to contribute
+- [Agents Guide](AGENTS.md) – Repository setup for development
 
 More examples in the [examples/](examples/) directory.
 

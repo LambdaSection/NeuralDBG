@@ -4,6 +4,12 @@ Complete guide to all Neural DSL documentation resources.
 
 ## 🆕 Recently Added
 
+### Documentation Consolidation (December 2024)
+- **[Installation Guide](installation.md)** - Consolidated all dependency and installation docs
+- **[Automation Reference](AUTOMATION_REFERENCE.md)** - Unified all release and automation guides
+- **[Transformer Reference](transformer_reference.md)** - Quick reference for transformer layers
+- **[Consolidation Summary](CONSOLIDATION_SUMMARY.md)** - Details on 40+ files consolidated
+
 ### Comprehensive Guides
 - **[Troubleshooting Guide](troubleshooting.md)** - Fix common issues, error messages, and problems
 - **[Migration Guide](migration.md)** - Upgrade between versions and migrate from other frameworks
@@ -43,9 +49,13 @@ Complete guide to all Neural DSL documentation resources.
 |----------|-------------|----------|------|
 | [DSL Reference](dsl.md) | Complete syntax specification | All | Reference |
 | [CLI Reference](cli.md) | Command-line interface | All | Reference |
+| [Installation Guide](installation.md) | Setup, dependencies, feature groups | All | Guide |
 | [Migration Guide](migration.md) | Version and framework migration | Intermediate | Guide |
 | [Parameter Tracking](parameter_tracking.md) | Experiment management | Intermediate | Guide |
 | [Security](security.md) | Security best practices | Advanced | Guide |
+| [Automation Reference](AUTOMATION_REFERENCE.md) | Release, distribution, automation | Maintainer | Reference |
+| [Transformer Reference](transformer_reference.md) | Quick reference for transformers | Intermediate | Reference |
+| [Deployment Guide](deployment.md) | Export and deploy models | Advanced | Guide |
 
 ### Tutorials
 
