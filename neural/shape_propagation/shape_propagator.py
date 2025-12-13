@@ -191,6 +191,9 @@ class ShapePropagator:
                     kernel_size = (3, 3)  # Default value
             params["kernel_size"] = kernel_size  # Ensure tuple in params
 
+        if layer_type == 'MultiHeadAttention':
+            return input_shape
+        
         if layer_type == 'TransformerEncoder':
             if framework == 'tensorflow':
                 return input_shape  # Shape preserved through self-attention
@@ -402,6 +405,8 @@ class ShapePropagator:
                 output_shape = handle_cropping2d(input_shape, params)
             elif layer_type == 'GlobalAveragePooling1D':
                 output_shape = handle_global_average_pooling1d(input_shape, params)
+            elif layer_type == 'MultiHeadAttention':
+                output_shape = self._handle_multiheadattention(input_shape, params)
             else:
                 # Fall back to default handler
                 output_shape = self._handle_default(input_shape, params)
@@ -870,6 +875,10 @@ class ShapePropagator:
                 print(f"DEBUG: _handle_upsampling2d - Invalid input shape: {input_shape}, using default")
                 return input_shape
 
+    def _handle_multiheadattention(self, input_shape, params):
+        print(f"DEBUG: _handle_multiheadattention - input_shape: {input_shape}, params: {params}")
+        return input_shape
+    
     # Handle default helper
     def _handle_default(self, input_shape, params):
         # Default handler for unsupported layers

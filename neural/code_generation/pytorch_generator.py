@@ -53,7 +53,15 @@ class PyTorchGenerator(BaseCodeGenerator):
             layer_name = f"layer{i}_{layer_type.lower()}"
             layer_counts[layer_type] += 1
 
-            if layer_type == "Dense":
+            if layer_type == "MultiHeadAttention":
+                layer_code = self.generate_layer(layer_type, params)
+                layers_code.append(f"self.{layer_name} = {layer_code}")
+                mode = params.get("mode", "self")
+                if mode == "cross":
+                    forward_code_body.append(f"x, _ = self.{layer_name}(x, context, context)")
+                else:
+                    forward_code_body.append(f"x, _ = self.{layer_name}(x, x, x)")
+            elif layer_type == "Dense":
                 if i == 0 or expanded_layers[i-1]['type'] in ["Input", "Flatten"]:
                     dims = []
                     logger.warning(f"Current input shape: {self.current_input_shape}")
@@ -227,7 +235,46 @@ class PyTorchGenerator(BaseCodeGenerator):
 
 
 def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape: Optional[tuple] = None) -> str:
-    if layer_type == "Conv2D":
+    if layer_type == "MultiHeadAttention":
+        embed_dim = params.get("embed_dim", None)
+        num_heads = params.get("num_heads", 8)
+        dropout = params.get("dropout", 0.0)
+        batch_first = params.get("batch_first", True)
+        
+        if embed_dim is None and input_shape is not None and len(input_shape) >= 2:
+            embed_dim = input_shape[-1]
+            if isinstance(embed_dim, dict):
+                if 'value' in embed_dim:
+                    embed_dim = embed_dim['value']
+                else:
+                    logger.warning(f"Dictionary dimension without 'value' key: {embed_dim}, using default")
+                    embed_dim = 512
+        elif embed_dim is None:
+            embed_dim = 512
+        
+        if isinstance(embed_dim, dict):
+            if 'value' in embed_dim:
+                embed_dim = embed_dim['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {embed_dim}, using default")
+                embed_dim = 512
+        
+        if isinstance(num_heads, dict):
+            if 'value' in num_heads:
+                num_heads = num_heads['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {num_heads}, using default")
+                num_heads = 8
+        
+        if isinstance(dropout, dict):
+            if 'value' in dropout:
+                dropout = dropout['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {dropout}, using default")
+                dropout = 0.0
+        
+        return f"nn.MultiheadAttention(embed_dim={embed_dim}, num_heads={num_heads}, dropout={dropout}, batch_first={batch_first})"
+    elif layer_type == "Conv2D":
         data_format = params.get("data_format", "channels_last")
         in_channels = 3
         if input_shape is not None:

@@ -109,7 +109,23 @@ class TensorFlowGenerator(BaseCodeGenerator):
         return code
 
     def generate_layer(self, layer_type: str, params: Dict[str, Any]) -> str:
-        if layer_type == "TransformerEncoder":
+        if layer_type == "MultiHeadAttention":
+            num_heads = params.get("num_heads", 8)
+            key_dim = params.get("key_dim", 64)
+            value_dim = params.get("value_dim", None)
+            dropout = params.get("dropout", 0.0)
+            use_bias = params.get("use_bias", True)
+            mode = params.get("mode", "self")
+            
+            value_dim_str = f", value_dim={value_dim}" if value_dim else ""
+            dropout_str = f", dropout={dropout}" if dropout > 0 else ""
+            use_bias_str = f", use_bias={use_bias}" if not use_bias else ""
+            
+            if mode == "cross":
+                return f"layers.MultiHeadAttention(num_heads={num_heads}, key_dim={key_dim}{value_dim_str}{dropout_str}{use_bias_str})(x, context)"
+            else:
+                return f"layers.MultiHeadAttention(num_heads={num_heads}, key_dim={key_dim}{value_dim_str}{dropout_str}{use_bias_str})(x, x)"
+        elif layer_type == "TransformerEncoder":
             num_heads = params.get("num_heads", 8)
             ff_dim = params.get("ff_dim", 512)
             dropout = params.get("dropout", 0.1)

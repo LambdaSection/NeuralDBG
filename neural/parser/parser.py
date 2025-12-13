@@ -209,7 +209,7 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         // Layer name patterns
         CUSTOM_LAYER.1: /[A-Z][a-zA-Z0-9]*((Layer|RNN)s?|Transformer|Encoder|Decoder|Regularizer|Initializer|Constraint|$)/  // Requires ending with common layer component suffixes to avoid matching basic layer types
 
-        MACRO_NAME: /^(?!.*Layer$)(?!ResidualConnection|Dot|Average|Maximum|Multiply|Add|Concatenate|substract|TimeDistributed|Activation|GroupNormalization|InstanceNormalization|LayerNormalization|GaussianNoise|TransformerEncoder|TransformerDecoder|BatchNormalization|Dropout|Flatten|Output|Conv2DTranspose|LSTM|GRU|SimpleRNN|LSTMCell|GRUCell|Dense|Conv1D|Conv2D|Conv3D|MaxPooling1D|MaxPooling2D|MaxPooling3D)[A-Z][a-zA-Z0-9]*/
+        MACRO_NAME: /^(?!.*Layer$)(?!ResidualConnection|Dot|Average|Maximum|Multiply|Add|Concatenate|substract|TimeDistributed|Activation|GroupNormalization|InstanceNormalization|LayerNormalization|GaussianNoise|TransformerEncoder|TransformerDecoder|MultiHeadAttention|BatchNormalization|Dropout|Flatten|Output|Conv2DTranspose|LSTM|GRU|SimpleRNN|LSTMCell|GRUCell|Dense|Conv1D|Conv2D|Conv3D|MaxPooling1D|MaxPooling2D|MaxPooling3D)[A-Z][a-zA-Z0-9]*/
 
         // Comments and whitespace
         COMMENT: /#[^\n]*/
@@ -717,6 +717,7 @@ class ModelTransformer(lark.Transformer):
             'TRANSFORMER': 'transformer',
             'TRANSFORMER_ENCODER': 'transformer',
             'TRANSFORMER_DECODER': 'transformer',
+            'MULTIHEADATTENTION': 'multiheadattention',
             'CONV2DTRANSPOSE': 'conv2d_transpose',
             'LSTMCELL': 'lstmcell',
             'GRUCELL': 'grucell',
@@ -3317,6 +3318,33 @@ class ModelTransformer(lark.Transformer):
                     self.raise_validation_error(f"{transformer_type} {key} must be a positive integer, got {val}", items[0])
 
         return {'type': transformer_type, 'params': params, 'sublayers': sub_layers}
+
+    def multiheadattention(self, items):
+        items = self._shift_if_token(items)
+        params: Dict[str, Any] = {}
+        
+        if not items or items[0] is None:
+            return {'type': 'MultiHeadAttention', 'params': {}, 'sublayers': []}
+        
+        param_node = items[0]
+        param_values = self._extract_value(param_node) if param_node else []
+        
+        if isinstance(param_values, list):
+            for param in param_values:
+                if isinstance(param, dict):
+                    params.update(param)
+        elif isinstance(param_values, dict):
+            params = param_values
+        
+        for key in ['num_heads', 'key_dim']:
+            if key in params:
+                val = params[key]
+                if isinstance(val, dict) and 'hpo' in val:
+                    continue
+                if not isinstance(val, int) or val <= 0:
+                    self.raise_validation_error(f"MultiHeadAttention {key} must be a positive integer, got {val}", items[0] if items else None)
+        
+        return {'type': 'MultiHeadAttention', 'params': params, 'sublayers': []}
 
     def named_num_heads(self, items):
         params = self._extract_value(items[0]) if items else None

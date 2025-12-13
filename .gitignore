@@ -240,6 +240,8 @@ _install_packages.py
 _setup_env.ps1
 SETUP_INSTRUCTIONS.md
 _SETUP_COMPLETE_README.md
+_setup.bat
+_temp_requirements.txt
 
 # Sphinx documentation
 docs/_build/

@@ -34,6 +34,14 @@ def generate_onnx(model_data: Dict[str, Any]):
                 kernel_shape=params.get('kernel_size', [3, 3]),
                 strides=params.get('strides', [1, 1])
             ))
+        elif layer_type == "MultiHeadAttention":
+            num_heads = params.get('num_heads', 8)
+            nodes.append(helper.make_node(
+                'Attention',
+                inputs=[current_input, current_input, current_input],
+                outputs=[output_name],
+                num_heads=num_heads
+            ))
 
         current_input = output_name
 

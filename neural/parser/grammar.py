@@ -42,9 +42,10 @@ NEURAL_DSL_GRAMMAR = r"""
     RESIDUALCONNECTION: "residualconnection"i
     GLOBALAVERAGEPOOLING2D: "globalaveragepooling2d"i
     GLOBALAVERAGEPOOLING1D: "globalaveragepooling1d"i
+    MULTIHEADATTENTION: "multiheadattention"i
 
     // Layer type tokens (case-insensitive)
-    LAYER_TYPE.2: "dense"i | "conv2d"i | "conv1d"i | "conv3d"i | "dropout"i | "flatten"i | "lstm"i | "gru"i | "simplernndropoutwrapper"i | "simplernn"i | "output"i| "transformer"i | "transformerencoder"i | "transformerdecoder"i | "conv2dtranspose"i | "maxpooling2d"i | "maxpooling1d"i | "maxpooling3d"i | "batchnormalization"i | "gaussiannoise"i | "instancenormalization"i | "groupnormalization"i | "activation"i | "add"i | "subtract"i | "multiply"i | "average"i | "maximum"i | "concatenate"i | "dot"i | "timedistributed"i | "residualconnection"i | "globalaveragepooling2d"i | "globalaveragepooling1d"i
+    LAYER_TYPE.2: "dense"i | "conv2d"i | "conv1d"i | "conv3d"i | "dropout"i | "flatten"i | "lstm"i | "gru"i | "simplernndropoutwrapper"i | "simplernn"i | "output"i| "transformer"i | "transformerencoder"i | "transformerdecoder"i | "conv2dtranspose"i | "maxpooling2d"i | "maxpooling1d"i | "maxpooling3d"i | "batchnormalization"i | "gaussiannoise"i | "instancenormalization"i | "groupnormalization"i | "activation"i | "add"i | "subtract"i | "multiply"i | "average"i | "maximum"i | "concatenate"i | "dot"i | "timedistributed"i | "residualconnection"i | "globalaveragepooling2d"i | "globalaveragepooling1d"i | "multiheadattention"i
 
     // Basic tokens
     NAME: /[a-zA-Z_][a-zA-Z0-9_]*/
