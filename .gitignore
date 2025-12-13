@@ -187,6 +187,13 @@ neural_marketplace_registry/
 demo_registry/
 downloaded_models/
 
+# No-code interface artifacts
+neural/no_code/saved_models/
+neural/no_code/exported_models/
+neural/no_code/examples/*.neural
+neural/no_code/examples/*_tf.py
+neural/no_code/examples/*_torch.py
+
 # Examples generated artifacts
 examples/**/*_tensorflow.py
 examples/**/*_pytorch.py
