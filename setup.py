@@ -198,7 +198,7 @@ setup(
         ]
     },
     entry_points={
-        "console_scripts": ["neural=neural.__main__:cli"]
+        "console_scripts": ["neural=neural.cli:cli"]
     },
     author="Lemniscate-SHA-256/SENOUVO Jacques-Charles Gad",
     author_email="Lemniscate_zero@proton.me",
