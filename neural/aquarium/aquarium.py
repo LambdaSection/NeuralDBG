@@ -359,7 +359,7 @@ def main(port=8052, debug=False):
     print("   Press Ctrl+C to stop the server\n")
     print("="*70)
     
-    app.run_server(debug=debug, host="localhost", port=port)
+    app.run(debug=debug, host="localhost", port=port)
 
 
 if __name__ == "__main__":

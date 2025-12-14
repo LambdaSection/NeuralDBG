@@ -58,6 +58,7 @@ DASHBOARD_DEPS = [
     "flask-httpauth>=4.4",
     "flask-socketio>=5.0.0",
     "python-dotenv>=1.0",
+    "pydantic>=2.0",
 ]
 
 BACKEND_DEPS = [
