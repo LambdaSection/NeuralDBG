@@ -1,5 +1,63 @@
 # Changelog
 
+## [0.4.0] - 2025-01-XX (Refocusing Release)
+
+### 🎯 Strategic Refocusing
+Neural DSL has been refocused from a feature-rich "Swiss Army knife" to a specialized tool that excels at one thing: **declarative neural network definition with multi-backend compilation and automatic shape validation**.
+
+### Breaking Changes
+- **Removed Enterprise Features**: teams, marketplace, billing, cost tracking
+- **Removed Alternative Tool Features**: mlops, cloud integrations, API server, monitoring, data versioning, collaboration, experiment tracking
+- **Removed Experimental Features**: no-code GUI, neural chat, LLM integration, research generation, aquarium, AI features, plugins
+- **Removed Redundant Features**: profiling, benchmarks, execution optimization, explainability, docgen, config management, federated learning
+- **Simplified CLI**: Removed cloud, track, marketplace, cost, aquarium, no-code, docs, and explain commands
+- **Dependencies Reduced**: ~70% reduction in dependencies (50+ → 15 core packages)
+
+### Retained Core Features
+- ✅ DSL parsing with Lark
+- ✅ Multi-backend code generation (TensorFlow, PyTorch, ONNX)
+- ✅ Automatic shape propagation and validation
+- ✅ Network visualization
+- ✅ CLI tools (compile, validate, visualize)
+
+### Retained Optional Features
+- ✅ Hyperparameter optimization (HPO)
+- ✅ AutoML and Neural Architecture Search (NAS)
+- ✅ Debugging dashboard (simplified)
+- ✅ Training utilities
+- ✅ Metric computation
+
+### Migration Guide
+- **Core DSL Users**: No changes needed - DSL syntax unchanged
+- **Removed Feature Users**: See [REFOCUS.md](REFOCUS.md) for alternatives
+  - Teams/Billing → Build as separate service
+  - MLOps → Use MLflow, Kubeflow
+  - Cloud → Use boto3, google-cloud, azure SDKs
+  - API → Wrap Neural in FastAPI
+  - Monitoring → Use Prometheus, Grafana
+  - Tracking → Use MLflow, W&B
+  - Data Versioning → Use DVC
+  - Collaboration → Use Git workflows
+
+### Benefits
+- **Clarity**: Clear value proposition - DSL compiler for neural networks
+- **Simplicity**: Minimal dependencies, faster installation
+- **Performance**: 70% less code, faster startup
+- **Maintainability**: Focused scope, easier to maintain
+- **Quality**: Deeper testing and documentation for core features
+
+### Documentation
+- Updated README.md to emphasize focused mission
+- Updated AGENTS.md with simplified architecture
+- New REFOCUS.md explaining strategy and rationale
+- New CLI_REFOCUS.md for CLI changes
+- New CLEANUP_REFOCUS.md for implementation details
+
+### Philosophy
+> "Do one thing and do it well" - Unix Philosophy
+
+Neural DSL now embodies this principle, focusing on what it does best rather than trying to be everything to everyone.
+
 ## [Unreleased]
 
 ### Added

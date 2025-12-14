@@ -1,150 +1,131 @@
 """
 Neural DSL - A domain-specific language for neural networks.
 
-This package provides a declarative syntax for defining, training, debugging,
-and deploying neural networks with cross-framework support.
+This package provides a declarative syntax for defining neural networks
+with multi-backend compilation (TensorFlow, PyTorch, ONNX) and automatic
+shape validation.
+
+Core Features:
+- Declarative DSL syntax for neural network definition
+- Multi-backend code generation (TensorFlow, PyTorch, ONNX)
+- Automatic shape inference and validation
+- Network visualization
+- Hyperparameter optimization (optional)
+- AutoML and Neural Architecture Search (optional)
 
 Modules are imported optionally - if a dependency is missing, the module
-is set to None and a warning is emitted. Check module availability before use.
+is set to None and a warning is emitted.
 """
 
-# Standard library imports
-import warnings  # For emitting optional dependency warnings
-from typing import Dict  # For type hints
+from typing import Dict
+import warnings
 
-# Package metadata - always available
-__version__ = "0.3.0"  # Current stable version
-__author__ = "Lemniscate-SHA-256/SENOUVO Jacques-Charles Gad"  # Package author
-__email__ = "Lemniscate_zero@proton.me"  # Contact email
 
-# Import exceptions - always available
+# Package metadata
+__version__ = "0.4.0"
+__author__ = "Lemniscate-SHA-256/SENOUVO Jacques-Charles Gad"
+__email__ = "Lemniscate_zero@proton.me"
+
+# Import exceptions
 from .exceptions import (
-    NeuralException,
-    ParserException,
+    CodeGenException,
+    ConfigurationError,
+    DependencyError,
     DSLSyntaxError,
     DSLValidationError,
-    CodeGenException,
-    UnsupportedLayerError,
-    UnsupportedBackendError,
+    ExecutionError,
+    FileOperationError,
+    HPOException,
+    HPOSearchError,
+    InvalidHPOConfigError,
+    InvalidParameterError,
+    InvalidShapeError,
+    NeuralException,
+    ParserException,
     ShapeException,
     ShapeMismatchError,
-    InvalidShapeError,
-    InvalidParameterError,
-    HPOException,
-    InvalidHPOConfigError,
-    HPOSearchError,
-    TrackingException,
-    ExperimentNotFoundError,
-    MetricLoggingError,
-    CloudException,
-    CloudConnectionError,
-    CloudExecutionError,
+    UnsupportedBackendError,
+    UnsupportedLayerError,
     VisualizationException,
-    FileOperationError,
-    DependencyError,
-    ConfigurationError,
-    ExecutionError,
-    MLOpsException,
-    ModelRegistryError,
-    ApprovalWorkflowError,
-    DeploymentError,
-    ABTestError,
-    AuditLogError,
-    CollaborationException,
-    WorkspaceError,
-    ConflictError,
-    SyncError,
-    AccessControlError,
 )
 
-# Core modules - imported optionally to handle missing dependencies gracefully
-# Each module is wrapped in try/except so the package can be imported
-# even when some dependencies are missing.
-# Modules are set to None if import fails.
 
-# CLI module - requires 'click' package
+# Core modules - CLI
 try:
-    from . import cli  # Command-line interface using click framework
+    from . import cli
 except Exception as e:
-    cli = None  # Mark as unavailable
+    cli = None
     warnings.warn(f"CLI module unavailable: {e}. Install 'click' to enable.")
 
-# Parser module - requires 'lark' package
+# Core modules - Parser
 try:
-    from . import parser  # DSL parser using lark-parser grammar
+    from . import parser
 except Exception as e:
-    parser = None  # Mark as unavailable
+    parser = None
     warnings.warn(f"Parser module unavailable: {e}. Install 'lark' to enable.")
 
-# Shape propagation module - requires 'numpy' package
+# Core modules - Shape propagation
 try:
-    from . import shape_propagation  # Tensor shape inference and validation
+    from . import shape_propagation
 except Exception as e:
-    shape_propagation = None  # Mark as unavailable
+    shape_propagation = None
     warnings.warn(f"Shape propagation module unavailable: {e}. Install 'numpy' to enable.")
 
-# Code generation module - may require various backends
+# Core modules - Code generation
 try:
-    from . import code_generation  # Generate PyTorch/TensorFlow code from DSL
+    from . import code_generation
 except Exception as e:
-    code_generation = None  # Mark as unavailable
+    code_generation = None
     warnings.warn(f"Code generation module unavailable: {e}")
 
-# Visualization module - requires 'matplotlib' package
+# Core modules - Visualization
 try:
-    from . import visualization  # Network architecture visualization
+    from . import visualization
 except Exception as e:
-    visualization = None  # Mark as unavailable
-    warnings.warn(f"Visualization module unavailable: {e}. Install 'matplotlib' to enable.")
+    visualization = None
+    warnings.warn(f"Visualization module unavailable: {e}. Install visualization dependencies.")
 
-# Dashboard module - requires 'flask' and 'flask-socketio' packages
+# Core modules - Utils
 try:
-    from . import dashboard  # Real-time training dashboard
+    from . import utils
 except Exception as e:
-    dashboard = None  # Mark as unavailable
-    warnings.warn(f"Dashboard module unavailable: {e}. Install 'flask' and 'flask-socketio' to enable.")
-
-# HPO module - hyperparameter optimization
-try:
-    from . import hpo  # Hyperparameter optimization utilities
-except Exception as e:
-    hpo = None  # Mark as unavailable
-    warnings.warn(f"HPO module unavailable: {e}")
-
-# Cloud module - cloud execution features
-try:
-    from . import cloud  # Cloud training and deployment
-except Exception as e:
-    cloud = None  # Mark as unavailable
-    warnings.warn(f"Cloud module unavailable: {e}")
-
-# Utility modules - minimal dependencies
-try:
-    from . import utils  # Common utility functions
-except Exception as e:
-    utils = None  # Mark as unavailable
+    utils = None
     warnings.warn(f"Utils module unavailable: {e}")
 
-# MLOps module - enterprise ML operations
+# Optional modules - Training
 try:
-    from . import mlops  # MLOps capabilities (registry, deployment, A/B testing, audit)
+    from . import training
 except Exception as e:
-    mlops = None  # Mark as unavailable
-    warnings.warn(f"MLOps module unavailable: {e}")
+    training = None
+    warnings.warn(f"Training module unavailable: {e}")
 
-# Collaboration module - real-time collaborative editing
+# Optional modules - Metrics
 try:
-    from . import collaboration  # Collaborative editing with WebSockets and Git integration
+    from . import metrics
 except Exception as e:
-    collaboration = None  # Mark as unavailable
-    warnings.warn(f"Collaboration module unavailable: {e}")
+    metrics = None
+    warnings.warn(f"Metrics module unavailable: {e}")
 
-# Education module - teaching and learning features
+# Optional modules - Dashboard (simplified debugging interface)
 try:
-    from . import education  # Education features (tutorials, assignments, grading, LMS)
+    from . import dashboard
 except Exception as e:
-    education = None  # Mark as unavailable
-    warnings.warn(f"Education module unavailable: {e}")
+    dashboard = None
+    warnings.warn(f"Dashboard module unavailable: {e}. Install dashboard dependencies.")
+
+# Optional modules - HPO
+try:
+    from . import hpo
+except Exception as e:
+    hpo = None
+    warnings.warn(f"HPO module unavailable: {e}. Install 'optuna' and 'scikit-learn'.")
+
+# Optional modules - AutoML
+try:
+    from . import automl
+except Exception as e:
+    automl = None
+    warnings.warn(f"AutoML module unavailable: {e}. Install automl dependencies.")
 
 
 def check_dependencies() -> Dict[str, bool]:
@@ -154,7 +135,7 @@ def check_dependencies() -> Dict[str, bool]:
     Returns
     -------
     Dict[str, bool]
-        Mapping of module name to availability status (True/False)
+        Mapping of module name to availability status
 
     Examples
     --------
@@ -162,39 +143,22 @@ def check_dependencies() -> Dict[str, bool]:
     >>> deps = neural.check_dependencies()
     >>> if deps['parser']:
     ...     from neural.parser import create_parser
-    ...     parser = create_parser('network')
-    >>> print(deps)  # doctest: +SKIP
-    {'cli': True, 'parser': True, 'shape_propagation': True, ...}
-    
-    Notes
-    -----
-    Use this function to check if optional dependencies are installed
-    before importing specific modules. If a module shows as False,
-    install the required dependencies:
-    
-    - parser: requires 'lark'
-    - dashboard: requires 'flask', 'dash'
-    - hpo: requires 'optuna'
-    - collaboration: requires 'websockets'
-    - Full installation: pip install neural-dsl[full]
     """
     return {
-        "cli": cli is not None,  # CLI available?
-        "parser": parser is not None,  # Parser available?
-        "shape_propagation": shape_propagation is not None,  # Shape prop available?
-        "code_generation": code_generation is not None,  # Code gen available?
-        "visualization": visualization is not None,  # Visualization available?
-        "dashboard": dashboard is not None,  # Dashboard available?
-        "hpo": hpo is not None,  # HPO available?
-        "cloud": cloud is not None,  # Cloud available?
-        "utils": utils is not None,  # Utils available?
-        "mlops": mlops is not None,  # MLOps available?
-        "collaboration": collaboration is not None,  # Collaboration available?
-        "education": education is not None,  # Education available?
+        "cli": cli is not None,
+        "parser": parser is not None,
+        "shape_propagation": shape_propagation is not None,
+        "code_generation": code_generation is not None,
+        "visualization": visualization is not None,
+        "utils": utils is not None,
+        "training": training is not None,
+        "metrics": metrics is not None,
+        "dashboard": dashboard is not None,
+        "hpo": hpo is not None,
+        "automl": automl is not None,
     }
 
 
-# Export list - all public names
 __all__ = [
     # Metadata
     "__version__",
@@ -215,41 +179,24 @@ __all__ = [
     "HPOException",
     "InvalidHPOConfigError",
     "HPOSearchError",
-    "TrackingException",
-    "ExperimentNotFoundError",
-    "MetricLoggingError",
-    "CloudException",
-    "CloudConnectionError",
-    "CloudExecutionError",
     "VisualizationException",
     "FileOperationError",
     "DependencyError",
     "ConfigurationError",
     "ExecutionError",
-    "MLOpsException",
-    "ModelRegistryError",
-    "ApprovalWorkflowError",
-    "DeploymentError",
-    "ABTestError",
-    "AuditLogError",
-    "CollaborationException",
-    "WorkspaceError",
-    "ConflictError",
-    "SyncError",
-    "AccessControlError",
-    # Modules (may be None if dependencies missing)
+    # Core modules
     "cli",
     "parser",
     "shape_propagation",
     "code_generation",
     "visualization",
+    "utils",
+    # Optional modules
+    "training",
+    "metrics",
     "dashboard",
     "hpo",
-    "cloud",
-    "utils",
-    "mlops",
-    "collaboration",
-    "education",
-    # Helper function
+    "automl",
+    # Helper
     "check_dependencies",
 ]
