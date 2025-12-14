@@ -1,306 +1,207 @@
-# Neural DSL Quick Reference
+# Neural DSL - Quick Reference
 
-## Essential Commands
+## Installation
 
-### Starting the Server
 ```bash
-# Unified server (recommended)
-neural server start                          # All features, port 8050
-neural server start --port 9000              # Custom port
-neural server start --features debug,nocode  # Specific features
-neural server start --no-browser             # Don't auto-open browser
+# Core only (minimal)
+pip install neural-dsl
 
-# Legacy (deprecated)
-python neural/dashboard/dashboard.py         # Port 8050 (deprecated)
-python neural/no_code/no_code.py            # Port 8051 (deprecated)
-python neural/monitoring/dashboard.py       # Port 8052 (deprecated)
+# With ML frameworks
+pip install neural-dsl[backends]
+
+# Full installation
+pip install neural-dsl[full]
+
+# Development
+git clone https://github.com/Lemniscate-world/Neural.git
+cd Neural
+python -m venv .venv
+.\.venv\Scripts\Activate  # Windows
+pip install -r requirements-dev.txt
 ```
 
-### Compilation
+## Common Commands
+
 ```bash
-neural compile model.neural                  # Compile to all backends
-neural compile model.neural --backend tensorflow
+# Compile DSL to Python
 neural compile model.neural --backend pytorch
-neural compile model.neural --backend onnx
+
+# Run training
+neural run model.neural
+
+# Visualize architecture
+neural visualize model.neural
+
+# Debug model
+neural debug model.neural
+
+# Export for deployment
+neural export model.neural --format onnx
+
+# Experiment tracking
+neural track list
+neural track show <id>
+neural track compare exp1 exp2
 ```
 
-### Execution
+## Development Workflow
+
 ```bash
-neural run model.neural                      # Compile and execute
-neural run model.neural --backend pytorch
-neural run model.neural --dataset MNIST
+# Lint
+python -m ruff check .
+
+# Type check
+python -m mypy neural/ --ignore-missing-imports
+
+# Run tests
+python -m pytest tests/ -v
+
+# Security scan
+python -m bandit -r neural/ -ll
+python -m pip_audit -l
+
+# Run specific test
+pytest tests/parser/ -v
 ```
 
-### Visualization
-```bash
-neural visualize model.neural                # Generate architecture diagram
-neural visualize model.neural --format svg
-neural visualize model.neural --format png
+## CI/CD Workflows
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| **essential-ci.yml** | Push, PR, Nightly | Lint, test, security |
+| **release.yml** | Version tags | PyPI & GitHub release |
+| **codeql.yml** | Weekly, PR | Security analysis |
+| **validate-examples.yml** | Daily, Changes | Example validation |
+
+## Repository Structure
+
+```
+neural/
+├── cli/              # Command-line interface
+├── parser/           # DSL parser (Lark)
+├── code_generation/  # TF/PyTorch/ONNX generators
+├── shape_propagation/# Shape validation
+├── dashboard/        # NeuralDbg debugger
+├── hpo/             # Hyperparameter optimization
+├── automl/          # Neural Architecture Search
+├── integrations/    # Cloud platform connectors
+├── tracking/        # Experiment tracking
+└── no_code/         # No-code web interface
+
+examples/            # DSL examples
+docs/                # Documentation
+tests/               # Test suite
 ```
 
-## Feature Flags
+## Essential Documentation
 
-### Environment Variables
-```bash
-# Enable/disable features
-export NEURAL_FEATURE_DEBUG=true
-export NEURAL_FEATURE_NOCODE=true
-export NEURAL_FEATURE_MONITORING=true
-export NEURAL_FEATURE_COLLABORATION=false
-export NEURAL_FEATURE_MARKETPLACE=false
+| File | Purpose |
+|------|---------|
+| README.md | Project overview |
+| GETTING_STARTED.md | Quick start guide |
+| INSTALL.md | Installation details |
+| CONTRIBUTING.md | Contribution guidelines |
+| AGENTS.md | Agent/automation guide |
+| CHANGELOG.md | Version history |
+| SECURITY.md | Security policy |
+| LICENSE.md | MIT License |
 
-# Server configuration
-export NEURAL_SERVER_HOST=localhost
-export NEURAL_SERVER_PORT=8050
-```
+## DSL Syntax Basics
 
-### Configuration File
-Edit `neural/config/features.yaml`:
 ```yaml
-extended:
-  debug_dashboard: true
-  hpo: true
-  automl: true
-  integrations: false
-  teams: false
-
-experimental:
-  nocode_builder: true
-  monitoring: true
-  collaboration: false
-  marketplace: false
-  aquarium: false
-  federated: false
+network ModelName {
+  input: (height, width, channels)
+  
+  layers:
+    Conv2D(filters, (kernel_h, kernel_w), activation)
+    MaxPooling2D((pool_h, pool_w))
+    Dense(units, activation)
+    Dropout(rate)
+    Output(units, activation)
+  
+  loss: "loss_function"
+  optimizer: OptimizerName(learning_rate=value)
+  
+  train {
+    epochs: N
+    batch_size: M
+  }
+}
 ```
 
-## Installation Profiles
+## Common Layer Types
 
-```bash
-# Minimal - Core only
-pip install -e .
+- **Conv2D**(filters, kernel, activation)
+- **MaxPooling2D**(pool_size)
+- **Dense**(units, activation)
+- **LSTM**(units, return_sequences)
+- **Dropout**(rate)
+- **BatchNormalization**()
+- **Flatten**()
+- **Output**(units, activation)
 
-# Standard - Core + common features
-pip install -e ".[full]"
+## Backends
 
-# Development - Everything
-pip install -e ".[full]" && pip install -r requirements-dev.txt
+- **tensorflow** - TensorFlow/Keras
+- **pytorch** - PyTorch
+- **onnx** - ONNX format
 
-# Specific features
-pip install -e ".[hpo]"        # HPO only
-pip install -e ".[automl]"     # AutoML only
-pip install -e ".[dashboard]"  # Dashboard features
-```
+## Export Formats
 
-## Port Reference
-
-| Port | Service              | Status      |
-|------|---------------------|-------------|
-| 8050 | Unified Interface   | ✅ Active   |
-| 8000 | REST API (optional) | ⚠️ Optional |
-| 8080 | WebSocket (optional)| ⚠️ Optional |
-| 8051 | No-Code (legacy)    | ❌ Deprecated|
-| 8052 | Monitoring (legacy) | ❌ Deprecated|
-
-## URL Reference
-
-### Unified Server (Current)
-```
-http://localhost:8050          - Main interface
-http://localhost:8050/#debug   - Debug tab
-http://localhost:8050/#build   - Build tab
-http://localhost:8050/#monitor - Monitor tab
-http://localhost:8050/health   - Health check
-```
-
-### Legacy (Deprecated)
-```
-http://localhost:8050          - Debug dashboard (deprecated)
-http://localhost:8051          - No-code builder (deprecated)
-http://localhost:8052          - Monitoring (deprecated)
-```
-
-## Feature Status
-
-### Core (Always Enabled)
-- ✅ Parser
-- ✅ Code Generation
-- ✅ Shape Propagation
-- ✅ CLI
-
-### Extended (Default Enabled)
-- ✅ Debug Dashboard
-- ✅ HPO
-- ✅ AutoML
-- ⚠️ Integrations (optional)
-- ⚠️ Teams (optional)
-
-### Experimental (Optional)
-- ✅ No-Code Builder
-- ✅ Monitoring
-- ❌ Collaboration (disabled)
-- ❌ Marketplace (disabled)
-- ⚠️ Aquarium (extracting)
-- ❌ Federated (disabled)
-
-## Common Workflows
-
-### Build and Debug
-```bash
-# Start unified server
-neural server start
-
-# Open browser to http://localhost:8050
-# 1. Go to Build tab
-# 2. Create model visually
-# 3. Generate code
-# 4. Switch to Debug tab
-# 5. Monitor execution
-```
-
-### HPO Workflow
-```bash
-# Compile with HPO
-neural compile model.neural --hpo --trials 50
-
-# Or programmatically
-python -c "
-from neural.hpo import run_hpo
-results = run_hpo('model.neural', n_trials=50)
-print(results.best_params)
-"
-```
-
-### Production Monitoring
-```bash
-# Start with monitoring only
-neural server start --features monitoring --port 8080
-
-# Access at http://localhost:8080
-```
-
-## Code Examples
-
-### Using Feature Registry
-```python
-from neural.config import is_feature_enabled
-
-if is_feature_enabled('debug_dashboard'):
-    from neural.dashboard import create_dashboard
-    dashboard = create_dashboard()
-
-if is_feature_enabled('hpo'):
-    from neural.hpo import run_hpo
-    results = run_hpo(model_file, n_trials=100)
-```
-
-### Creating Unified App
-```python
-from neural.server import create_unified_app
-
-app = create_unified_app(port=8050)
-app.run_server(host='0.0.0.0', port=8050, debug=False)
-```
-
-### Configuration Management
-```python
-from neural.config import get_config
-
-config = get_config()
-port = config.get('server.unified.port', 8050)
-enabled = config.get_all_enabled_features()
-```
+- **onnx** - Cross-platform inference
+- **tflite** - TensorFlow Lite (mobile/edge)
+- **torchscript** - PyTorch production
+- **savedmodel** - TensorFlow Serving
 
 ## Troubleshooting
 
-### Port in Use
+### Shape Mismatch Errors
 ```bash
-# Check port usage
-lsof -i :8050              # macOS/Linux
-netstat -ano | findstr :8050  # Windows
-
-# Use different port
-neural server start --port 9000
-```
-
-### Feature Not Available
-```bash
-# Check enabled features
-cat neural/config/features.yaml
-
-# Enable feature
-export NEURAL_FEATURE_DEBUG=true
-neural server start
-```
-
-### Missing Dependencies
-```bash
-# Install all dashboard dependencies
-pip install -e ".[dashboard]"
-
-# Or specific packages
-pip install dash plotly flask dash-bootstrap-components
+# Visualize to debug shapes
+neural visualize model.neural --show-shapes
 ```
 
 ### Import Errors
 ```bash
-# Ensure neural is in PYTHONPATH
-export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+# Check dependencies
+pip list | grep -E 'torch|tensorflow|onnx'
 
-# Or install in development mode
-pip install -e .
+# Reinstall with backends
+pip install -e ".[backends]"
 ```
 
-## Migration Checklist
+### Test Failures
+```bash
+# Run with verbose output
+pytest tests/ -v -s
 
-### From Separate Dashboards
-- [ ] Stop running separate dashboard scripts
-- [ ] Update bookmarks to use port 8050 only
-- [ ] Update scripts to use `neural server start`
-- [ ] Remove port-specific hardcoding
-- [ ] Test unified interface
-- [ ] Update documentation
+# Run specific test file
+pytest tests/parser/test_parser.py -v
+```
 
-### To Unified Server
-- [ ] Install dashboard dependencies: `pip install -e ".[dashboard]"`
-- [ ] Configure features in `neural/config/features.yaml`
-- [ ] Start unified server: `neural server start`
-- [ ] Verify all tabs work (Debug, Build, Monitor)
-- [ ] Update team documentation
-- [ ] Archive old dashboard scripts
+## Cleanup
 
-## Documentation Links
+If the repository needs cleanup:
 
-- **Quick Start**: [UNIFIED_SERVER_QUICKSTART.md](./UNIFIED_SERVER_QUICKSTART.md)
-- **Architecture**: [ARCHITECTURE.md](./ARCHITECTURE.md)
-- **Services**: [SERVICE_REGISTRY.md](./SERVICE_REGISTRY.md)
-- **Consolidation**: [SCOPE_CONSOLIDATION.md](./SCOPE_CONSOLIDATION.md)
-- **Development**: [AGENTS.md](./AGENTS.md)
+```bash
+# Run cleanup scripts
+python run_cleanup.py
+
+# Or individual scripts
+python cleanup_redundant_files.py
+python cleanup_workflows.py
+```
 
 ## Getting Help
 
-```bash
-# CLI help
-neural --help
-neural server --help
-neural compile --help
+- **Documentation**: [docs/](docs/)
+- **Examples**: [examples/](examples/)
+- **Discord**: https://discord.gg/KFku4KvS
+- **Issues**: https://github.com/Lemniscate-world/Neural/issues
+- **Twitter**: [@NLang4438](https://x.com/NLang4438)
 
-# Check version and dependencies
-neural version
+## Links
 
-# View configuration
-cat neural/config/features.yaml
-
-# Check server health
-curl http://localhost:8050/health
-```
-
-## Version Information
-
-- **Current**: v0.3.0
-- **Unified Server**: ✅ Available
-- **Legacy Dashboards**: ⚠️ Deprecated, removal in v0.4.0
-- **Next Release**: v0.4.0 (feature extraction)
-
----
-
-**Remember**: Use `neural server start` for all web features. Legacy separate dashboards are deprecated and will be removed in v0.4.0.
+- **PyPI**: https://pypi.org/project/neural-dsl/
+- **GitHub**: https://github.com/Lemniscate-world/Neural
+- **Documentation**: See [docs/](docs/) directory

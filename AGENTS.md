@@ -1,64 +1,99 @@
 # Neural DSL - Agent Guide
 
-## Overview
-Neural DSL is a focused, specialized tool for defining neural networks with a declarative syntax and multi-backend compilation. This is NOT a Swiss Army knife - it does one thing exceptionally well: DSL-based neural network definition with shape validation and code generation.
-
 ## Setup
 ```bash
-python -m venv .venv                    # Create venv
+python -m venv .venv                    # Create venv (convention: .venv or venv)
 .\.venv\Scripts\Activate                # Windows activation
-pip install -e .                        # Install core (DSL, parser, shape validation)
-pip install -e ".[backends]"            # Add TensorFlow, PyTorch, ONNX support
-pip install -e ".[visualization]"       # Add visualization capabilities
-pip install -e ".[hpo]"                 # Add hyperparameter optimization
-pip install -e ".[automl]"              # Add AutoML/NAS
-pip install -e ".[full]"                # All features
-pip install -r requirements-dev.txt     # Development tools
+pip install -e .                        # Install core dependencies only
+pip install -e ".[full]"                # Install with all optional dependencies
+pip install -r requirements-dev.txt     # Install development dependencies (recommended)
 ```
 
-## Core Dependencies
-- **Core**: click, lark, numpy, pyyaml (DSL parsing and validation)
-- **Backends**: torch, tensorflow, onnx (code generation targets)
-- **Visualization**: matplotlib, graphviz, networkx (network diagrams)
+## Dependency Groups
+- **Core**: click, lark, numpy, pyyaml (minimal DSL functionality)
+- **Backends**: torch, tensorflow, onnx (ML framework support)
 - **HPO**: optuna, scikit-learn (hyperparameter optimization)
-- **AutoML**: optuna, scikit-learn, scipy (neural architecture search)
-- **Dashboard**: dash, flask (debugging interface)
-- **Dev**: pytest, ruff, pylint, mypy, pre-commit
+- **AutoML**: optuna, scikit-learn, scipy (automated ML and NAS)
+- **Distributed**: ray, dask (distributed computing for AutoML)
+- **Visualization**: matplotlib, graphviz, plotly, networkx (charts and diagrams)
+- **Dashboard**: dash, flask (NeuralDbg interface)
+- **Cloud**: pygithub, selenium (cloud integrations)
+- **Integrations**: requests, boto3, google-cloud, azure (ML platform connectors)
+- **Teams**: click, pyyaml (multi-tenancy and team management)
+- **Federated**: numpy, pyyaml (federated learning with privacy and compression)
+- **Dev**: pytest, ruff, pylint, mypy, pre-commit (development tools)
+
+Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[automl]"`, `pip install -e ".[integrations]"`, `pip install -e ".[distributed]"`, `pip install -e ".[teams]"`, or `pip install -e ".[federated]"`
 
 ## Commands
-- **Build**: N/A (pure Python)
+- **Build**: N/A (pure Python, no build step)
 - **Lint**: `python -m ruff check .`
-- **Test**: `python -m pytest tests/ -v`
-- **Dev Server**: `python neural/dashboard/dashboard.py` (debugging dashboard on :8050)
+- **Type Check**: `python -m mypy neural/ --ignore-missing-imports`
+- **Test**: `python -m pytest tests/ -v` or `pytest --cov=neural --cov-report=term`
+- **Security**: `python -m bandit -r neural/ -ll` or `python -m pip_audit -l`
+- **Dev Server**: `python neural/dashboard/dashboard.py` (NeuralDbg on :8050) or `python neural/no_code/no_code.py` (No-code GUI on :8051)
 
 ## Tech Stack
 - **Language**: Python 3.8+ with type hints
-- **Core**: Lark (DSL parser), Click (CLI)
-- **Backends**: TensorFlow, PyTorch, ONNX (all optional)
-- **Tools**: pytest, ruff, mypy
+- **Core**: Lark (DSL parser), Click (CLI), Flask/Dash (dashboards)
+- **ML Backends**: TensorFlow, PyTorch, ONNX (all optional)
+- **Tools**: pytest, ruff/pylint, pre-commit, mypy
 
 ## Architecture
-Core modules (always relevant):
+- `neural/cli/` - CLI commands (compile, run, visualize, debug)
 - `neural/parser/` - DSL parser and AST transformer
-- `neural/code_generation/` - Multi-backend code generators
+- `neural/code_generation/` - Multi-backend code generators (TF/PyTorch/ONNX)
 - `neural/shape_propagation/` - Shape validation and propagation
-- `neural/cli/` - CLI commands
-- `neural/visualization/` - Network visualization
-- `neural/utils/` - Shared utilities
-
-Optional modules (install as needed):
-- `neural/hpo/` - Hyperparameter optimization
-- `neural/automl/` - Neural Architecture Search
-- `neural/dashboard/` - Debugging dashboard
-- `neural/training/` - Training utilities
-- `neural/metrics/` - Metric computation
+- `neural/dashboard/` - NeuralDbg real-time debugger
+- `neural/no_code/` - No-code web interface
+- `neural/hpo/` - Hyperparameter optimization (Optuna integration)
+- `neural/automl/` - AutoML and Neural Architecture Search (NAS)
+- `neural/integrations/` - ML platform connectors (Databricks, SageMaker, Vertex AI, Azure ML, Paperspace, Run:AI)
+- `neural/teams/` - Multi-tenancy, team management, RBAC, quotas, analytics, and billing
+- `neural/federated/` - Federated learning (client-server architecture, differential privacy, secure aggregation, compression)
 
 ## Code Style
-- Follow PEP 8, 100-char line length
-- Use type hints
-- Numpy-style docstrings
+- Follow PEP 8, 100-char line length (Ruff configured)
+- Use type hints (`from __future__ import annotations` for forward refs)
+- Docstrings with numpy-style parameters
 - No comments unless complex logic requires context
 - Functional over classes where reasonable
+ine (runs on push/PR)
+   - Lint with Ruff
+   - Type check with Mypy
+   - Tests on Python 3.8, 3.11, 3.12 (Ubuntu & Windows)
+   - Security scanning (Bandit, Safety, pip-audit)
+   - Code coverage reporting
 
-## Philosophy
-Neural DSL is focused on doing ONE thing exceptionally well: providing a clean DSL for neural network definition with strong guarantees (shape validation) and flexibility (multi-backend compilation). All features support this core mission.
+2. **release.yml** - Release automation (runs on version tags)
+   - Build distributions
+   - Publish to PyPI
+   - Create GitHub releases
+
+3. **codeql.yml** - Security analysis (weekly + PR)
+   - CodeQL scanning for Python and JavaScript
+
+4. **validate-examples.yml** - Example validation (daily + changes to examples/)
+   - Validate DSL syntax
+   - Test compilation
+
+## Repository Structure
+Focus areas for development:
+- **Core DSL**: `neural/parser/`, `neural/code_generation/`
+- **Shape Validation**: `neural/shape_propagation/`
+- **Multi-Backend**: TensorFlow, PyTorch, ONNX code generators
+- **Testing**: `tests/` - comprehensive test coverage expected
+
+Peripheral features (lower priority):
+- AutoML, HPO, Integrations, Teams, Federated Learning
+- Aquarium IDE (consider separate repository)
+- Marketing automation, blog generation
+
+## Cleanup
+The repository has been cleaned to remove 200+ redundant files:
+- Implementation summaries archived to `docs/archive/`
+- Workflows consolidated from 20+ to 4 essential ones
+- Development scripts removed or consolidated
+- `.gitignore` comprehensively updated
+
+Run `python run_cleanup.py` to execute cleanup if needed.

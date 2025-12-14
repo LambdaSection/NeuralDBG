@@ -1,36 +1,8 @@
-dist/
-lemniscate/
-build/
-*.pyc
-.env
-!.github/workflows/.env.example
-.qodo
-
-# Dataset files
-data/MNIST/
-tests/data/MNIST/
-examples/data/MNIST/
-tests/hpo/data/MNIST/
-data/cifar-10-python.tar.gz
-data/cifar-10-batches-py/
-
-# Attention examples data
-examples/attention_examples/data/
-
-# Next.js build output and cache
-.next/
-
-# Large HTML files (but allow docs HTML)
-*.html
-!docs/**/*.html
-
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# Python cache files
+# Python cache and compiled files
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 
 # Distribution / packaging
 .Python
@@ -53,57 +25,76 @@ wheels/
 # Virtual environments
 .venv/
 venv/
-.venv/
 env/
 .env/
 ENV/
 .venv*/
 venv*/
 
-# Backup and large files
-.git.bak/
-*.pack
-
-# Social media and blog content (marketing automation)
-social_media/
-docs/blog/
-docs/social/
-
-# Blog publishing - generated content
-docs/blog/*.md
-docs/social/*.txt
-docs/blog/
-docs/social/
-
-# API credentials (never commit)
+# Environment and secrets (never commit)
 .env
 .env.local
+.env.*.local
 *.key
 *_token.txt
 api_keys.json
 
-# SSL certificates (don't commit)
-ssl/
+# IDE/Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Kubernetes local overrides
-k8s/*-override.yaml
-helm/neural-dsl/values-override.yaml
-docker-compose.override.yml
+# OS files
+.DS_Store
+Thumbs.db
 
-# Marketing automation workflow artifacts
-devto_url.txt
-medium_url.txt
-twitter_url.txt
-linkedin_id.txt
-urls/
+# Testing artifacts
+.hypothesis/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.prof
+output.prof
+tests/tmp_path/
 
-# Project-local roadmap and vision (not for distribution)
-ROADMAP.md
-VISION.md
-.continue/rules/new-rule-1.md
-.continue/rules/new-rule.md
+# Linting and type checking
+.ruff_cache/
+.mypy_cache/
 
-# Experiment tracking directories
+# Documentation builds
+docs/_build/
+docs/_autosummary/
+docs/api/generated/
+
+# Dataset files
+data/MNIST/
+tests/data/MNIST/
+examples/data/MNIST/
+tests/hpo/data/MNIST/
+data/cifar-10-python.tar.gz
+data/cifar-10-batches-py/
+examples/attention_examples/data/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Generated files
+*.dot
+*.png
+*.svg
+*.onnx
+*.tflite
+*.pt
+*.html
+!docs/**/*.html
+architecture
+classes.*
+packages.*
+
+# Experiment tracking
 neural_experiments/
 mlruns/
 wandb/
@@ -119,90 +110,49 @@ celerybeat.pid
 
 # HPO artifacts
 hpo_report.html
-*.db  # Optuna study databases
-ray_results/  # Ray Tune results
-*.log  # Log files
+*.db
+ray_results/
+*.log
 
 # AutoML artifacts
-automl_results/  # AutoML search results
-checkpoint_*.json  # AutoML checkpoints
-final_results.json  # AutoML final results
-importance_plot.png
-importance_uncertainty.png
-interaction_heatmap.png
-marginal_effects.png
-optimization_history.png
-parallel_coordinates.png
-gp_importance.png
+automl_results/
+checkpoint_*.json
+final_results.json
+*importance*.png
+*_plot.png
+*_heatmap.png
+*_history.png
+*_coordinates.png
 
-# Test artifacts
-.hypothesis/
-.pytest_cache/
-.coverage
-coverage.xml
-htmlcov/
-*.prof
-output.prof
-*.onnx
-test_model*.py
-*_inference_model.py
-tests/tmp_path/
-
-# Performance test results
+# Performance benchmarks
+benchmark_results/
+benchmark_reports/
+tests/benchmarks/benchmark_results/
+tests/benchmarks/example_results/
+tests/benchmarks/example_reports/
+example_results/
+example_reports/
 tests/performance/*.prof
 tests/performance/benchmark_results/
 
-# Generated files
-*.dot
-*.png
-*.svg
-architecture
-classes.*
-packages.*
+# Security scanning reports
+bandit-report.json
+safety-report.json
+pip-audit-report.json
+audit-*.json
+.secrets.baseline
+.git-secrets/
 
-# Development artifacts (test scripts should be in tests/)
-/test_*.py
-/sample_*.py
-/_temp_*.py
-/_temp_*.ps1
-.temp_downloads/
-install_packages.py
-verify_integrations.py
-
-# Model export and deployment artifacts
-*.onnx
-*.tflite
-*.pt
-*_saved_model/
-*_deployment/
-model-store/
-saved_model/
-
-# TensorFlow Serving
-models.config
-
-# TorchServe
-config.properties
-logs/
-
-# Neural artifacts
+# Neural DSL artifacts
 .neural_cache/
 *.neural.lock
 comparison_plots/
 
-# Collaboration workspaces
+# Collaboration and workspaces
 neural_workspaces/
 .neural_sync/
 
-# Attention visualization outputs
-attention_outputs/
-demo_outputs_*/
-**/attention_outputs/
-**/demo_outputs_*/
-attention_interactive.html
-demo_interactive.html
-
-# Monitoring data and artifacts
+# Monitoring artifacts
 monitoring_data/
 monitoring_data_*/
 *.monitoring.db
@@ -213,13 +163,6 @@ neural_marketplace_registry/
 demo_registry/
 downloaded_models/
 
-# Community features data
-marketplace_community/
-educational_resources/
-university_licenses/
-discord_community/
-community_events/
-
 # No-code interface artifacts
 neural/no_code/saved_models/
 neural/no_code/exported_models/
@@ -227,12 +170,29 @@ neural/no_code/examples/*.neural
 neural/no_code/examples/*_tf.py
 neural/no_code/examples/*_torch.py
 
-# Data versioning and lineage tracking
+# Data versioning
 .neural_data/
 .neural_data_*/
 *.dvc
 .dvc/
 .dvc_cache/
+
+# Model export and deployment
+*_saved_model/
+*_deployment/
+model-store/
+saved_model/
+models.config
+config.properties
+logs/
+
+# Attention visualization outputs
+attention_outputs/
+demo_outputs_*/
+**/attention_outputs/
+**/demo_outputs_*/
+attention_interactive.html
+demo_interactive.html
 
 # Examples generated artifacts
 examples/**/*_tensorflow.py
@@ -252,70 +212,6 @@ examples/**/gan_*.neural
 examples/**/lstm_baseline.neural
 examples/**/test_output.py
 
-# Setup helper scripts
-do_install.py
-install.ps1
-install_deps.bat
-_install_deps.ps1
-_run_setup.py
-_setup_env.py
-do_install.bat
-setup.ps1
-_install.bat
-_install_packages.py
-_setup_env.ps1
-_setup_venv.bat
-SETUP_INSTRUCTIONS.md
-_SETUP_COMPLETE_README.md
-_setup.bat
-_temp_requirements.txt
-install_dev_deps.py
-temp_dev_requirements.txt
-
-# Temporary package directories
-temp_pkgs/
-
-# Sphinx documentation
-docs/_build/
-docs/_autosummary/
-docs/api/generated/
-
-# Ruff cache
-.ruff_cache/
-
-# mypy cache
-.mypy_cache/
-
-# IDE/Editor directories
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Benchmark results
-benchmark_results/
-benchmark_reports/
-tests/benchmarks/benchmark_results/
-tests/benchmarks/example_results/
-tests/benchmarks/example_reports/
-example_results/
-example_reports/
-
-# Security scanning reports
-bandit-report.json
-safety-report.json
-pip-audit-report.json
-audit-*.json
-.secrets.baseline
-
-# git-secrets
-.git-secrets/
-
 # Website (Docusaurus)
 website/node_modules/
 website/.docusaurus/
@@ -324,6 +220,9 @@ website/build/
 website/npm-debug.log*
 website/yarn-debug.log*
 website/yarn-error.log*
+
+# Next.js
+.next/
 
 # Aquarium Backend
 neural/aquarium/backend/.env
@@ -336,11 +235,7 @@ neural/aquarium/.vite/
 neural/aquarium/package-lock.json
 neural/aquarium/yarn.lock
 neural/aquarium/pnpm-lock.yaml
-neural/aquarium/.env
-neural/aquarium/.env.local
-neural/aquarium/.env.development.local
-neural/aquarium/.env.test.local
-neural/aquarium/.env.production.local
+neural/aquarium/.env*
 neural/aquarium/npm-debug.log*
 neural/aquarium/yarn-debug.log*
 neural/aquarium/yarn-error.log*
@@ -384,7 +279,7 @@ neural/aquarium/electron/config.json
 neural/aquarium/electron/*.log
 neural/aquarium/electron/package-lock.json
 neural/aquarium/electron/yarn.lock
-neural/aquarium/electron/pnpm-lock.yaml
+neural/aquarium/electron/pnpm-lock.json
 neural/aquarium/electron/tmp/
 neural/aquarium/electron/temp/
 neural/aquarium/electron/*.tmp
@@ -406,11 +301,6 @@ examples_validation_report.md
 profiling_report.json
 profile_*.json
 *.pstats
-
-# Cleanup artifacts (keep the scripts, ignore outputs)
-docs/archive/moved_*.md
-scripts/cleanup/*.log
-scripts/cleanup/backup/
 
 # MLOps artifacts
 models/
@@ -443,39 +333,52 @@ federated_config.yaml
 client_data/
 *.federated.db
 
-# Repository hygiene - implementation summaries and duplicate docs
-*IMPLEMENTATION_SUMMARY.md
-*IMPLEMENTATION_COMPLETE.md
-*IMPLEMENTATION_CHECKLIST.md
-*IMPLEMENTATION.md
-*_SUMMARY.md
-*QUICK_REFERENCE.md
-*QUICK_REF.md
-*_QUICK_START.md
-PROJECT_SUMMARY.md
-REFACTORING_SUMMARY.md
-PACKAGING_SUMMARY.md
+# Development scripts (consolidated to scripts/)
+/test_*.py
+/sample_*.py
+/_temp_*.py
+/_temp_*.ps1
+.temp_downloads/
+install_packages.py
+verify_integrations.py
+do_install.py
+install.ps1
+install_deps.bat
+_install_deps.ps1
+_run_setup.py
+_setup_env.py
+do_install.bat
+setup.ps1
+_install.bat
+_install_packages.py
+_setup_env.ps1
+_setup_venv.bat
+SETUP_INSTRUCTIONS.md
+_SETUP_COMPLETE_README.md
+_setup.bat
+_temp_requirements.txt
+install_dev_deps.py
+temp_dev_requirements.txt
+temp_pkgs/
 
-# Exclude important summary/implementation docs that should be kept
-!CHANGELOG.md
-!README.md
-!CONTRIBUTING.md
-!SECURITY.md
-!LICENSE.md
-!REPOSITORY_STRUCTURE.md
-!GETTING_STARTED.md
-!INSTALL.md
+# Marketing and social content (marketing automation)
+social_media/
+devto_url.txt
+medium_url.txt
+twitter_url.txt
+linkedin_id.txt
+urls/
 
-# Temporary scripts and reproductions
-repro_*.py
-reproduce_*.py
-fix_*.py
-skip_*.py
-temp_*.py
-_temp_*.py
+# Project-local files (not for distribution)
+ROADMAP.md
+VISION.md
+.continue/rules/new-rule*.md
 
-# Duplicate venvs
-.venv*/
-venv*/
-!.venv/
-!venv/
+# Backup files
+.git.bak/
+*.pack
+
+# Special ignores
+!.github/workflows/.env.example
+lemniscate/
+.qodo/

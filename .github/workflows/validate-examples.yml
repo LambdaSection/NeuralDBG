@@ -1,0 +1,41 @@
+name: Validate Examples
+
+on:
+  push:
+    paths:
+      - 'examples/**'
+      - 'neural/**'
+  pull_request:
+    paths:
+      - 'examples/**'
+      - 'neural/**'
+  schedule:
+    - cron: "0 3 * * *"  # Daily at 03:00 UTC
+
+jobs:
+  validate:
+    name: Validate DSL Examples
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Validate examples
+        run: |
+          python examples/use_cases/validate_examples.py
+
+      - name: Test compilation
+        run: |
+          neural compile examples/use_cases/image_classification.neural --backend tensorflow --dry-run
+          neural visualize examples/use_cases/sentiment_analysis.neural --format svg --no-cache
+        continue-on-error: true

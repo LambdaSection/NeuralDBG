@@ -1,141 +1,215 @@
 # GitHub Actions Workflows
 
-This directory contains the consolidated CI/CD workflows for Neural DSL. The workflows have been streamlined from 20+ to 7 essential workflows.
+This directory contains the essential CI/CD workflows for the Neural DSL project. The workflows have been consolidated from 20+ files to 4 essential ones for better maintainability and faster execution.
 
 ## Active Workflows
 
-### 1. CI (`ci.yml`)
-**Triggers:** Push, Pull Request, Daily Schedule (2 AM UTC)
+### 1. essential-ci.yml - Main CI/CD Pipeline
 
-Comprehensive continuous integration workflow that includes:
-- **Lint & Type Check**: Ruff, mypy, flake8
-- **Unit Tests**: Python 3.8-3.12 on Ubuntu & Windows with coverage
-- **Integration Tests**: Multi-version, multi-platform with coverage
-- **E2E Tests**: End-to-end testing across platforms
-- **UI Tests**: Dashboard interface testing (Python 3.11 only)
-- **Supply Chain Audit**: Bandit, safety, pip-audit security scans
-- **Coverage Report**: Aggregated coverage upload to Codecov
+**Triggers:**
+- Push to main/develop branches
+- Pull requests to main/develop branches
+- Nightly scheduled run at 02:00 UTC
 
-This is the primary workflow for all code quality checks and testing.
+**Jobs:**
 
-### 2. Security Scanning (`security.yml`)
-**Triggers:** Push to main/develop, Pull Requests, Manual dispatch
+#### Lint Job
+- Runs on: Ubuntu latest, Python 3.11
+- Tools: Ruff (fast Python linter)
+- Quick code quality check
 
-Multi-layered security analysis:
-- **Bandit**: Python code security scanner
-- **Safety**: Dependency vulnerability checker
-- **Git Secrets**: Scans for committed secrets/credentials
-- **TruffleHog**: Secret detection in git history
+#### Test Job
+- Matrix: Python 3.8, 3.11, 3.12 × Ubuntu & Windows
+- Tests full test suite with pytest
+- Generates code coverage reports
+- Uploads coverage to Codecov (Ubuntu + Python 3.11 only)
 
-### 3. CodeQL Advanced (`codeql.yml`)
-**Triggers:** Push to main, Pull Requests, Weekly schedule (Monday 5:43 PM UTC)
+#### Security Job
+- Runs on: Ubuntu latest, Python 3.11
+- Tools: Bandit (SAST), Safety (dependency vulnerabilities), pip-audit (supply chain)
+- Continues on error to avoid blocking CI
 
-GitHub's semantic code analysis for:
-- JavaScript/TypeScript code
-- Python code
+**Purpose:** Ensures code quality, compatibility, and security for every change.
 
-Identifies security vulnerabilities and code quality issues.
+### 2. release.yml - Release Automation
 
-### 4. Benchmarks (`benchmarks.yml`)
-**Triggers:** Manual dispatch, Weekly schedule (Sunday), Push to benchmarks code
+**Triggers:**
+- Push of version tags (v*)
 
-Performance testing workflow:
-- Quick benchmarks on Python 3.9-3.11
-- Full benchmarks (manual/scheduled only)
-- Results uploaded as artifacts
-- Optional GitHub Pages publishing
+**Jobs:**
 
-### 5. Validate Examples (`validate_examples.yml`)
-**Triggers:** Push/PR to examples or neural code, Daily schedule (3 AM UTC)
+#### Build Job
+- Builds source distribution and wheel
+- Validates distributions with twine
+- Uploads artifacts for publishing jobs
 
-Ensures example code works correctly:
-- DSL syntax validation
-- Compilation tests (TensorFlow & PyTorch)
-- Visualization generation
-- Notebook format validation
-- End-to-end workflow testing
+#### PyPI Publishing Job
+- Uses trusted publishing (OIDC)
+- Publishes to PyPI automatically
+- Requires: `pypi` environment configured
 
-### 6. Automated Release (`automated_release.yml`)
-**Triggers:** Manual dispatch (with version bump options), Push to tags (v*)
+#### GitHub Release Job
+- Creates GitHub release with tag
+- Attaches distribution artifacts
+- Uses CHANGELOG.md for release notes
 
-Comprehensive release automation:
-- Pre-release validation (lint, type check, tests)
-- Automatic version bumping (major/minor/patch)
-- Changelog parsing
-- GitHub Release creation
-- PyPI publishing (with trusted publishing)
-- TestPyPI support for testing
-- Draft release option
+**Purpose:** Automates the complete release process from git tag to published package.
 
-### 7. Aquarium Release (`aquarium-release.yml`)
-**Triggers:** Push to tags (aquarium-v*.*.*), Manual dispatch
+### 3. codeql.yml - Security Analysis
 
-Builds and releases the Neural Aquarium desktop application:
-- Multi-platform builds (Windows, macOS, Linux)
-- Code signing support (when secrets configured)
-- Installer creation (.exe, .msi, .dmg, .AppImage, .deb, .rpm)
-- Checksum generation
-- GitHub Release creation
-- Auto-update support
+**Triggers:**
+- Push to main branch
+- Pull requests to main branch
+- Weekly scheduled scan (Monday 03:00 UTC)
 
-## Removed Workflows
+**Jobs:**
 
-The following workflows were removed during consolidation:
+#### Analyze Job
+- Matrix: Python, JavaScript/TypeScript
+- Uses GitHub CodeQL for deep security analysis
+- Uploads results to GitHub Security tab
 
-### Deprecated/Low-Value
-- `complexity.yml` - Code complexity metrics (low value)
-- `metrics.yml` - GitHub metrics with lowlighter/metrics (low value)
-- `post_release.yml` - Twitter posting (manual if needed)
+**Purpose:** Continuous security scanning for vulnerabilities and code quality issues.
 
-### Duplicates
-- `pytest-to-issues.yml` - Functionality covered by ci.yml
-- `pylint.yml` - Covered by ci.yml lint job
-- `pre-commit.yml` - Redundant with ci.yml
-- `security-audit.yml` - Merged into security.yml and ci.yml supply-chain-audit
-- `snyk-security.yml` - Incomplete, requires token, covered by other security tools
-- `pypi.yml` - Duplicate of python-publish.yml
-- `python-publish.yml` - Superseded by automated_release.yml
-- `release.yml` - Superseded by automated_release.yml
-- `close-fixed-issues.yml` - Dependent on removed pytest-to-issues workflow
-- `periodic_tasks.yml` - Covered by ci.yml and validate_examples.yml schedules
+### 4. validate-examples.yml - Example Validation
 
-## Workflow Matrix
+**Triggers:**
+- Push/PR changes to examples/ or neural/ directories
+- Daily scheduled validation at 03:00 UTC
 
-| Workflow | Lint | Test | Security | Build | Publish | Schedule |
-|----------|------|------|----------|-------|---------|----------|
-| CI | ✅ | ✅ | ✅ | - | - | Daily 2 AM |
-| Security | - | - | ✅ | - | - | - |
-| CodeQL | - | - | ✅ | - | - | Weekly Mon |
-| Benchmarks | - | ✅ | - | - | - | Weekly Sun |
-| Validate Examples | - | ✅ | - | - | - | Daily 3 AM |
-| Automated Release | ✅ | ✅ | - | ✅ | ✅ | - |
-| Aquarium Release | - | - | - | ✅ | ✅ | - |
+**Jobs:**
 
-## Usage
+#### Validate Job
+- Runs example validation script
+- Tests DSL compilation (dry-run)
+- Generates visualizations
+- Continues on error to avoid blocking
 
-### Running Tests
-Tests run automatically on push/PR via `ci.yml`. No manual intervention needed.
+**Purpose:** Ensures example files remain valid and compilation works.
 
-### Creating a Release
-1. **Automated**: Trigger `automated_release.yml` manually from GitHub Actions tab
-   - Select version bump type (major/minor/patch)
-   - Optionally skip tests/lint
-   - Optionally create draft or publish to TestPyPI
-2. **Tag-based**: Push a tag like `v1.2.3` to trigger release automatically
+## Workflow Features
 
-### Releasing Aquarium
-1. **Automated**: Trigger `aquarium-release.yml` manually with version number
-2. **Tag-based**: Push a tag like `aquarium-v0.3.0` to trigger build
+### Caching Strategy
+All workflows use pip caching for faster dependency installation:
+```yaml
+cache: 'pip'
+cache-dependency-path: |
+  setup.py
+  requirements*.txt
+```
 
-### Security Scans
-- Run automatically on push/PR
-- Can be triggered manually via workflow_dispatch
-- Weekly CodeQL scans run automatically
+### Matrix Testing
+The main CI workflow tests across:
+- Python versions: 3.8, 3.11, 3.12
+- Operating systems: Ubuntu, Windows
+- Total combinations: 6 (3 versions × 2 OS)
 
-## Maintenance
+### Security Tools
+- **Ruff**: Fast linting (replaces flake8, pylint for speed)
+- **Mypy**: Type checking
+- **Bandit**: Security issue scanner (SAST)
+- **Safety**: Dependency vulnerability scanner
+- **pip-audit**: Supply chain security audit
+- **CodeQL**: Advanced security analysis by GitHub
 
-When adding new workflows:
-1. Ensure they don't duplicate existing functionality
-2. Document them in this README
-3. Consider adding to the workflow matrix above
-4. Use appropriate triggers (avoid over-scheduling)
+### Secrets Required
+
+For full functionality, configure these secrets:
+
+| Secret | Purpose | Required For |
+|--------|---------|--------------|
+| CODECOV_TOKEN | Code coverage reporting | essential-ci.yml |
+| PYPI_API_TOKEN | PyPI publishing | release.yml (or use trusted publishing) |
+| GITHUB_TOKEN | Automatic (GitHub provides) | All workflows |
+
+## Removed Workflows (Consolidated)
+
+The following workflows were removed during cleanup:
+
+### Replaced Workflows
+- `ci.yml` → Replaced by `essential-ci.yml`
+- `pylint.yml` → Consolidated into `essential-ci.yml` (lint job)
+- `pre-commit.yml` → Consolidated into `essential-ci.yml` (lint job)
+- `pypi.yml` → Replaced by `release.yml`
+- `python-publish.yml` → Replaced by `release.yml`
+- `validate_examples.yml` → Replaced by `validate-examples.yml` (renamed)
+
+### Consolidated Security Workflows
+- `security.yml` → Consolidated into `essential-ci.yml` (security job)
+- `security-audit.yml` → Consolidated into `essential-ci.yml` (security job)
+- `snyk-security.yml` → Removed (redundant with CodeQL)
+
+### Removed Specialized Workflows
+- `aquarium-release.yml` - Feature-specific release
+- `automated_release.yml` - Redundant automation
+- `benchmarks.yml` - Run manually when needed
+- `close-fixed-issues.yml` - Issue automation (not essential)
+- `complexity.yml` - Metrics (not essential for CI)
+- `metrics.yml` - Metrics (not essential for CI)
+- `periodic_tasks.yml` - Consolidated into other workflows
+- `post_release.yml` - Post-release automation (manual)
+- `pytest-to-issues.yml` - Issue automation (not essential)
+
+## Local Development
+
+Before pushing, run the same checks locally:
+
+```bash
+# Lint
+python -m ruff check .
+
+# Type check
+python -m mypy neural/ --ignore-missing-imports
+
+# Tests
+python -m pytest tests/ -v
+
+# Security scan
+python -m bandit -r neural/ -ll
+python -m pip_audit -l
+```
+
+## Workflow Maintenance
+
+### Adding a New Workflow
+1. Create `.yml` file in this directory
+2. Follow existing patterns for caching, matrix, etc.
+3. Test with `act` (GitHub Actions local runner) if possible
+4. Update this README
+
+### Modifying Existing Workflows
+1. Test changes on a feature branch first
+2. Monitor workflow runs in Actions tab
+3. Check that all jobs complete successfully
+4. Update this README if behavior changes
+
+### Troubleshooting
+
+**Workflow fails on Windows but passes on Ubuntu:**
+- Check for path separator issues (`/` vs `\`)
+- Verify line endings (CRLF vs LF)
+- Test locally on Windows if possible
+
+**Security job always fails:**
+- Check if new dependency has known vulnerabilities
+- Update dependencies: `pip install -U package-name`
+- Add exceptions if false positive (document why)
+
+**Coverage upload fails:**
+- Verify CODECOV_TOKEN is set
+- Check Codecov service status
+- Ensure coverage.xml is generated
+
+## Resources
+
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+- [Python CI/CD Best Practices](https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python)
+- [Security Workflows Guide](https://docs.github.com/en/code-security/code-scanning)
+- [Trusted Publishing for PyPI](https://docs.pypi.org/trusted-publishers/)
+
+## Contact
+
+For questions about workflows:
+- Open an issue with the `ci/cd` label
+- Ask in Discord: https://discord.gg/KFku4KvS
+- Ping maintainers in PR comments

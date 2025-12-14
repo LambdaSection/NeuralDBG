@@ -5,8 +5,7 @@
 
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
   [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-green.svg)](https://www.python.org/)
-  [![CI](https://github.com/Lemniscate-world/Neural/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Lemniscate-world/Neural/actions/workflows/ci.yml)
-  [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://lemniscate-world.github.io/Neural/)
+  [![CI](https://github.com/Lemniscate-world/Neural/actions/workflows/essential-ci.yml/badge.svg?branch=main)](https://github.com/Lemniscate-world/Neural/actions/workflows/essential-ci.yml)
   [![Discord](https://img.shields.io/badge/Chat-Discord-7289DA)](https://discord.gg/KFku4KvS)
 </div>
 
@@ -150,8 +149,6 @@ See [docs/deployment.md](docs/deployment.md) for more details on deployment opti
 
 ## Installation
 
-### For End Users
-
 ```bash
 pip install neural-dsl[full]
 ```
@@ -162,32 +159,19 @@ The `[full]` extra installs TensorFlow, PyTorch, ONNX, and all optional features
 pip install neural-dsl              # core DSL parsing only (~20 MB)
 pip install neural-dsl[backends]    # add TensorFlow/PyTorch/ONNX
 pip install neural-dsl[hpo]         # hyperparameter optimization with Optuna
-pip install neural-dsl[automl]      # automated ML and NAS
 pip install neural-dsl[dashboard]   # NeuralDbg interface
-pip install neural-dsl[visualization] # charts and diagrams
-pip install neural-dsl[cloud]       # cloud integrations
-pip install neural-dsl[integrations] # ML platform connectors
 ```
 
-### For Development
+For development:
 
 ```bash
 git clone https://github.com/Lemniscate-world/Neural.git
 cd Neural
 python -m venv .venv
-
-# Activate virtual environment
-.\.venv\Scripts\Activate              # Windows
-# source .venv/bin/activate           # Linux/macOS
-
-# Install development dependencies (includes core package in editable mode)
+.\.venv\Scripts\Activate   # Windows
+# or source .venv/bin/activate  # Linux/macOS
 pip install -r requirements-dev.txt
-
-# Optional: Set up pre-commit hooks
-pre-commit install
 ```
-
-For more detailed installation instructions including profiles, troubleshooting, and platform-specific notes, see [INSTALL.md](INSTALL.md).
 
 ## Getting Started
 
@@ -258,21 +242,10 @@ This uses a language model under the hood (requires API key setup—see [docs/ai
 
 ## Documentation
 
-**📚 [Full Documentation on GitHub Pages](https://lemniscate-world.github.io/Neural/)**
-
-Quick references:
 - [DSL Language Reference](docs/dsl.md) – Complete syntax guide
 - [Deployment Guide](docs/deployment.md) – Production export options
 - [AI Integration Guide](docs/ai_integration_guide.md) – Natural language model generation
-
-### Quick References
-- [Transformer Reference](docs/transformer_reference.md) – TransformerEncoder quick reference
-- [Automation Reference](docs/AUTOMATION_REFERENCE.md) – Release and distribution automation
-- [Documentation Index](docs/DOCUMENTATION_INDEX.md) – Complete documentation guide
-
-### Contributing
 - [Contributing Guide](CONTRIBUTING.md) – How to contribute
-- [Agents Guide](AGENTS.md) – Repository setup for development
 
 More examples in the [examples/](examples/) directory.
 
@@ -295,42 +268,13 @@ To get started:
 git clone https://github.com/YOUR_USERNAME/Neural.git
 cd Neural
 python -m venv .venv
-
-# Activate virtual environment
-.\.venv\Scripts\Activate              # Windows
-# source .venv/bin/activate           # Linux/macOS
-
-# Install development dependencies
+.\.venv\Scripts\Activate  # Windows
 pip install -r requirements-dev.txt
-
-# Set up pre-commit hooks
 pre-commit install
-
-# Run tests
 pytest tests/ -v
 ```
 
 Check out [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines. Look for [good first issue](https://github.com/Lemniscate-world/Neural/labels/good%20first%20issue) tags if you're new.
-
-## Repository Hygiene
-
-The repository recently underwent a major cleanup to remove 200+ redundant files. To maintain cleanliness:
-
-```bash
-# Quick cleanup (Windows)
-.\cleanup.bat
-
-# Quick cleanup (Linux/macOS)
-make clean-dry    # Preview
-make clean        # Execute
-
-# Or use scripts directly
-python scripts/cleanup_repository.py
-.\scripts\cleanup_repository.ps1 -DryRun
-bash scripts/cleanup_repository.sh --dry-run
-```
-
-See [REPOSITORY_HYGIENE.md](REPOSITORY_HYGIENE.md) for guidelines on what to avoid (implementation summaries, quick reference docs, temp scripts, etc.).
 
 ## Development Workflow
 
@@ -360,8 +304,6 @@ Current focus areas:
 - Add distributed training support (multi-GPU)
 - Better Windows support for NeuralDbg
 - More deployment targets (CoreML, TensorRT)
-
-See [ROADMAP.md](ROADMAP.md) for the full plan.
 
 ## License
 
