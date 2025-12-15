@@ -7,6 +7,7 @@ import numpy as np
 
 from neural.exceptions import (
     DependencyError,
+    InvalidHPOConfigError,
     InvalidParameterError,
     UnsupportedBackendError,
 )
@@ -65,66 +66,21 @@ from neural.shape_propagation.shape_propagator import ShapePropagator
 
 
 def validate_hpo_categorical(param_name: str, values: List[Any]) -> List[Any]:
-    """
-    Validate HPO categorical parameter values.
-    
-    Args:
-        param_name: Name of the parameter
-        values: List of categorical values
-    
-    Returns:
-        Validated list of values
-    
-    Raises:
-        InvalidParameterError: If values are invalid
-    """
-    if not isinstance(values, list):
-        raise InvalidParameterError(
-            param_name=param_name,
-            expected_type="list",
-            actual_value=values
-        )
-    if len(values) == 0:
-        raise InvalidParameterError(
-            param_name=param_name,
-            expected_type="non-empty list",
-            actual_value=values
+    if not isinstance(values, list) or len(values) == 0:
+        raise InvalidHPOConfigError(
+            f"HPO categorical parameter '{param_name}' must have a non-empty list of values"
         )
     return values
 
 
-def validate_hpo_bounds(
-    param_name: str,
-    low: Union[int, float],
-    high: Union[int, float],
-    hpo_type: str
-) -> Tuple[Union[int, float], Union[int, float]]:
-    """
-    Validate HPO range bounds.
-    
-    Args:
-        param_name: Name of the parameter
-        low: Lower bound
-        high: Upper bound
-        hpo_type: Type of HPO ('range' or 'log_range')
-    
-    Returns:
-        Tuple of validated (low, high) bounds
-    
-    Raises:
-        InvalidParameterError: If bounds are invalid
-    """
-    if not isinstance(low, (int, float)) or not isinstance(high, (int, float)):
-        raise InvalidParameterError(
-            param_name=param_name,
-            expected_type="numeric",
-            actual_value=f"low={low}, high={high}"
+def validate_hpo_bounds(param_name: str, low: float, high: float, hpo_type: str) -> Tuple[float, float]:
+    if low is None or high is None:
+        raise InvalidHPOConfigError(
+            f"HPO {hpo_type} parameter '{param_name}' must have both start/low and end/high specified"
         )
     if low >= high:
-        raise InvalidParameterError(
-            param_name=param_name,
-            expected_type="low < high",
-            actual_value=f"low={low}, high={high}"
+        raise InvalidHPOConfigError(
+            f"HPO {hpo_type} parameter '{param_name}': low ({low}) must be less than high ({high})"
         )
     return low, high
 
@@ -435,57 +391,48 @@ class DynamicPTModel(_PTBase):
             x = layer(x)
         return x
 
-# Create a dummy base class when TensorFlow is not available
+
 if HAS_TENSORFLOW:
-    _TFBase = tf.keras.Model
+    class DynamicTFModel(tf.keras.Model):
+        def __init__(
+            self, 
+            model_dict: Dict[str, Any], 
+            trial: 'Trial', 
+            hpo_params: List[Dict[str, Any]]
+        ) -> None:
+            super().__init__()
+            self.layers_list: List[Any] = []
+            input_shape = model_dict['input']['shape']
+            in_features = prod(input_shape)
+            for layer in model_dict['layers']:
+                params = layer['params'].copy()
+                if layer['type'] == 'Dense':
+                    if 'hpo' in params['units']:
+                        hpo = next(h for h in hpo_params if h['layer_type'] == 'Dense' and h['param_name'] == 'units')
+                        units = trial.suggest_categorical('dense_units', hpo['hpo']['values'])
+                        params['units'] = units
+                    self.layers_list.append(tf.keras.layers.Dense(params['units'], activation='relu' if params.get('activation') == 'relu' else None))
+                    in_features = params['units']
+                elif layer['type'] == 'Dropout':
+                    if 'hpo' in params['rate']:
+                        hpo = next(h for h in hpo_params if h['layer_type'] == 'Dropout' and h['param_name'] == 'rate')
+                        rate = trial.suggest_float('dropout_rate', hpo['hpo']['start'], hpo['hpo']['end'], step=hpo['hpo']['step'])
+                        params['rate'] = rate
+                    self.layers_list.append(tf.keras.layers.Dropout(params['rate']))
+                elif layer['type'] == 'Output':
+                    if isinstance(params.get('units'), dict) and 'hpo' in params['units']:
+                        hpo = next(h for h in hpo_params if h['layer_type'] == 'Output' and h['param_name'] == 'units')
+                        units = trial.suggest_categorical('output_units', hpo['hpo']['values'])
+                        params['units'] = units
+                    self.layers_list.append(tf.keras.layers.Dense(params['units'], activation='softmax' if params.get('activation') == 'softmax' else None))
+
+        def call(self, inputs: tf.Tensor) -> tf.Tensor:
+            x = tf.reshape(inputs, [inputs.shape[0], -1])
+            for layer in self.layers_list:
+                x = layer(x)
+            return x
 else:
-    class _TFBase:
-        pass
-
-class DynamicTFModel(_TFBase):
-    def __init__(
-        self, 
-        model_dict: Dict[str, Any], 
-        trial: 'Trial', 
-        hpo_params: List[Dict[str, Any]]
-    ) -> None:
-        if not HAS_TENSORFLOW:
-            raise DependencyError(
-                dependency="tensorflow",
-                feature="TensorFlow dynamic model",
-                install_hint="pip install tensorflow"
-            )
-        super().__init__()
-        self.layers_list: List[Any] = []
-        input_shape = model_dict['input']['shape']
-        prod(input_shape)
-        for layer in model_dict['layers']:
-            params = layer['params'].copy()
-            if layer['type'] == 'Dense':
-                if 'hpo' in params['units']:
-                    hpo = next(h for h in hpo_params if h['layer_type'] == 'Dense' and h['param_name'] == 'units')
-                    units = trial.suggest_categorical('dense_units', hpo['hpo']['values'])
-                    params['units'] = units
-                self.layers_list.append(tf.keras.layers.Dense(params['units'], activation='relu' if params.get('activation') == 'relu' else None))
-                params['units']
-            elif layer['type'] == 'Dropout':
-                if 'hpo' in params['rate']:
-                    hpo = next(h for h in hpo_params if h['layer_type'] == 'Dropout' and h['param_name'] == 'rate')
-                    rate = trial.suggest_float('dropout_rate', hpo['hpo']['start'], hpo['hpo']['end'], step=hpo['hpo']['step'])
-                    params['rate'] = rate
-                self.layers_list.append(tf.keras.layers.Dropout(params['rate']))
-            elif layer['type'] == 'Output':
-                if isinstance(params.get('units'), dict) and 'hpo' in params['units']:
-                    hpo = next(h for h in hpo_params if h['layer_type'] == 'Output' and h['param_name'] == 'units')
-                    units = trial.suggest_categorical('output_units', hpo['hpo']['values'])
-                    params['units'] = units
-                self.layers_list.append(tf.keras.layers.Dense(params['units'], activation='softmax' if params.get('activation') == 'softmax' else None))
-
-    def call(self, inputs: tf.Tensor) -> tf.Tensor:
-        x = tf.reshape(inputs, [inputs.shape[0], -1])  # Flatten input
-        for layer in self.layers_list:
-            x = layer(x)
-        return x
+    DynamicTFModel = None
 
 
 # Training Method

@@ -35,9 +35,7 @@ Examples
 
 from . import utils
 from .hpo import (
-    BayesianParameterImportance,
-    DistributedHPO,
-    MultiObjectiveOptimizer,
+    DynamicPTModel,
     create_dynamic_model,
     get_data,
     objective,
@@ -76,11 +74,9 @@ __all__ = [
     'create_dynamic_model',
     'get_data',
     'resolve_hpo_params',
+    'DynamicPTModel',
     
-    # Optimization classes
-    'MultiObjectiveOptimizer',
-    'DistributedHPO',
-    'BayesianParameterImportance',
+    # Analysis
     'ParameterImportanceAnalyzer',
     
     # Strategies

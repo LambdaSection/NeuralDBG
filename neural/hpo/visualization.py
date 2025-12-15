@@ -9,7 +9,14 @@ from typing import Any, Dict, List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
+
+
+try:
+    import seaborn as sns
+    HAS_SEABORN = True
+except ImportError:
+    HAS_SEABORN = False
+    sns = None
 
 from .parameter_importance import ParameterImportanceAnalyzer
 
@@ -312,8 +319,16 @@ def plot_slice(trials: List[Dict[str, Any]],
         else:
             # For categorical parameters, use a box plot
             df = pd.DataFrame({param: x, metric: y})
-            sns.boxplot(x=param, y=metric, data=df, ax=ax)
-            ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+            if HAS_SEABORN:
+                sns.boxplot(x=param, y=metric, data=df, ax=ax)
+                ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+            else:
+                # Fallback to scatter plot if seaborn not available
+                unique_x = sorted(set(x))
+                x_indices = [unique_x.index(val) for val in x]
+                ax.scatter(x_indices, y, alpha=0.6)
+                ax.set_xticks(range(len(unique_x)))
+                ax.set_xticklabels(unique_x, rotation=45)
 
         # Add labels
         ax.set_ylabel(metric)

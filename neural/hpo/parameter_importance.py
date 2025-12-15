@@ -8,9 +8,24 @@ from typing import Any, Dict, List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+
+try:
+    import seaborn as sns
+    HAS_SEABORN = True
+except ImportError:
+    HAS_SEABORN = False
+    sns = None
+
+try:
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.preprocessing import LabelEncoder, StandardScaler
+    HAS_SKLEARN = True
+except ImportError:
+    HAS_SKLEARN = False
+    RandomForestRegressor = None
+    LabelEncoder = None
+    StandardScaler = None
 
 
 # Configure logger
@@ -21,6 +36,8 @@ class ParameterImportanceAnalyzer:
 
     def __init__(self):
         """Initialize the parameter importance analyzer."""
+        if not HAS_SKLEARN:
+            raise ImportError("scikit-learn is required for parameter importance analysis. Install with: pip install scikit-learn")
         self.encoders = {}
         self.scaler = StandardScaler()
         self.model = None
