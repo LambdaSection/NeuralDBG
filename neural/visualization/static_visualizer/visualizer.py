@@ -36,18 +36,13 @@ except ImportError:
 class NeuralVisualizer:
     def __init__(self, model_data: Dict[str, Any]) -> None:
         self.model_data = model_data
-        self.figures: List[Any] = [] # Store generated visualizations
+        self.figures: List[Any] = []
 
-    ### Converting layers data to json for D3 visualization ########
-    # Converts the model structure to a JSON format that's compatible with D3.js (with nodes and links)
-    # JSON data is used with Matplotlib to create static images
-    # The D3-compatible format is just used as a convenient intermediate representation
     def model_to_d3_json(self) -> Dict[str, List[Dict[str, Any]]]:
         """Convert parsed model data to D3 visualization format"""
         nodes = []
         links = []
 
-        # Input Layer
         input_data = self.model_data.get('input', {})
         nodes.append({
             "id": "input",
@@ -55,7 +50,6 @@ class NeuralVisualizer:
             "shape": input_data.get('shape', None)
         })
 
-        # Hidden Layers
         layers = self.model_data.get('layers', [])
         for idx, layer in enumerate(layers):
             node_id = f"layer{idx+1}"
@@ -65,14 +59,12 @@ class NeuralVisualizer:
                 "params": layer.get('params', {})
             })
 
-            # Create connections
             prev_node = "input" if idx == 0 else f"layer{idx}"
             links.append({
                 "source": prev_node,
                 "target": node_id
             })
 
-        # Output Layer
         output_layer = self.model_data.get('output_layer', {})
         nodes.append({
             "id": "output",
@@ -80,7 +72,7 @@ class NeuralVisualizer:
             "params": output_layer.get('params', {})
         })
 
-        if layers:  # Only add final link if there are layers
+        if layers:
             links.append({
                 "source": f"layer{len(layers)}",
                 "target": "output"
@@ -88,20 +80,44 @@ class NeuralVisualizer:
 
         return {"nodes": nodes, "links": links}
 
-    # Creates a 3D visualization of the shape propagation through the network
     def create_3d_visualization(self, shape_history):
+        """Create a 3D visualization of the shape propagation through the network."""
+        if not shape_history:
+            fig = go.Figure()
+            fig.add_annotation(
+                text="No shape history available",
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=0.5,
+                showarrow=False
+            )
+            return fig
+
         fig = go.Figure()
 
         for i, (name, shape) in enumerate(shape_history):
-            # Uses Plotly's Scatter3d to create a 3D scatter plot
-            # Each point represents a dimension in a tensor shape
+            if not shape:
+                continue
+            
+            clean_shape = []
+            for dim in shape:
+                if dim is None:
+                    clean_shape.append(-1)
+                else:
+                    clean_shape.append(dim)
+            
+            if not clean_shape:
+                continue
+            
             fig.add_trace(go.Scatter3d(
-                x=[i]*len(shape),
-                y=list(range(len(shape))),
-                z=shape,
+                x=[i]*len(clean_shape),
+                y=list(range(len(clean_shape))),
+                z=clean_shape,
                 mode='markers+text',
-                text=[str(d) for d in shape],
-                name=name
+                text=[str(d) if d != -1 else 'None' for d in clean_shape],
+                name=name,
+                marker=dict(size=8)
             ))
 
         fig.update_layout(
@@ -109,11 +125,11 @@ class NeuralVisualizer:
                 xaxis_title='Layer Depth',
                 yaxis_title='Dimension Index',
                 zaxis_title='Dimension Size'
-            )
+            ),
+            title='Shape Propagation Through Network'
         )
-        return fig # Plotly figue object
+        return fig
 
-    # JSON data is used with Matplotlib to create static images
     def save_architecture_diagram(self, filename):
         """Save the architecture diagram to a file.
 
@@ -122,41 +138,53 @@ class NeuralVisualizer:
         """
         import matplotlib.pyplot as plt
 
-        # Create a simple architecture diagram using matplotlib
         fig, ax = plt.subplots(figsize=(10, 8))
 
-        # Get nodes and links from D3 format
         d3_data = self.model_to_d3_json()
         nodes = d3_data['nodes']
         links = d3_data['links']
 
-        # Plot nodes as boxes
+        if not nodes:
+            ax.text(0.5, 0.5, 'No architecture to visualize', 
+                   ha='center', va='center', fontsize=14)
+            ax.axis('off')
+            plt.savefig(filename, dpi=300, bbox_inches='tight')
+            plt.close(fig)
+            return
+
         for i, node in enumerate(nodes):
-            y_pos = len(nodes) - i - 1  # Reverse order for top-to-bottom layout
+            y_pos = len(nodes) - i - 1
             ax.add_patch(plt.Rectangle((0.2, y_pos - 0.4), 0.6, 0.8, fill=True,
                                       color='lightblue', alpha=0.7))
             ax.text(0.5, y_pos, f"{node['type']}", ha='center', va='center', fontweight='bold')
 
-            # Add parameters text if available
             if 'params' in node and node['params']:
                 param_text = ', '.join(f"{k}={v}" for k, v in node['params'].items())
                 ax.text(0.5, y_pos - 0.2, param_text, ha='center', va='center', fontsize=8)
 
-        # Plot links as arrows
         for link in links:
-            source_idx = next(i for i, n in enumerate(nodes) if n['id'] == link['source'])
-            target_idx = next(i for i, n in enumerate(nodes) if n['id'] == link['target'])
+            source_idx = next((i for i, n in enumerate(nodes) if n['id'] == link['source']), None)
+            target_idx = next((i for i, n in enumerate(nodes) if n['id'] == link['target']), None)
+            
+            if source_idx is None or target_idx is None:
+                continue
+                
             source_y = len(nodes) - source_idx - 1
             target_y = len(nodes) - target_idx - 1
-            ax.arrow(0.5, source_y - 0.4, 0, target_y - source_y + 0.4,
-                    head_width=0.05, head_length=0.1, fc='black', ec='black')
+            
+            y_diff = target_y - source_y
+            arrow_start_y = source_y - 0.4
+            arrow_length = y_diff + 0.8
+            
+            if abs(arrow_length) > 0.1:
+                ax.arrow(0.5, arrow_start_y, 0, arrow_length,
+                        head_width=0.05, head_length=0.1, fc='black', ec='black',
+                        length_includes_head=True)
 
-        # Set plot limits and remove axes
         ax.set_xlim(0, 1)
         ax.set_ylim(-0.5, len(nodes) - 0.5)
         ax.axis('off')
 
-        # Save the figure
         plt.savefig(filename, dpi=300, bbox_inches='tight')
         plt.close(fig)
 
@@ -175,7 +203,6 @@ class NeuralVisualizer:
 
 
 if __name__ == '__main__':
-    # Example usage
     nr_content = """
     network TestNet {
         input: (None, 28, 28, 1)

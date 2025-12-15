@@ -77,6 +77,9 @@ class ExperimentTracker:
             step: Step or epoch number (optional)
         """
         timestamp = time.time()
+        if step is None:
+            step = len(self.metrics_history)
+        
         metrics_entry = {
             "timestamp": timestamp,
             "step": step,
@@ -86,37 +89,43 @@ class ExperimentTracker:
         self._save_metrics()
         logger.debug(f"Logged metrics at step {step}: {metrics}")
 
-        # Auto visualization (lightweight) when enough data is present
-        try:
-            if self.auto_visualize and len(self.metrics_history) >= 10:
+        if self.auto_visualize and len(self.metrics_history) >= 10:
+            try:
                 plots_dir = os.path.join(self.experiment_dir, "plots")
                 os.makedirs(plots_dir, exist_ok=True)
-                # Build steps
+                
                 steps = []
-                for entry in self.metrics_history:
-                    s = entry.get("step")
-                    steps.append(s if s is not None else len(steps))
-                # Plot all numeric metrics excluding timestamp/step
+                for i, entry in enumerate(self.metrics_history):
+                    step = entry.get("step")
+                    if step is None:
+                        step = i
+                    steps.append(step)
+                
                 keys = set()
                 for entry in self.metrics_history:
                     keys.update([k for k in entry.keys() if k not in ["timestamp", "step"]])
+                
                 if keys:
                     fig, ax = plt.subplots(figsize=(10, 6))
+                    has_data = False
                     for name in sorted(keys):
                         values = [e.get(name) for e in self.metrics_history]
                         valid_idx = [i for i, v in enumerate(values) if v is not None]
                         if valid_idx:
                             ax.plot([steps[i] for i in valid_idx], [values[i] for i in valid_idx], label=name)
-                    ax.set_xlabel("Step")
-                    ax.set_ylabel("Value")
-                    ax.set_title("Auto Metrics Overview")
-                    ax.legend()
-                    ax.grid(True)
-                    fig.tight_layout()
-                    fig.savefig(os.path.join(plots_dir, "auto_metrics_overview.png"))
+                            has_data = True
+                    
+                    if has_data:
+                        ax.set_xlabel("Step")
+                        ax.set_ylabel("Value")
+                        ax.set_title("Auto Metrics Overview")
+                        ax.legend()
+                        ax.grid(True)
+                        fig.tight_layout()
+                        fig.savefig(os.path.join(plots_dir, "auto_metrics_overview.png"), dpi=150, bbox_inches='tight')
                     plt.close(fig)
-        except Exception:
-            pass
+            except Exception as e:
+                logger.debug(f"Auto-visualization failed: {str(e)}")
 
     def log_artifact(self, artifact_path: str, artifact_name: str = None, version: bool = False):
         """
@@ -125,6 +134,7 @@ class ExperimentTracker:
         Args:
             artifact_path: Path to the artifact file
             artifact_name: Name to use for the artifact (defaults to filename)
+            version: Whether to enable versioning for this artifact (default: False)
         """
         if not os.path.exists(artifact_path):
             logger.error(f"Artifact not found: {artifact_path}")
@@ -188,6 +198,7 @@ class ExperimentTracker:
         Args:
             model_path: Path to the model file
             framework: Framework used for the model (tensorflow, pytorch, etc.)
+            version: Whether to enable versioning for this model (default: False)
         """
         model_name = os.path.basename(model_path)
         model_dest = os.path.join(self.experiment_dir, "artifacts", model_name)
@@ -355,24 +366,27 @@ class ExperimentTracker:
         # Create the plot
         fig, ax = plt.subplots(figsize=figsize)
 
-        # Get steps or use indices
         steps = []
-        for entry in self.metrics_history:
-            if "step" in entry and entry["step"] is not None:
-                steps.append(entry["step"])
-            else:
-                steps.append(len(steps))
+        for i, entry in enumerate(self.metrics_history):
+            step = entry.get("step")
+            if step is None:
+                step = i
+            steps.append(step)
 
-        # Plot each metric
+        has_data = False
         for metric_name in metric_names:
             values = [entry.get(metric_name, None) for entry in self.metrics_history]
-            # Filter out None values
             valid_indices = [i for i, v in enumerate(values) if v is not None]
             valid_steps = [steps[i] for i in valid_indices]
             valid_values = [values[i] for i in valid_indices]
 
             if valid_values:
                 ax.plot(valid_steps, valid_values, marker='o', linestyle='-', label=metric_name)
+                has_data = True
+        
+        if not has_data:
+            ax.text(0.5, 0.5, "No valid metric data to plot", ha='center', va='center', transform=ax.transAxes)
+            return fig
 
         ax.set_xlabel("Step")
         ax.set_ylabel("Value")
@@ -472,33 +486,42 @@ class ExperimentTracker:
         plots_dir = os.path.join(self.experiment_dir, "plots")
         os.makedirs(plots_dir, exist_ok=True)
         if not self.metrics_history:
+            logger.debug("No metrics history to visualize")
             return
         try:
-            # Overview plot
             steps = []
-            for entry in self.metrics_history:
-                s = entry.get("step")
-                steps.append(s if s is not None else len(steps))
+            for i, entry in enumerate(self.metrics_history):
+                step = entry.get("step")
+                if step is None:
+                    step = i
+                steps.append(step)
+            
             keys = set()
             for entry in self.metrics_history:
                 keys.update([k for k in entry.keys() if k not in ["timestamp", "step"]])
+            
             if keys:
                 fig, ax = plt.subplots(figsize=(10, 6))
+                has_data = False
                 for name in sorted(keys):
                     values = [e.get(name) for e in self.metrics_history]
                     valid_idx = [i for i, v in enumerate(values) if v is not None]
                     if valid_idx:
                         ax.plot([steps[i] for i in valid_idx], [values[i] for i in valid_idx], label=name)
-                ax.set_xlabel("Step")
-                ax.set_ylabel("Value")
-                ax.set_title("Auto Metrics Overview")
-                ax.legend()
-                ax.grid(True)
-                fig.tight_layout()
-                fig.savefig(os.path.join(plots_dir, "auto_metrics_overview.png"))
+                        has_data = True
+                
+                if has_data:
+                    ax.set_xlabel("Step")
+                    ax.set_ylabel("Value")
+                    ax.set_title("Metrics Overview")
+                    ax.legend()
+                    ax.grid(True)
+                    fig.tight_layout()
+                    fig.savefig(os.path.join(plots_dir, "metrics_overview.png"), dpi=150, bbox_inches='tight')
+                    logger.debug(f"Saved visualization to {plots_dir}/metrics_overview.png")
                 plt.close(fig)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Visualization generation failed: {str(e)}")
 
     def finish(self):
         """
@@ -780,23 +803,28 @@ class ExperimentManager:
             fig, ax = plt.subplots(figsize=(10, 6))
 
             for exp in experiments:
-                # Get steps and values for this metric
                 steps = []
                 values = []
 
-                for entry in exp.metrics_history:
-                    if "step" in entry and entry["step"] is not None and metric_name in entry:
-                        steps.append(entry["step"])
+                for i, entry in enumerate(exp.metrics_history):
+                    if metric_name in entry:
+                        step = entry.get("step")
+                        if step is None:
+                            step = i
+                        steps.append(step)
                         values.append(entry[metric_name])
 
                 if steps and values:
                     ax.plot(steps, values, marker='o', linestyle='-', label=f"{exp.experiment_name} ({exp.experiment_id})")
 
-            ax.set_xlabel("Step")
-            ax.set_ylabel(metric_name)
-            ax.set_title(f"Comparison of {metric_name}")
-            ax.legend()
-            ax.grid(True)
+            if not ax.has_data():
+                ax.text(0.5, 0.5, f"No data for {metric_name}", ha='center', va='center', transform=ax.transAxes)
+            else:
+                ax.set_xlabel("Step")
+                ax.set_ylabel(metric_name)
+                ax.set_title(f"Comparison of {metric_name}")
+                ax.legend()
+                ax.grid(True)
 
             plt.tight_layout()
             plots[f"comparison_{metric_name}"] = fig
@@ -866,5 +894,3 @@ class ExperimentManager:
         with open(os.path.join(output_dir, "comparison_summary.json"), "w") as f:
             json.dump({"experiments": summary}, f, indent=2)
         return output_dir
-
-        return plots

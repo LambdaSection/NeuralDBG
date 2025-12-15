@@ -84,9 +84,11 @@ class MetricsVisualizerComponent:
             steps = []
             values = []
 
-            for entry in self.experiment.metrics_history:
+            for i, entry in enumerate(self.experiment.metrics_history):
                 if metric_name in entry:
-                    step = entry.get("step", len(steps))
+                    step = entry.get("step")
+                    if step is None:
+                        step = i
                     steps.append(step)
                     values.append(entry[metric_name])
 
@@ -156,8 +158,11 @@ class MetricsVisualizerComponent:
             return fig
 
         steps = []
-        for entry in self.experiment.metrics_history:
-            steps.append(entry.get("step", len(steps)))
+        for i, entry in enumerate(self.experiment.metrics_history):
+            step = entry.get("step")
+            if step is None:
+                step = i
+            steps.append(step)
 
         z_data = []
         for metric_name in metric_names:
@@ -185,65 +190,6 @@ class MetricsVisualizerComponent:
         )
 
         return fig
- 
-class MetricVisualizer:
-    """Lightweight matplotlib-based visualizer for tests."""
-    @staticmethod
-    def create_metric_plots(metrics_history: List[Dict[str, Any]]) -> Dict[str, plt.Figure]:
-        """
-        Create simple line plots for each metric using matplotlib.
-        Returns a dict mapping metric name to figure.
-        """
-        if not metrics_history:
-            return {}
-        # Determine metric names excluding timestamp and step
-        metric_names = set()
-        for entry in metrics_history:
-            metric_names.update([k for k in entry.keys() if k not in ["timestamp", "step"]])
-        plots: Dict[str, plt.Figure] = {}
-        # Build steps
-        steps = []
-        for entry in metrics_history:
-            s = entry.get("step")
-            steps.append(s if s is not None else len(steps))
-        for name in sorted(metric_names):
-            values = [entry.get(name) for entry in metrics_history]
-            valid_idx = [i for i, v in enumerate(values) if v is not None]
-            if not valid_idx:
-                continue
-            fig, ax = plt.subplots(figsize=(8, 5))
-            ax.plot([steps[i] for i in valid_idx], [values[i] for i in valid_idx], marker="o", linestyle="-")
-            ax.set_title(f"{name} over time")
-            ax.set_xlabel("Step")
-            ax.set_ylabel(name)
-            ax.grid(True)
-            plots[name] = fig
-        return plots
-
-    @staticmethod
-    def create_distribution_plots(metrics_history: List[Dict[str, Any]]) -> Dict[str, plt.Figure]:
-        """
-        Create histogram plots for each metric using matplotlib.
-        Returns a dict mapping metric name to figure.
-        """
-        if not metrics_history:
-            return {}
-        metric_names = set()
-        for entry in metrics_history:
-            metric_names.update([k for k in entry.keys() if k not in ["timestamp", "step"]])
-        plots: Dict[str, plt.Figure] = {}
-        for name in sorted(metric_names):
-            values = [entry.get(name) for entry in metrics_history if entry.get(name) is not None]
-            if not values:
-                continue
-            fig, ax = plt.subplots(figsize=(8, 5))
-            ax.hist(values, bins=min(10, max(3, int(len(values) / 2))), color="steelblue", edgecolor="white")
-            ax.set_title(f"{name} distribution")
-            ax.set_xlabel(name)
-            ax.set_ylabel("Frequency")
-            ax.grid(True)
-            plots[name] = fig
-        return plots
 
     def create_distribution_plot(self, metric_name: str) -> go.Figure:
         """
@@ -351,9 +297,11 @@ class MetricVisualizer:
             steps = []
             values = []
 
-            for entry in self.experiment.metrics_history:
+            for i, entry in enumerate(self.experiment.metrics_history):
                 if metric_name in entry:
-                    step = entry.get("step", len(steps))
+                    step = entry.get("step")
+                    if step is None:
+                        step = i
                     steps.append(step)
                     values.append(entry[metric_name])
 
@@ -482,3 +430,67 @@ class MetricVisualizer:
             result.append(sum(window) / window_size)
 
         return result
+
+
+class MetricVisualizer:
+    """Lightweight matplotlib-based visualizer for tests."""
+    
+    @staticmethod
+    def create_metric_plots(metrics_history: List[Dict[str, Any]]) -> Dict[str, plt.Figure]:
+        """
+        Create simple line plots for each metric using matplotlib.
+        Returns a dict mapping metric name to figure.
+        """
+        if not metrics_history:
+            return {}
+        
+        metric_names = set()
+        for entry in metrics_history:
+            metric_names.update([k for k in entry.keys() if k not in ["timestamp", "step"]])
+        plots: Dict[str, plt.Figure] = {}
+        
+        steps = []
+        for i, entry in enumerate(metrics_history):
+            step = entry.get("step")
+            if step is None:
+                step = i
+            steps.append(step)
+        
+        for name in sorted(metric_names):
+            values = [entry.get(name) for entry in metrics_history]
+            valid_idx = [i for i, v in enumerate(values) if v is not None]
+            if not valid_idx:
+                continue
+            fig, ax = plt.subplots(figsize=(8, 5))
+            ax.plot([steps[i] for i in valid_idx], [values[i] for i in valid_idx], marker="o", linestyle="-")
+            ax.set_title(f"{name} over time")
+            ax.set_xlabel("Step")
+            ax.set_ylabel(name)
+            ax.grid(True)
+            plots[name] = fig
+        return plots
+
+    @staticmethod
+    def create_distribution_plots(metrics_history: List[Dict[str, Any]]) -> Dict[str, plt.Figure]:
+        """
+        Create histogram plots for each metric using matplotlib.
+        Returns a dict mapping metric name to figure.
+        """
+        if not metrics_history:
+            return {}
+        metric_names = set()
+        for entry in metrics_history:
+            metric_names.update([k for k in entry.keys() if k not in ["timestamp", "step"]])
+        plots: Dict[str, plt.Figure] = {}
+        for name in sorted(metric_names):
+            values = [entry.get(name) for entry in metrics_history if entry.get(name) is not None]
+            if not values:
+                continue
+            fig, ax = plt.subplots(figsize=(8, 5))
+            ax.hist(values, bins=min(10, max(3, int(len(values) / 2))), color="steelblue", edgecolor="white")
+            ax.set_title(f"{name} distribution")
+            ax.set_xlabel(name)
+            ax.set_ylabel("Frequency")
+            ax.grid(True)
+            plots[name] = fig
+        return plots

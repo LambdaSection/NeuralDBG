@@ -182,9 +182,12 @@ class ComparisonComponent:
             steps = []
             values = []
 
-            for entry in exp.metrics_history:
-                if "step" in entry and entry["step"] is not None and metric_name in entry:
-                    steps.append(entry["step"])
+            for i, entry in enumerate(exp.metrics_history):
+                if metric_name in entry:
+                    step = entry.get("step")
+                    if step is None:
+                        step = i
+                    steps.append(step)
                     values.append(entry[metric_name])
 
             if steps and values:

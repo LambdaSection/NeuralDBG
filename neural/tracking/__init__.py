@@ -25,6 +25,7 @@ except ImportError:
 __all__ = [
     "ExperimentTracker",
     "ExperimentManager",
+    "ArtifactVersion",
     "BaseIntegration",
     "MLflowIntegration",
     "WandbIntegration",
@@ -35,9 +36,7 @@ __all__ = [
 ]
 
 if _components_available:
-    __all__.extend(["ComparisonComponent", "ExportManager", "MetricsVisualizerComponent", "MetricVisualizer", "ArtifactVersion"])
-else:
-    __all__.extend(["ArtifactVersion"])
+    __all__.extend(["ComparisonComponent", "ExportManager", "MetricsVisualizerComponent", "MetricVisualizer"])
 
 
 def launch_comparison_ui(
