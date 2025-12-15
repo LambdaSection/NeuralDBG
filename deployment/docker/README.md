@@ -218,7 +218,7 @@ docker run --rm -v myvolume:/data alpine chown -R 1000:1000 /data
 ### Development
 - Use volume mounts for hot-reload
 - Enable debug mode
-- Use `docker-compose.dev.yml`
+- Use default profile: `docker-compose up -d`
 
 ### Production
 - Build optimized images
@@ -283,11 +283,35 @@ build-api:
     - docker push $CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHA
 ```
 
+## Docker Compose Usage
+
+The main repository includes a consolidated `docker-compose.yml` that orchestrates all services with multiple deployment profiles. See [DOCKER_QUICKSTART.md](../DOCKER_QUICKSTART.md) for complete usage documentation.
+
+**Quick examples:**
+
+```bash
+# Development (API + Worker + Redis + PostgreSQL)
+docker-compose up -d
+
+# Production (adds Nginx, security hardening)
+docker-compose --profile prod up -d
+
+# Full stack (all services including dashboards)
+docker-compose --profile full up -d
+
+# Specific services
+docker-compose --profile dashboard up dashboard
+docker-compose --profile nocode up nocode
+docker-compose --profile monitoring up flower
+```
+
 ## Related Documentation
 
-- [Docker Compose Configuration](../../docker-compose.yml)
-- [Kubernetes Deployments](../kubernetes/)
-- [Deployment Guide](../../DEPLOYMENT.md)
+- [Docker Compose Configuration](../../docker-compose.yml) - Consolidated multi-profile configuration
+- [Docker Quick Start Guide](../../DOCKER_QUICKSTART.md) - Complete deployment guide
+- [Environment Configuration](../../.env.example) - All configuration options
+- [Kubernetes Deployments](../kubernetes/) - K8s manifests and Helm charts
+- [Deployment Guide](../../DEPLOYMENT.md) - Production deployment best practices
 
 ## Support
 

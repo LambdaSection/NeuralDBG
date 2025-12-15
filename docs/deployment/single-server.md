@@ -316,7 +316,7 @@ http {
 
 ### 5. Update Docker Compose
 
-Create `docker-compose.prod.single.yml`:
+The repository includes a consolidated `docker-compose.yml` with production profile support. You can use it directly or create a custom override file `docker-compose.prod.single.yml`:
 
 ```yaml
 version: '3.8'
@@ -470,7 +470,10 @@ networks:
 sudo apt install apache2-utils -y
 htpasswd -c nginx-htpasswd admin
 
-# Build and start services
+# Build and start services (using production profile)
+docker-compose --profile prod up -d
+
+# Or with custom override
 docker-compose -f docker-compose.yml -f docker-compose.prod.single.yml up -d
 
 # Check logs
@@ -510,7 +513,7 @@ curl -H "X-API-Key: your-api-key" https://neural.example.com/api/v1/health
 
 ### Resource Limits
 
-Add resource limits to `docker-compose.prod.single.yml`:
+Resource limits are already configured in the main `docker-compose.yml`. You can override them in `docker-compose.prod.single.yml` if needed:
 
 ```yaml
 services:
@@ -630,13 +633,17 @@ services:
 # Pull latest changes
 git pull origin main
 
-# Rebuild and restart services
+# Rebuild and restart services (production profile)
+docker-compose --profile prod build
+docker-compose --profile prod up -d
+
+# Or with custom override
 docker-compose -f docker-compose.yml -f docker-compose.prod.single.yml build
 docker-compose -f docker-compose.yml -f docker-compose.prod.single.yml up -d
 
 # Rollback if needed
 git checkout <previous-commit>
-docker-compose -f docker-compose.yml -f docker-compose.prod.single.yml up -d
+docker-compose --profile prod up -d
 ```
 
 ## Monitoring
@@ -689,7 +696,7 @@ docker-compose logs --no-color > neural-logs.txt
 
 ### Prometheus Metrics
 
-Add Prometheus and Grafana to `docker-compose.prod.single.yml`:
+The main `docker-compose.yml` can be extended with monitoring. Add Prometheus and Grafana to a custom override file `docker-compose.monitoring.yml`:
 
 ```yaml
 services:
@@ -842,3 +849,4 @@ docker stats
 sudo certbot renew
 docker-compose restart nginx
 ```
+
