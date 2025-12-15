@@ -237,10 +237,15 @@ def update_interval(new_interval: int) -> List[int]:
     """Update the interval dynamically based on slider value."""
     return [new_interval]
 
-# Start WebSocket in a Separate Thread (only if socketio is available)
 propagator = ShapePropagator()
-if socketio is not None:
-    threading.Thread(target=socketio.run, args=(server,), kwargs={"host": "localhost", "port": 5001, "allow_unsafe_werkzeug": True}, daemon=True).start()
+def start_dashboard_server(host: str = "localhost", port: int = 5001):
+    if socketio is not None:
+        threading.Thread(
+            target=socketio.run,
+            args=(server,),
+            kwargs={"host": host, "port": port, "allow_unsafe_werkzeug": True},
+            daemon=True
+        ).start()
 
 ####################################################
 #### Layers Execution Trace Graph & Its Subplots ###

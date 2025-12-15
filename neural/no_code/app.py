@@ -7,6 +7,7 @@ import time
 from typing import Any, Dict, List, Optional
 
 from flask import Flask, jsonify, render_template, request, send_from_directory
+import numpy as np
 from flask_cors import CORS
 
 from neural.code_generation.code_generator import generate_code
@@ -270,7 +271,16 @@ def validate_model():
                 })
                 break
             
-            shapes.append({"layer": layer_type, "shape": list(next_shape)})
+            def _to_native(val):
+                if val is None:
+                    return None
+                if isinstance(val, (np.integer,)):
+                    return int(val)
+                if isinstance(val, (np.floating,)):
+                    return float(val)
+                return val
+            
+            shapes.append({"layer": layer_type, "shape": [ _to_native(v) for v in next_shape ]})
             current_shape = next_shape
             
         except Exception as e:

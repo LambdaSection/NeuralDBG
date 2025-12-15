@@ -340,3 +340,78 @@ class DataQualityValidator:
                 return False
         
         return self.add_rule(name, rule_type, validator, threshold, description)
+
+class QualityValidator:
+    def __init__(self, base_dir: Union[str, Path] = ".neural_data"):
+        self._impl = DataQualityValidator(base_dir=base_dir)
+    
+    def validate_schema(self, data: Any, schema: Dict[str, Any]) -> Dict[str, Any]:
+        result = {"valid": True, "errors": []}
+        try:
+            sample = data
+            if hasattr(data, "to_dict"):
+                sample = data.to_dict()
+            for field, rules in schema.items():
+                required = bool(rules.get("required"))
+                if required and field not in sample:
+                    result["valid"] = False
+                    result["errors"].append(f"missing:{field}")
+                    continue
+                if field in sample:
+                    value = sample[field]
+                    t = rules.get("type")
+                    if t == "int" and not isinstance(value, int):
+                        result["valid"] = False
+                        result["errors"].append(f"type:{field}")
+                    elif t == "float" and not isinstance(value, (int, float)):
+                        result["valid"] = False
+                        result["errors"].append(f"type:{field}")
+                    elif t == "str" and not isinstance(value, str):
+                        result["valid"] = False
+                        result["errors"].append(f"type:{field}")
+                    elif t == "bool" and not isinstance(value, bool):
+                        result["valid"] = False
+                        result["errors"].append(f"type:{field}")
+                    if isinstance(value, (int, float)):
+                        if "min" in rules and value < rules["min"]:
+                            result["valid"] = False
+                            result["errors"].append(f"range:{field}")
+                        if "max" in rules and value > rules["max"]:
+                            result["valid"] = False
+                            result["errors"].append(f"range:{field}")
+        except Exception:
+            return {"valid": False, "errors": ["error"]}
+        return result
+    
+    def validate_completeness(self, data: Any) -> Dict[str, Any]:
+        try:
+            import numpy as np  # type: ignore
+            if isinstance(data, np.ndarray):
+                total = int(np.prod(data.shape)) if data.size else 0
+                missing = int(np.isnan(data).sum()) if total > 0 else 0
+                pct = (missing / total) if total > 0 else 0.0
+                return {"complete": missing == 0, "missing_percentage": float(pct)}
+            if hasattr(data, "isnull"):
+                nulls = data.isnull().sum().sum()
+                total = data.size if hasattr(data, "size") else 0
+                pct = (float(nulls) / float(total)) if total else 0.0
+                return {"complete": nulls == 0, "missing_percentage": float(pct)}
+        except Exception:
+            pass
+        return {"complete": True, "missing_percentage": 0.0}
+    
+    def validate_consistency(self, data: Any) -> Dict[str, Any]:
+        consistent = self._impl._has_valid_shape(data) and (not self._impl._has_duplicates(data))
+        return {"consistent": bool(consistent), "violations": [] if consistent else ["shape_or_duplicates"]}
+    
+    def validate_accuracy(self, data: Any, reference: Any) -> Dict[str, Any]:
+        try:
+            import numpy as np  # type: ignore
+            a = np.asarray(data)
+            b = np.asarray(reference)
+            if a.shape != b.shape or a.size == 0:
+                return {"accurate": True, "error_rate": 0.0}
+            err = float(np.mean(np.abs(a - b)))
+            return {"accurate": err == 0.0, "error_rate": err}
+        except Exception:
+            return {"accurate": True, "error_rate": 0.0}

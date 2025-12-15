@@ -489,10 +489,8 @@ class ShapePropagator:
 
                 if len(spatial_dims) >= 2 and len(kernel_size) >= 2:
                     if kernel_size[0] > spatial_dims[0] or kernel_size[1] > spatial_dims[1]:
-                        raise ShapeMismatchError(
-                            f"Conv2D kernel size {kernel_size} exceeds input dimensions {spatial_dims}",
-                            input_shape=input_shape,
-                            layer_type='Conv2D'
+                        raise ValueError(
+                            f"Conv2D kernel size {kernel_size} exceeds input dimensions {spatial_dims}"
                         )
 
             # Check if stride is positive

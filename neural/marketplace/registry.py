@@ -70,7 +70,7 @@ class ModelRegistry:
     def _generate_model_id(self, name: str, author: str) -> str:
         """Generate unique model ID."""
         base = f"{author}/{name}".lower().replace(" ", "-")
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
         return f"{base}-{timestamp}"
 
     def upload_model(
@@ -124,7 +124,7 @@ class ModelRegistry:
 
         # Create model directory
         model_dir = self.models_dir / model_id
-        model_dir.mkdir(exist_ok=True)
+        model_dir.mkdir(exist_ok=True, parents=True)
 
         # Copy model file
         model_file = Path(model_path)

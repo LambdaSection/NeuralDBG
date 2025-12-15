@@ -32,10 +32,10 @@ BudgetManager
 
 from neural.cost.estimator import CostEstimator, CloudProvider, InstanceType
 from neural.cost.spot_orchestrator import SpotInstanceOrchestrator, SpotStrategy
-from neural.cost.resource_optimizer import ResourceOptimizer, ResourceRecommendation
+from neural.cost.resource_optimizer import ResourceOptimizer, ResourceRecommendation, ResourceMetrics
 from neural.cost.training_predictor import TrainingPredictor, TrainingEstimate
 from neural.cost.carbon_tracker import CarbonTracker, CarbonReport
-from neural.cost.analyzer import CostAnalyzer, CostPerformanceAnalysis
+from neural.cost.analyzer import CostAnalyzer, CostPerformanceAnalysis, PerformanceMetrics
 from neural.cost.budget_manager import BudgetManager, Budget, BudgetAlert
 from neural.cost.dashboard import CostDashboard
 
@@ -47,12 +47,14 @@ __all__ = [
     'SpotStrategy',
     'ResourceOptimizer',
     'ResourceRecommendation',
+    'ResourceMetrics',
     'TrainingPredictor',
     'TrainingEstimate',
     'CarbonTracker',
     'CarbonReport',
     'CostAnalyzer',
     'CostPerformanceAnalysis',
+    'PerformanceMetrics',
     'BudgetManager',
     'Budget',
     'BudgetAlert',
