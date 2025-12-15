@@ -1,21 +1,21 @@
 import json
 import logging
 import time
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
 import numpy as np
-import plotly.graph_objects as go
 import psutil
-from graphviz import Digraph
 
 from neural.exceptions import (
     DependencyError,
     InvalidParameterError,
     InvalidShapeError,
-    ShapeException,
     ShapeMismatchError,
 )
-from neural.parser.parser import ModelTransformer
+
+
+if TYPE_CHECKING:
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -37,11 +37,8 @@ from .layer_handlers import (
 )
 from .utils import (
     calculate_memory_usage,
-    calculate_output_dims,
     detect_shape_issues,
     extract_param,
-    format_error_message,
-    format_memory_size,
     suggest_optimizations,
 )
 
@@ -120,9 +117,19 @@ class ShapePropagator:
             'BatchNormalization': {'momentum': 'decay'}
         }
 
-        # Initialize visualization
-        self.dot = Digraph(comment='Neural Network Architecture')
-        self.dot.attr('node', shape='record', style='filled', fillcolor='lightgrey')
+        # Initialize visualization (lazy loaded)
+        self.dot = None
+        self._init_graphviz()
+
+    def _init_graphviz(self):
+        """Lazy initialize graphviz visualization."""
+        if self.dot is None:
+            try:
+                from graphviz import Digraph
+                self.dot = Digraph(comment='Neural Network Architecture')
+                self.dot.attr('node', shape='record', style='filled', fillcolor='lightgrey')
+            except ImportError:
+                pass
 
     def propagate(self, input_shape: Tuple[Optional[int], ...],
               layer: Dict[str, Any],
@@ -191,7 +198,7 @@ class ShapePropagator:
                     kernel_size = (kernel_size['value'], kernel_size['value'])
                 # Otherwise, use a default value
                 else:
-                    logger.debug(f"ShapePropagator.propagate - kernel_size dict without 'value' key, using default")
+                    logger.debug("ShapePropagator.propagate - kernel_size dict without 'value' key, using default")
                     kernel_size = (3, 3)  # Default value
             params["kernel_size"] = kernel_size  # Ensure tuple in params
 
@@ -441,13 +448,17 @@ class ShapePropagator:
 
     def _visualize_layer(self, layer_type: str, output_shape: Tuple[Optional[int], ...]):
         """Create a node in the graph for the layer."""
-        label = f"{layer_type}\\nOutput: {output_shape}"
-        self.dot.node(str(self.current_layer), label=label)
+        self._init_graphviz()
+        if self.dot:
+            label = f"{layer_type}\\nOutput: {output_shape}"
+            self.dot.node(str(self.current_layer), label=label)
         self.current_layer += 1
 
     def _create_connection(self, from_layer: int, to_layer: int):
         """Create an edge between two layers."""
-        self.dot.edge(str(from_layer), str(to_layer))
+        self._init_graphviz()
+        if self.dot:
+            self.dot.edge(str(from_layer), str(to_layer))
         self.layer_connections.append((from_layer, to_layer))
 
 ########################
@@ -466,6 +477,15 @@ class ShapePropagator:
 
     def generate_report(self):
         """Generate a comprehensive report including visualizations."""
+        # Ensure graphviz is initialized
+        self._init_graphviz()
+        
+        # Lazy import plotly
+        try:
+            import plotly.graph_objects as go
+        except ImportError:
+            raise DependencyError("plotly is required for visualization. Install with: pip install plotly")
+        
         # Create Plotly bar chart for parameter counts
         if not self.shape_history:
             layers = ["No data"]
@@ -960,17 +980,30 @@ class ShapePropagator:
 
     ### Layers Shape Propagation Visualization ###
     def _visualize_layer(self, layer_name, shape):
-        label = f"{layer_name}\n{shape}"
-        self.dot.node(str(self.current_layer), label)
+        self._init_graphviz()
+        if self.dot:
+            label = f"{layer_name}\n{shape}"
+            self.dot.node(str(self.current_layer), label)
         self.shape_history.append((layer_name, shape))
         self.current_layer += 1
 
     def _create_connection(self, from_id, to_id):
         self.layer_connections.append((from_id, to_id))
-        self.dot.edge(str(from_id), str(to_id))
+        self._init_graphviz()
+        if self.dot:
+            self.dot.edge(str(from_id), str(to_id))
 
     def generate_report(self):
         """Generate interactive visualization and shape report"""
+        # Ensure graphviz is initialized
+        self._init_graphviz()
+        
+        # Lazy import plotly
+        try:
+            import plotly.graph_objects as go
+        except ImportError:
+            raise DependencyError("plotly is required for visualization. Install with: pip install plotly")
+        
         # Plotly visualization
         fig = go.Figure()
 
@@ -1016,7 +1049,6 @@ class ShapePropagator:
 
     def get_shape_data(self):
         """Returns shape history as JSON."""
-        import json
         return json.dumps([
             {"layer": layer[0], "output_shape": layer[1]}
             for layer in self.shape_history

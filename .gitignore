@@ -61,6 +61,8 @@ Thumbs.db
 coverage.xml
 coverage.json
 htmlcov/
+TEST_RESULTS_SUMMARY.md
+test_imports.py
 
 # Playwright/E2E tests
 tests/aquarium_e2e/screenshots/

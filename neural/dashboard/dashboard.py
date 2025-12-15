@@ -2,47 +2,54 @@ from __future__ import annotations
 
 import json
 import threading
-import time
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 import dash
-import numpy as np
-import plotly.graph_objects as go
-import pysnooper
-import requests
-from dash import Dash, Input, Output, State, callback, dcc, html
+from dash import Dash, Input, Output, State, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_bootstrap_components import themes
 from flask import Flask
+import numpy as np
+import plotly.graph_objects as go
+import requests
 
+
+# Optional debugging dependency
+try:
+    import pysnooper
+    _HAS_PYSNOOPER = True
+except ImportError:
+    pysnooper = None
+    _HAS_PYSNOOPER = False
+
+from neural.config.health import HealthChecker
 from neural.dashboard.tensor_flow import (
     create_animated_network,
-    create_layer_computation_timeline,
     create_progress_component,
 )
-from neural.shape_propagation.shape_propagator import ShapePropagator
-from neural.config.health import HealthChecker
-from neural.utils.logging import get_logger
 from neural.security import (
-    load_security_config,
     apply_security_middleware,
-    create_jwt_auth,
     create_basic_auth,
+    create_jwt_auth,
+    load_security_config,
 )
+from neural.shape_propagation.shape_propagator import ShapePropagator
+from neural.utils.logging import get_logger
+
 
 logger = get_logger(__name__)
 
 try:
     from neural.profiling.dashboard_integration import (
-        create_layer_profiling_view,
-        create_memory_profiling_view,
         create_bottleneck_view,
         create_comparative_profiling_view,
-        create_gpu_utilization_view,
-        create_memory_leak_view,
         create_distributed_profiling_view,
-        create_recommendations_view,
         create_execution_timeline,
+        create_gpu_utilization_view,
+        create_layer_profiling_view,
+        create_memory_leak_view,
+        create_memory_profiling_view,
+        create_recommendations_view,
     )
     PROFILING_AVAILABLE = True
 except ImportError:
@@ -124,7 +131,7 @@ try:
     import yaml
     with open("config.yaml", "r") as f:
         config = yaml.safe_load(f)
-except Exception as e:
+except Exception:
     config = {}
 
 UPDATE_INTERVAL = config.get("websocket_interval", 1000) # Use default if config file not found

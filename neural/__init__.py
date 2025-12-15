@@ -17,8 +17,8 @@ Modules are imported optionally - if a dependency is missing, the module
 is set to None and a warning is emitted.
 """
 
-import warnings
 from typing import Dict
+import warnings
 
 
 # Package metadata
@@ -78,12 +78,8 @@ except Exception as e:
     code_generation = None
     warnings.warn(f"Code generation module unavailable: {e}")
 
-# Core modules - Visualization
-try:
-    from . import visualization
-except Exception as e:
-    visualization = None
-    warnings.warn(f"Visualization module unavailable: {e}. Install visualization dependencies.")
+# Core modules - Visualization (loaded lazily to avoid slow imports)
+visualization = None
 
 # Core modules - Utils
 try:
@@ -107,11 +103,8 @@ except Exception as e:
     warnings.warn(f"Metrics module unavailable: {e}")
 
 # Optional modules - Dashboard (simplified debugging interface)
-try:
-    from . import dashboard
-except Exception as e:
-    dashboard = None
-    warnings.warn(f"Dashboard module unavailable: {e}. Install dashboard dependencies.")
+# Dashboard is loaded lazily to avoid slow imports
+dashboard = None
 
 # Optional modules - HPO
 try:

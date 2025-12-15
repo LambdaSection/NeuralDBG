@@ -1,12 +1,22 @@
 import os
-import sys
-import pytest
-import tempfile
 from pathlib import Path
+import sys
+import tempfile
+
+import pytest
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from neural.parser.parser import create_parser, ModelTransformer
+# Lazy import to speed up test collection
+_parser_module = None
+
+def _get_parser_module():
+    """Lazy import of parser module."""
+    global _parser_module
+    if _parser_module is None:
+        from neural.parser import parser as _parser_module
+    return _parser_module
 
 
 pytest_plugins = []
@@ -38,32 +48,38 @@ def neural_module_path(project_root):
 
 @pytest.fixture
 def parser():
-    return create_parser()
+    parser_module = _get_parser_module()
+    return parser_module.create_parser()
 
 
 @pytest.fixture
 def layer_parser():
-    return create_parser('layer')
+    parser_module = _get_parser_module()
+    return parser_module.create_parser('layer')
 
 
 @pytest.fixture
 def network_parser():
-    return create_parser('network')
+    parser_module = _get_parser_module()
+    return parser_module.create_parser('network')
 
 
 @pytest.fixture
 def research_parser():
-    return create_parser('research')
+    parser_module = _get_parser_module()
+    return parser_module.create_parser('research')
 
 
 @pytest.fixture
 def define_parser():
-    return create_parser('define')
+    parser_module = _get_parser_module()
+    return parser_module.create_parser('define')
 
 
 @pytest.fixture
 def transformer():
-    return ModelTransformer()
+    parser_module = _get_parser_module()
+    return parser_module.ModelTransformer()
 
 
 @pytest.fixture

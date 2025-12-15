@@ -1,26 +1,16 @@
 from __future__ import annotations
 
-import json
+from enum import Enum
 import logging
 import re
 import traceback
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import lark
-import plotly.graph_objects as go
-from lark import Token, Transformer, Tree
-from lark.exceptions import UnexpectedCharacters, UnexpectedToken, VisitError
+from lark import Token, Tree
+from lark.exceptions import VisitError
 
-from .error_handling import ErrorHandler, NeuralParserError, ParserError
-from .learning_rate_schedules import ExponentialDecaySchedule
-from .validation import (
-    ValidationError,
-    validate_numeric,
-    validate_probability,
-    validate_shape,
-    validate_units,
-)
+from .error_handling import ErrorHandler
 
 
 # Type aliases for clarity
@@ -677,7 +667,7 @@ def safe_parse(parser: lark.Lark, text: str) -> Dict[str, Any]:
         raise DSLValidationError(parser_error.message, Severity.ERROR, parser_error.line, parser_error.column)
         # This line will never be reached because custom_error_handler raises an exception
         return {"result": None, "warnings": warnings}
-    except DSLValidationError as e:
+    except DSLValidationError:
         raise
     except Exception as e:
         log_by_severity(Severity.ERROR, f"Unexpected error while parsing: {str(e)}")
@@ -1699,7 +1689,7 @@ class ModelTransformer(lark.Transformer):
                             # This is an additional HPO, it will be handled by named_params.update
                             # Multiple HPO expressions in named parameters are valid
                             # (e.g., units=HPO(...), activation=HPO(...))
-                            named_params.update(val) if not 'hpo' in val else None
+                            named_params.update(val) if 'hpo' not in val else None
                     else:
                         named_params.update(val)  # Named parameter
                 elif isinstance(val, list):
@@ -4496,7 +4486,6 @@ class ModelTransformer(lark.Transformer):
         # Check for nested HPO expressions
         if 'HPO(' in hpo_str:
             # This is a nested HPO expression
-            import re
 
             # Handle choice with nested HPO
             if hpo_str.startswith('choice('):
