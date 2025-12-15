@@ -833,6 +833,180 @@ Actual: Shape mismatch error on line 8
 
 ---
 
+## Error Suggestions System
+
+Neural DSL provides context-aware error suggestions to help you quickly identify and fix common mistakes. The system analyzes errors and provides actionable recommendations with the 💡 icon.
+
+### How Error Suggestions Work
+
+When the parser, shape validator, or code generator encounters an error, it automatically:
+
+1. **Analyzes the error context** (error type, layer type, parameter names, values)
+2. **Searches for common patterns** (typos, case sensitivity issues, value constraints)
+3. **Generates actionable suggestions** (specific fixes, not just error descriptions)
+
+### Parameter Name Suggestions
+
+The system detects common parameter typos and suggests corrections:
+
+```yaml
+# Common typos and their corrections:
+Dense(unit=128)           → Did you mean 'units'?
+Conv2D(filter=32)         → Did you mean 'filters'?
+Conv2D(kernal_size=(3,3)) → Did you mean 'kernel_size'?
+Dense(activaton="relu")   → Did you mean 'activation'?
+
+# Correct parameters return no suggestions:
+Dense(units=128)          → No suggestion (already correct)
+```
+
+**Expected behavior:**
+- Misspelled parameters → Suggestion provided
+- Correct parameters → No suggestion (returns None)
+- Unknown parameters → No suggestion (may be custom)
+
+### Layer Name Suggestions
+
+Layer names are case-sensitive. The system helps with common variations:
+
+```yaml
+# Case sensitivity corrections:
+dense(128)            → Use 'Dense' (case-sensitive)
+conv2d(32, (3,3))     → Use 'Conv2D' (case-sensitive)
+lstm(64)              → Use 'LSTM' (case-sensitive)
+
+# Common alternative names:
+Convolution2D(32)     → Did you mean 'Conv2D'?
+MaxPool2D(2)          → Did you mean 'MaxPooling2D'?
+BatchNorm()           → Did you mean 'BatchNormalization'?
+
+# Correct layer names return no suggestions:
+Dense(128)            → No suggestion (already correct)
+Conv2D(32, (3,3))     → No suggestion (already correct)
+```
+
+**Expected behavior:**
+- Incorrect case → Suggestion provided
+- Common aliases → Suggestion provided
+- Exact match (correct name) → No suggestion (returns None)
+
+### Shape Error Suggestions
+
+Shape propagation errors get targeted suggestions:
+
+```yaml
+# Missing Flatten layer:
+Conv2D(64, (3,3))
+Dense(128)
+→ Dense layers expect 2D input. Add Flatten() before Dense layer.
+
+# Negative dimensions (critical error):
+input: (None, -28, 28)
+→ Shape dimensions cannot be negative. Use None for variable-length dimensions.
+
+# Incorrect dimensionality:
+input: (28)              # Missing tuple
+Dense(128)
+→ Conv2D expects at least 3D input (height, width, channels) or 4D with batch.
+
+# Correct shapes return no suggestions:
+input: (None, 28, 28, 1) → No suggestion (valid shape)
+```
+
+**Expected behavior:**
+- Negative dimensions → Always suggest using None
+- Incorrect tensor dimensions → Suggest reshaping or adding Flatten
+- Valid shapes → No suggestion
+
+### Parameter Value Suggestions
+
+The system validates parameter values and suggests corrections:
+
+```yaml
+# Value constraint violations:
+Dense(units=-10)         → Units must be a positive integer
+Dropout(rate=1.5)        → Dropout rate must be between 0 and 1
+Conv2D(32, kernel_size=-3) → Kernel size must be positive
+
+# Valid values return no suggestions:
+Dense(units=128)         → No suggestion (valid value)
+Dropout(rate=0.5)        → No suggestion (valid value)
+```
+
+**Expected behavior:**
+- Negative units/filters → Suggest positive integers
+- Invalid dropout rate → Suggest range [0, 1)
+- Negative kernel/pool size → Suggest positive values
+- Valid values → No suggestion
+
+### Activation Function Suggestions
+
+Activation names should be lowercase:
+
+```yaml
+# Case corrections:
+Dense(128, activation="Relu")    → Use 'relu' (lowercase)
+Dense(128, activation="Sigmoid") → Use 'sigmoid' (lowercase)
+
+# Common typos:
+Dense(128, activation="leakyrelu")  → Did you mean 'leaky_relu'?
+
+# Correct activations return no suggestions:
+Dense(128, activation="relu")    → No suggestion (correct)
+```
+
+### Backend and Dependency Suggestions
+
+Missing dependencies get installation instructions:
+
+```yaml
+# Backend typos:
+--backend tf    → Use 'tensorflow'
+--backend torch → Use 'pytorch'
+
+# Missing dependencies:
+ImportError: torch → Install with: pip install torch torchvision
+ImportError: optuna → Install with: pip install 'neural-dsl[hpo]'
+```
+
+### Suggestion Behavior Reference
+
+| Input Type | Correct Input | Incorrect Input | Suggestion Returned |
+|------------|---------------|-----------------|---------------------|
+| Parameter name | `units` | `unit`, `unts` | Yes (for incorrect) |
+| Layer name | `Dense` | `dense`, `DENSE` | Yes (for incorrect) |
+| Shape tuple | `(28, 28, 1)` | `(28, -28, 1)` | Yes (for negative) |
+| Parameter value | `units=128` | `units=-10` | Yes (for negative) |
+| Activation | `"relu"` | `"Relu"`, `"RELU"` | Yes (for wrong case) |
+
+**Key principle:** The suggestion system only provides feedback when something is wrong. Correct inputs return `None` to indicate no issues were detected.
+
+### Testing Error Suggestions
+
+When writing tests for error suggestions:
+
+```python
+# Test expects suggestion for incorrect input
+suggestion = ErrorSuggestion.suggest_parameter_fix("unit", "Dense")
+assert suggestion is not None
+assert "units" in suggestion
+
+# Test expects no suggestion for correct input
+suggestion = ErrorSuggestion.suggest_parameter_fix("units", "Dense")
+assert suggestion is None  # Correct parameter, no suggestion needed
+
+# Test expects suggestion for case mismatch
+suggestion = ErrorSuggestion.suggest_layer_fix("dense")
+assert suggestion is not None
+assert "Dense" in suggestion
+
+# Test expects no suggestion for correct layer
+suggestion = ErrorSuggestion.suggest_layer_fix("Dense")
+assert suggestion is None  # Correct layer name, no suggestion needed
+```
+
+---
+
 ## Quick Reference: Common Errors
 
 | Error | What it usually means | Try this first |

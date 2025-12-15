@@ -3,6 +3,23 @@ Enhanced error messages with actionable suggestions for common mistakes.
 
 This module provides helpful error messages, suggestions, and fixes for common
 user errors in the Neural DSL framework.
+
+Key Principles:
+---------------
+1. Suggestions are only provided when something is wrong
+2. Correct inputs return None (no suggestion needed)
+3. Suggestions are actionable and specific, not generic descriptions
+
+Suggestion Behavior:
+-------------------
+- suggest_parameter_fix("unit", "Dense") → Returns suggestion for typo
+- suggest_parameter_fix("units", "Dense") → Returns None (correct)
+- suggest_layer_fix("dense") → Returns suggestion for wrong case
+- suggest_layer_fix("Dense") → Returns None (correct)
+- suggest_shape_fix((None, -28, 28), "Dense") → Returns suggestion for negative
+- suggest_shape_fix((None, 28, 28, 1), "Conv2D") → Returns None (valid)
+
+See docs/troubleshooting.md for complete documentation and examples.
 """
 
 from __future__ import annotations
@@ -96,7 +113,17 @@ class ErrorSuggestion:
     
     @staticmethod
     def suggest_parameter_fix(param_name: str, layer_type: str) -> Optional[str]:
-        """Suggest correction for misspelled parameter names."""
+        """
+        Suggest correction for misspelled parameter names.
+        
+        Returns:
+            - Suggestion string if parameter name appears incorrect
+            - None if parameter name is correct or unknown (no issue detected)
+        
+        Examples:
+            suggest_parameter_fix("unit", "Dense") → "Did you mean 'units'...?"
+            suggest_parameter_fix("units", "Dense") → None (correct)
+        """
         if param_name in ErrorSuggestion.PARAMETER_TYPOS:
             correct = ErrorSuggestion.PARAMETER_TYPOS[param_name]
             return f"Did you mean '{correct}' instead of '{param_name}'?"
@@ -116,7 +143,18 @@ class ErrorSuggestion:
     
     @staticmethod
     def suggest_layer_fix(layer_name: str) -> Optional[str]:
-        """Suggest correction for misspelled layer names."""
+        """
+        Suggest correction for misspelled layer names.
+        
+        Returns:
+            - Suggestion string if layer name has case sensitivity or typo issues
+            - None if layer name is correct (exact match)
+        
+        Examples:
+            suggest_layer_fix("dense") → "Layer names are case-sensitive..."
+            suggest_layer_fix("Dense") → None (correct)
+            suggest_layer_fix("MaxPool2D") → "Did you mean 'MaxPooling2D'?"
+        """
         if layer_name in ErrorSuggestion.LAYER_TYPOS:
             correct = ErrorSuggestion.LAYER_TYPOS[layer_name]
             return f"Did you mean '{correct}' instead of '{layer_name}'?"
@@ -129,7 +167,8 @@ class ErrorSuggestion:
         ]
         
         for correct_layer in common_layers:
-            if layer_name.lower() == correct_layer.lower():
+            # Only suggest if case-insensitive match but not exact match
+            if layer_name.lower() == correct_layer.lower() and layer_name != correct_layer:
                 return f"Layer names are case-sensitive. Use '{correct_layer}' instead of '{layer_name}'"
         
         return None
@@ -175,7 +214,17 @@ class ErrorSuggestion:
     
     @staticmethod
     def suggest_shape_fix(input_shape: tuple, layer_type: str) -> Optional[str]:
-        """Suggest fixes for common shape-related errors."""
+        """
+        Suggest fixes for common shape-related errors.
+        
+        Returns:
+            - Suggestion string if shape has issues (negative dims, wrong dimensionality)
+            - None if shape is valid for the layer type
+        
+        Examples:
+            suggest_shape_fix((None, -28, 28), "Dense") → "Shape dimensions cannot be negative..."
+            suggest_shape_fix((None, 28, 28, 1), "Conv2D") → None (valid)
+        """
         if not input_shape or len(input_shape) == 0:
             return "Input shape cannot be empty. Specify at least one dimension."
         
@@ -197,7 +246,17 @@ class ErrorSuggestion:
     
     @staticmethod
     def suggest_parameter_value_fix(param: str, value: Any, layer_type: str) -> Optional[str]:
-        """Suggest fixes for invalid parameter values."""
+        """
+        Suggest fixes for invalid parameter values.
+        
+        Returns:
+            - Suggestion string if value violates constraints (negative, out of range)
+            - None if value is valid for the parameter
+        
+        Examples:
+            suggest_parameter_value_fix("units", -10, "Dense") → "Units must be positive..."
+            suggest_parameter_value_fix("units", 128, "Dense") → None (valid)
+        """
         suggestions = []
         
         # Units/filters must be positive
@@ -419,4 +478,6 @@ class ErrorFormatter:
         install_hint = ErrorSuggestion.suggest_dependency_install(dependency)
         error_msg += f"\n\n💡 {install_hint}"
         
+        return error_msg
+      
         return error_msg
