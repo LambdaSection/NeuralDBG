@@ -59,24 +59,33 @@ def calculate_output_dims(input_dims: Tuple[int, ...],
     """Calculate output dimensions for convolution or pooling operations.
 
     Args:
-        input_dims: Input spatial dimensions
+        input_dims: Input spatial dimensions (can contain None for dynamic dims)
         kernel_size: Kernel size for each dimension
         stride: Stride for each dimension
         padding: Padding mode ('valid', 'same') or explicit padding
 
     Returns:
-        Output spatial dimensions
+        Output spatial dimensions (with None preserved for dynamic dims)
     """
     output_dims = []
 
     for i, dim in enumerate(input_dims):
+        # Handle None dimensions (dynamic/unknown sizes)
+        if dim is None:
+            output_dims.append(None)
+            continue
+            
         k = kernel_size[i] if i < len(kernel_size) else kernel_size[0]
         s = stride[i] if i < len(stride) else stride[0]
 
         if padding == 'valid':
             p = 0
         elif padding == 'same':
-            p = (k - 1) // 2
+            # For 'same' padding with stride > 1, calculate proper padding
+            # Output size should be ceil(input_size / stride)
+            output_size = (dim + s - 1) // s
+            total_padding = max(0, (output_size - 1) * s + k - dim)
+            p = total_padding // 2
         elif isinstance(padding, (int, float)):
             p = int(padding)
         elif isinstance(padding, (tuple, list)):
@@ -85,6 +94,7 @@ def calculate_output_dims(input_dims: Tuple[int, ...],
             p = 0
 
         output_dim = (dim + 2 * p - k) // s + 1
+        output_dim = max(1, output_dim)  # Ensure at least 1
         output_dims.append(output_dim)
 
     return tuple(output_dims)

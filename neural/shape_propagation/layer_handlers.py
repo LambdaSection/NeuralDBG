@@ -84,7 +84,7 @@ def handle_lstm(input_shape: Tuple[int, ...],
     """Handle LSTM layer shape propagation.
 
     Args:
-        input_shape: Input tensor shape
+        input_shape: Input tensor shape (batch, seq_len, input_size)
         params: Layer parameters
 
     Returns:
@@ -100,8 +100,37 @@ def handle_lstm(input_shape: Tuple[int, ...],
     time_steps = input_shape[1]
 
     if return_sequences:
+        # Return full sequence: (batch, seq_len, units)
         return (batch_size, time_steps, units)
     else:
+        # Return only last output: (batch, units)
+        return (batch_size, units)
+
+def handle_gru(input_shape: Tuple[int, ...],
+              params: Dict[str, Any]) -> Tuple[int, ...]:
+    """Handle GRU layer shape propagation.
+
+    Args:
+        input_shape: Input tensor shape (batch, seq_len, input_size)
+        params: Layer parameters
+
+    Returns:
+        Output tensor shape
+    """
+    units = extract_param(params, 'units', 128)
+    return_sequences = extract_param(params, 'return_sequences', False)
+
+    if len(input_shape) < 3:
+        return input_shape  # Invalid input shape, return unchanged
+
+    batch_size = input_shape[0]
+    time_steps = input_shape[1]
+
+    if return_sequences:
+        # Return full sequence: (batch, seq_len, units)
+        return (batch_size, time_steps, units)
+    else:
+        # Return only last output: (batch, units)
         return (batch_size, units)
 
 def handle_dropout(input_shape: Tuple[int, ...],
@@ -134,7 +163,7 @@ def handle_batch_normalization(input_shape: Tuple[int, ...],
 
 def handle_concatenate(input_shapes: List[Tuple[int, ...]],
                       params: Dict[str, Any]) -> Tuple[int, ...]:
-    """Handle Concatenate layer shape propagation.
+    """Handle Concatenate layer shape propagation with improved None handling.
 
     Args:
         input_shapes: List of input tensor shapes
@@ -153,18 +182,32 @@ def handle_concatenate(input_shapes: List[Tuple[int, ...]],
         axis = len(input_shapes[0]) + axis
 
     # Check if all shapes are compatible for concatenation
+    # All dimensions except concat axis must match (or be None)
     for shape in input_shapes[1:]:
         if len(shape) != len(input_shapes[0]):
             return input_shapes[0]  # Incompatible shapes, return first input shape
 
         for i in range(len(shape)):
-            if i != axis and shape[i] != input_shapes[0][i]:
-                return input_shapes[0]  # Incompatible shapes, return first input shape
+            if i != axis:
+                # Check dimension compatibility, handling None values
+                dim1, dim2 = input_shapes[0][i], shape[i]
+                if dim1 is not None and dim2 is not None and dim1 != dim2:
+                    return input_shapes[0]  # Incompatible shapes, return first input shape
 
-    # Calculate concatenated dimension
-    concat_dim = sum(shape[axis] for shape in input_shapes)
+    # Calculate concatenated dimension, handling None values
+    concat_dim = 0
+    has_none = False
+    for shape in input_shapes:
+        if shape[axis] is None:
+            has_none = True
+        else:
+            concat_dim += shape[axis]
+    
+    # If any input has None at concat axis, output is None
+    if has_none:
+        concat_dim = None
 
-    # Create output shape
+    # Create output shape, preserving None in non-concat dimensions
     output_shape = list(input_shapes[0])
     output_shape[axis] = concat_dim
 
@@ -172,7 +215,7 @@ def handle_concatenate(input_shapes: List[Tuple[int, ...]],
 
 def handle_add(input_shapes: List[Tuple[int, ...]],
               params: Dict[str, Any]) -> Tuple[int, ...]:
-    """Handle Add layer shape propagation.
+    """Handle Add layer shape propagation with improved broadcasting support.
 
     Args:
         input_shapes: List of input tensor shapes
@@ -184,9 +227,35 @@ def handle_add(input_shapes: List[Tuple[int, ...]],
     if not input_shapes:
         return tuple()  # No inputs
 
-    # For addition, all shapes must be identical
-    # Return the first shape (they should all be the same)
-    return input_shapes[0]
+    # For addition with broadcasting, we need to find the output shape
+    # Start with first shape
+    output_shape = list(input_shapes[0])
+    
+    # Check all other shapes for compatibility
+    for shape in input_shapes[1:]:
+        # Shapes must be broadcastable
+        if len(shape) != len(output_shape):
+            # Different ranks - would need complex broadcasting logic
+            # For now, require same rank
+            return input_shapes[0]
+        
+        # Check each dimension
+        for i in range(len(shape)):
+            dim1, dim2 = output_shape[i], shape[i]
+            
+            # Handle None (batch) dimensions
+            if dim1 is None or dim2 is None:
+                output_shape[i] = None
+            # Check broadcasting compatibility
+            elif dim1 == 1:
+                output_shape[i] = dim2
+            elif dim2 == 1:
+                output_shape[i] = dim1
+            elif dim1 != dim2:
+                # Incompatible dimensions
+                return input_shapes[0]
+
+    return tuple(output_shape)
 
 def handle_positional_encoding(input_shape: Tuple[int, ...],
                                params: Dict[str, Any]) -> Tuple[int, ...]:
@@ -241,16 +310,28 @@ def handle_reshape(input_shape: Tuple[int, ...],
     if target_shape is None:
         return input_shape  # No target shape specified, return unchanged
 
-    # Calculate total elements in input
-    input_elements = np.prod([dim for dim in input_shape if dim is not None])
+    # Calculate total elements in input (excluding batch dimension)
+    input_elements = 1
+    for i, dim in enumerate(input_shape):
+        if i == 0:
+            continue  # Skip batch dimension
+        if dim is not None:
+            input_elements *= dim
 
-    # Handle -1 in target shape
+    # Handle -1 in target shape (infer dimension)
     if -1 in target_shape:
         # Calculate the size of the -1 dimension
         neg_one_index = target_shape.index(-1)
-        other_elements = np.prod([dim for i, dim in enumerate(target_shape) if i != neg_one_index and dim is not None])
+        other_elements = 1
+        for i, dim in enumerate(target_shape):
+            if i != neg_one_index and dim is not None and dim != -1:
+                other_elements *= dim
+        
         target_shape_list = list(target_shape)
-        target_shape_list[neg_one_index] = input_elements // other_elements
+        if other_elements > 0:
+            target_shape_list[neg_one_index] = input_elements // other_elements
+        else:
+            target_shape_list[neg_one_index] = 1
         target_shape = tuple(target_shape_list)
 
     # Return shape with batch dimension preserved
@@ -298,13 +379,15 @@ def handle_zero_padding2d(input_shape: Tuple[int, ...],
         return input_shape  # Invalid input shape, return unchanged
 
     if data_format == 'channels_last':  # (batch, height, width, channels)
-        height = input_shape[1] + padding[0][0] + padding[0][1]
-        width = input_shape[2] + padding[1][0] + padding[1][1]
-        return (input_shape[0], height, width, input_shape[3])
+        h, w = input_shape[1], input_shape[2]
+        new_height = h + padding[0][0] + padding[0][1] if h is not None else None
+        new_width = w + padding[1][0] + padding[1][1] if w is not None else None
+        return (input_shape[0], new_height, new_width, input_shape[3])
     else:  # channels_first: (batch, channels, height, width)
-        height = input_shape[2] + padding[0][0] + padding[0][1]
-        width = input_shape[3] + padding[1][0] + padding[1][1]
-        return (input_shape[0], input_shape[1], height, width)
+        h, w = input_shape[2], input_shape[3]
+        new_height = h + padding[0][0] + padding[0][1] if h is not None else None
+        new_width = w + padding[1][0] + padding[1][1] if w is not None else None
+        return (input_shape[0], input_shape[1], new_height, new_width)
 
 def handle_cropping2d(input_shape: Tuple[int, ...],
                      params: Dict[str, Any]) -> Tuple[int, ...]:
@@ -324,10 +407,12 @@ def handle_cropping2d(input_shape: Tuple[int, ...],
         return input_shape  # Invalid input shape, return unchanged
 
     if data_format == 'channels_last':  # (batch, height, width, channels)
-        height = input_shape[1] - cropping[0][0] - cropping[0][1]
-        width = input_shape[2] - cropping[1][0] - cropping[1][1]
-        return (input_shape[0], height, width, input_shape[3])
+        h, w = input_shape[1], input_shape[2]
+        new_height = h - cropping[0][0] - cropping[0][1] if h is not None else None
+        new_width = w - cropping[1][0] - cropping[1][1] if w is not None else None
+        return (input_shape[0], new_height, new_width, input_shape[3])
     else:  # channels_first: (batch, channels, height, width)
-        height = input_shape[2] - cropping[0][0] - cropping[0][1]
-        width = input_shape[3] - cropping[1][0] - cropping[1][1]
-        return (input_shape[0], input_shape[1], height, width)
+        h, w = input_shape[2], input_shape[3]
+        new_height = h - cropping[0][0] - cropping[0][1] if h is not None else None
+        new_width = w - cropping[1][0] - cropping[1][1] if w is not None else None
+        return (input_shape[0], input_shape[1], new_height, new_width)
