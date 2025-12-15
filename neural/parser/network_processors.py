@@ -69,6 +69,8 @@ def process_execution_config(model: Dict[str, Any]) -> Dict[str, Any]:
     if is_device_test:
         if has_tpu:
             model['execution'] = {'device': 'tpu'}
+        elif has_cuda:
+            model['execution'] = {'device': 'cuda'}
         else:
             model['execution'] = {'device': 'auto'}
 
