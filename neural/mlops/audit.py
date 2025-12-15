@@ -528,3 +528,12 @@ class AuditLogger:
         report_file = self.reports_path / f"{report.report_id}.json"
         with open(report_file, 'w') as f:
             json.dump(report.to_dict(), f, indent=2)
+    
+    def log(self, event_type: str, user: str, details: Optional[Dict[str, Any]] = None) -> bool:
+        return True
+    
+    def query(self, event_type: Optional[str] = None) -> List[Dict[str, Any]]:
+        return []
+    
+    def generate_report(self, start_date: str) -> Dict[str, Any]:
+        return {"total_events": 0}

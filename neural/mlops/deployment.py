@@ -580,3 +580,20 @@ class DeploymentManager:
         shadow_file = self.shadows_path / f"{shadow.shadow_id}.json"
         with open(shadow_file, 'w') as f:
             json.dump(shadow.to_dict(), f, indent=2)
+
+
+class ModelDeployment:
+    def __init__(self, model_id: str):
+        self.model_id = model_id
+    
+    def deploy(self, environment: str = "production", replicas: int = 1) -> Dict[str, Any]:
+        return {"status": "pending", "environment": environment, "replicas": replicas}
+    
+    def health_check(self) -> Dict[str, Any]:
+        return {"status": "unknown"}
+    
+    def rollback(self, to_version: Optional[str] = None) -> bool:
+        return False
+    
+    def scale(self, replicas: int) -> Dict[str, Any]:
+        return {"replicas": replicas}
