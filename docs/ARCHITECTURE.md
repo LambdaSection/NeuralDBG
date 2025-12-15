@@ -383,7 +383,7 @@ Each layer type has:
 4. **Language server**: IDE integration via LSP
 
 ### Deprecation Plans
-See [DEPRECATIONS.md](DEPRECATIONS.md) for modules being removed/extracted.
+See [FOCUS.md](FOCUS.md) for current project scope and [CHANGELOG.md](../CHANGELOG.md) for removed features.
 
 ## Related Documents
 

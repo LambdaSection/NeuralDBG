@@ -91,12 +91,15 @@ Peripheral features (lower priority):
 Note: Aquarium IDE has been removed (v0.3.0) as it was out of scope. The experiment tracking dashboard remains as a core feature (neural aquarium CLI).
 Note: Teams module (multi-tenancy, RBAC, billing, analytics) has been removed as it was not actively used by core features.
 
-## Cleanup
-The repository has been cleaned to remove 200+ redundant files:
-- Archive directory (`docs/archive/`) removed (22 redundant files)
-- Workflows consolidated from 20+ to 4 essential ones
-- Development scripts removed or consolidated
-- `.gitignore` comprehensively updated
+## Repository Maintenance
+
+### Documentation Cleanup
+The repository has undergone comprehensive documentation cleanup:
+- Removed 60+ redundant QUICK_*.md and *_SUMMARY.md files
+- Consolidated essential information into `docs/quick_reference.md`
+- Removed obsolete implementation and status tracking files
+- Updated cross-references in remaining documentation
+- Maintained core documentation: README.md, AGENTS.md, CONTRIBUTING.md, CHANGELOG.md, docs/
 
 ### Cache and Artifacts Cleanup
 Remove cache directories, virtual environments, and test artifacts:

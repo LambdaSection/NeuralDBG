@@ -6,13 +6,12 @@ Welcome to the Neural DSL documentation directory. This guide helps you navigate
 
 ### Essential Reading
 - [**Quick Reference**](quick_reference.md) - **Consolidated quick-start guide** ⭐
-- [Getting Started](../GETTING_STARTED.md) - Installation and first steps
+- [Getting Started](../README.md#installation) - Installation and first steps
 - [Contributing Guide](../CONTRIBUTING.md) - How to contribute
 - [Changelog](../CHANGELOG.md) - Version history and changes
 
 ### Project Guidance
 - [**FOCUS.md**](FOCUS.md) - **Start here!** Project scope, boundaries, and philosophy
-- [DEPRECATIONS.md](DEPRECATIONS.md) - Deprecated features and migration paths
 - [TYPE_SAFETY.md](TYPE_SAFETY.md) - Type checking guidelines and standards
 
 ### Feature Documentation
@@ -25,33 +24,26 @@ Welcome to the Neural DSL documentation directory. This guide helps you navigate
 ```
 docs/
 ├── README.md                    # This file
+├── quick_reference.md           # Consolidated quick reference ⭐
 ├── FOCUS.md                     # Project scope and boundaries ⭐
-├── DEPRECATIONS.md              # Deprecated features
 ├── TYPE_SAFETY.md               # Type checking guidelines
 │
-├── archive/                     # Historical documents
-│   ├── *_IMPLEMENTATION*.md     # Implementation summaries
-│   ├── RELEASE_*.md            # Old release notes
-│   └── MIGRATION_*.md          # Historical migrations
+├── dsl.md                       # DSL language reference
+├── deployment.md                # Deployment guide
+├── installation.md              # Installation guide
+├── migration.md                 # Migration guide
+├── troubleshooting.md           # Troubleshooting guide
 │
-├── automation/                  # Automation guides
-│   └── AUTOMATION_GUIDE.md     # CI/CD and automation
-│
-├── dependencies/                # Dependency management
-│   ├── DEPENDENCY_GUIDE.md     # Dependency documentation
-│   └── DEPENDENCY_*.md         # Specific dependency docs
-│
-├── distribution/                # Distribution and publishing
-│   ├── DISTRIBUTION_PLAN.md    # Release planning
-│   └── GITHUB_PUBLISHING_GUIDE.md
-│
-├── setup/                       # Installation and setup
-│   ├── INSTALL.md              # Installation guide
-│   └── ERROR_MESSAGES_GUIDE.md # Troubleshooting
-│
-└── features/                    # Feature-specific docs
-    ├── DEPLOYMENT_FEATURES.md  # Deployment options
-    └── TRANSFORMER_*.md        # Transformer docs
+├── api/                         # API documentation
+├── blog/                        # Blog posts
+├── deployment/                  # Deployment-specific guides
+├── examples/                    # Example guides
+├── features/                    # Feature documentation
+├── images/                      # Documentation images
+├── mlops/                       # MLOps documentation
+├── releases/                    # Release notes
+├── social/                      # Social media content
+└── tutorials/                   # User tutorials
 ```
 
 ## Documentation Philosophy
@@ -62,7 +54,7 @@ Our documentation follows these principles:
 2. **Examples Driven**: Show, don't just tell
 3. **Up-to-Date**: If it's documented, it should work
 4. **Organized**: Easy to find what you need
-5. **Honest**: Clear about limitations and deprecated features
+5. **Honest**: Clear about limitations and features
 
 ## Core vs Peripheral
 
@@ -78,32 +70,30 @@ These docs cover essential, actively maintained features:
 Supported but not the primary focus:
 - HPO (hyperparameter optimization)
 - AutoML (simplified architecture search)
-- Cloud integrations (AWS, GCP, Azure)
 - Experiment tracking
+- Visualization
 
-### Deprecated/Experimental (Priority 3)
-Features being phased out or experimental:
-- See [DEPRECATIONS.md](DEPRECATIONS.md) for full list
-- Aquarium IDE (extracting to separate repo)
-- Collaboration tools (use Git instead)
-- Marketplace (use HuggingFace Hub)
-- Federated learning (extracting to separate repo)
+### Experimental Features (Priority 3)
+Features that are experimental or being evaluated:
+- AI model generation
+- Cloud integrations
+- No-code interface
 
 ## Finding What You Need
 
 ### "I want to..."
 
 **...get started quickly**
-→ [Quick Reference](quick_reference.md) or [GETTING_STARTED.md](../GETTING_STARTED.md)
+→ [Quick Reference](quick_reference.md) or [README](../README.md)
 
 **...understand the DSL syntax**
 → [dsl.md](dsl.md)
 
 **...compile my model to PyTorch/TensorFlow**
-→ [CLI Commands](#) or [deployment.md](deployment.md)
+→ [Quick Reference](quick_reference.md#common-commands) or [deployment.md](deployment.md)
 
 **...debug my model**
-→ NeuralDbg section in main README
+→ [Quick Reference](quick_reference.md#neuraldbg-dashboard-quick-start)
 
 **...deploy to production**
 → [deployment.md](deployment.md)
@@ -114,14 +104,8 @@ Features being phased out or experimental:
 **...understand project scope**
 → [FOCUS.md](FOCUS.md) ⭐
 
-**...migrate from deprecated feature**
-→ [DEPRECATIONS.md](DEPRECATIONS.md)
-
 **...optimize hyperparameters**
-→ HPO documentation (coming soon)
-
-**...integrate with cloud platforms**
-→ Cloud integration guides (coming soon)
+→ [examples/hpo_guide.md](examples/hpo_guide.md)
 
 ## Contributing to Documentation
 
@@ -142,16 +126,6 @@ When submitting documentation:
 - Follow the existing style and tone
 - Keep it concise
 
-## Archive Policy
-
-Documents are moved to `archive/` when:
-- They describe deprecated features
-- They're superseded by newer docs
-- They're historical implementation notes
-- They're old release notes (>2 versions old)
-
-Archived docs are kept for reference but not actively maintained.
-
 ## Getting Help
 
 If you can't find what you need:
@@ -162,33 +136,13 @@ If you can't find what you need:
 4. **Open a discussion**: [GitHub Discussions](https://github.com/Lemniscate-world/Neural/discussions)
 5. **Report missing docs**: Open an issue with "documentation" label
 
-## Documentation Roadmap
-
-### Short Term
-- [ ] Complete DSL language reference
-- [ ] Add HPO tutorial
-- [ ] Expand deployment guide
-- [ ] Create video tutorials
-
-### Medium Term
-- [ ] Interactive documentation site
-- [ ] API reference (auto-generated)
-- [ ] Best practices guide
-- [ ] Performance tuning guide
-
-### Long Term
-- [ ] Comprehensive examples library
-- [ ] Architecture patterns catalog
-- [ ] Integration cookbook
-- [ ] Educational curriculum
-
 ## Maintenance
 
 This documentation is maintained by the Neural DSL team and community contributors. 
 
-**Last major reorganization**: December 2025 (v0.3.0 cleanup)
+**Last major reorganization**: January 2025 (v0.4.0 cleanup)
 
-**Next review scheduled**: Q1 2026
+**Next review scheduled**: Q2 2025
 
 ---
 
@@ -196,6 +150,5 @@ This documentation is maintained by the Neural DSL team and community contributo
 [Home](../README.md) |
 [Quick Reference](quick_reference.md) |
 [Focus](FOCUS.md) |
-[Getting Started](../GETTING_STARTED.md) |
 [Contributing](../CONTRIBUTING.md) |
 [Discord](https://discord.gg/KFku4KvS)

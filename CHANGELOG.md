@@ -9,14 +9,17 @@ Neural DSL has been refocused from a feature-rich "Swiss Army knife" to a specia
 A comprehensive cleanup was performed to improve repository hygiene and maintainability:
 
 #### Files Removed/Archived
-- **Documentation Cleanup**: Removed `docs/archive/` directory (22 files) and consolidated documentation
-  - Archive directory removed: Implementation summaries, planning docs, old HTML files
+- **Documentation Cleanup**: Removed 260+ redundant documentation files and consolidated information
+  - Phase 1: Removed `docs/archive/` directory (22 files)
+  - Phase 2: Removed 60+ QUICK_*.md, *_SUMMARY.md, and implementation tracking files
+  - Consolidated all quick-start information into `docs/quick_reference.md`
+  - Removed obsolete implementation, status tracking, and marketing automation docs
   - Aquarium IDE docs: 10+ files consolidated into `docs/aquarium/AQUARIUM_IDE_COMPLETE_GUIDE.md`
   - All redundant implementation summaries across the repository eliminated
 - **Development Scripts**: Removed 7 obsolete installation and setup scripts
   - Legacy installation scripts (install.bat, install_dev.bat, install_deps.py)
   - Deprecated setup scripts (_install_dev.py, repro_parser.py, reproduce_issue.py)
-- **Total Impact**: 200+ files removed/consolidated, ~5-10 MB disk space saved
+- **Total Impact**: 260+ files removed/consolidated, ~5-10 MB disk space saved
 
 #### GitHub Actions Consolidation
 - **Workflows Reduced**: 20+ workflows consolidated to 4 essential workflows (80% reduction)
@@ -37,23 +40,26 @@ A comprehensive cleanup was performed to improve repository hygiene and maintain
   - `preview_cleanup.py` - Preview changes without modifications
   - `cleanup_redundant_files.py` - Archive documentation files
   - `cleanup_workflows.py` - Remove redundant workflows
+  - `cleanup_redundant_docs.py` - Remove redundant documentation
   - `run_cleanup.py` - Master cleanup orchestration
-- All changes documented in `CLEANUP_SUMMARY.md`
+- All changes documented in `DOCUMENTATION_CLEANUP_SUMMARY.md`
 
 #### Benefits
-- **Clarity**: Root directory reduced from 50+ to 20 essential files
-- **Maintainability**: 80% fewer workflows to maintain and update
-- **Developer Experience**: Faster navigation, clearer structure, simpler onboarding
+- **Clarity**: Root directory reduced from 50+ to 20 essential files, single consolidated quick reference
+- **Maintainability**: 80% fewer workflows to maintain, single source of truth for quick-start docs
+- **Developer Experience**: Faster navigation, clearer structure, simpler onboarding, less confusion
 - **CI Efficiency**: Reduced redundant workflow runs and faster CI execution
 - **Focused Repository**: Structure reflects core mission and value proposition
+- **Documentation Quality**: Consolidated quick reference eliminates fragmentation and inconsistency
 
 ### Breaking Changes
 - **Removed Enterprise Features**: teams, marketplace, billing, cost tracking
-- **Removed Alternative Tool Features**: mlops, cloud integrations, API server (see [docs/API_REMOVAL.md](docs/API_REMOVAL.md)), monitoring, data versioning, collaboration, experiment tracking
+- **Removed Alternative Tool Features**: mlops, cloud integrations, API server, monitoring, data versioning, collaboration, experiment tracking
 - **Removed Experimental Features**: no-code GUI, neural chat, LLM integration, research generation, aquarium, AI features, plugins
 - **Removed Redundant Features**: profiling, benchmarks, execution optimization, explainability, docgen, config management, federated learning
 - **Simplified CLI**: Removed cloud, track, marketplace, cost, aquarium, no-code, docs, and explain commands
 - **Dependencies Reduced**: ~70% reduction in dependencies (50+ → 15 core packages)
+- **Note**: For API server migration, wrap Neural in FastAPI/Flask. For removed features, see REFOCUS.md for alternatives.
 
 ### Retained Core Features
 - ✅ DSL parsing with Lark
@@ -75,7 +81,7 @@ A comprehensive cleanup was performed to improve repository hygiene and maintain
   - Teams/Billing → Build as separate service on top of Neural
   - MLOps → Use MLflow, Kubeflow, or other specialized platforms
   - Cloud → Use boto3, google-cloud-sdk, azure-sdk directly
-  - API Server → See [docs/API_REMOVAL.md](docs/API_REMOVAL.md) for migration guide and alternatives
+  - API Server → Wrap Neural in FastAPI/Flask for REST API functionality
   - Monitoring → Use Prometheus, Grafana, or cloud-native monitoring
   - Experiment Tracking → Use MLflow, Weights & Biases, or TensorBoard
   - Data Versioning → Use DVC, Git LFS, or cloud storage versioning

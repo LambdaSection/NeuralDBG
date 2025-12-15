@@ -307,6 +307,7 @@ Quick links:
 - [Deployment Guide](docs/deployment.md) – Production export options
 - [AI Integration Guide](docs/ai_integration_guide.md) – Natural language model generation
 - [Contributing Guide](CONTRIBUTING.md) – How to contribute
+- [Documentation Index](docs/README.md) – Complete documentation navigation
 
 More examples in the [examples/](examples/) directory.
 
@@ -359,7 +360,7 @@ python -m pip_audit -l --progress-spinner off
 ./cleanup_cache_and_artifacts.sh   # Unix/Linux/macOS
 ```
 
-See [CLEANUP_README.md](CLEANUP_README.md) for details on cleaning up cache, artifacts, and redundant documentation files.
+See [CLEANUP_README.md](CLEANUP_README.md) for details on cleaning up cache and artifacts.
 
 See the Development Workflow section at the end of this README for full details.
 
