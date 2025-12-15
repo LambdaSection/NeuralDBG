@@ -167,20 +167,18 @@ class FeatureStore:
     def add_feature(
         self,
         group_name: str,
-        feature_name_or_obj: Union[str, Feature],
-        dtype: Optional[str] = None,
-        description: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        feature_name: str,
+        dtype: str,
+        description: Optional[str] = None
     ) -> Feature:
         """
         Add a feature to a group.
         
         Args:
             group_name: Name of the feature group
-            feature_name_or_obj: Either a Feature object or feature name string
-            dtype: Data type (required if feature_name_or_obj is a string)
+            feature_name: Feature name
+            dtype: Data type
             description: Optional description
-            metadata: Optional metadata
             
         Returns:
             The added Feature object
@@ -189,19 +187,11 @@ class FeatureStore:
         if not group:
             raise ValueError(f"Feature group not found: {group_name}")
         
-        # Support both Feature object and individual parameters
-        if isinstance(feature_name_or_obj, Feature):
-            feature = feature_name_or_obj
-        else:
-            # Create Feature from individual parameters
-            if dtype is None:
-                raise ValueError("dtype is required when providing feature name as string")
-            feature = Feature(
-                name=feature_name_or_obj,
-                dtype=dtype,
-                description=description,
-                metadata=metadata
-            )
+        feature = Feature(
+            name=feature_name,
+            dtype=dtype,
+            description=description
+        )
         
         group.add_feature(feature)
         self._save_feature_group(group)
