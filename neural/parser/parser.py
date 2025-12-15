@@ -1484,7 +1484,6 @@ class ModelTransformer(lark.Transformer):
         return expanded_layers
 
     def layer_or_repeated(self, items: List[Any]) -> Union[Any, Tuple[Any, int]]:
-        # Debug the items to understand what's being passed
         if len(items) == 1:
             return items[0]  # Just the layer, no repetition
         elif len(items) == 2:  # layer and multiplier
@@ -3260,8 +3259,6 @@ class ModelTransformer(lark.Transformer):
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.DEBUG)
 
-        # logger.debug(f"Processing network with items: {items}")
-
         name = items[0].value
         input = self._extract_value(items[1]) if items[1] is not None else None
         layers = self._extract_value(items[2]) if items[2] is not None else None
@@ -3294,7 +3291,6 @@ class ModelTransformer(lark.Transformer):
         # Process remaining items (loss, optimizer, training_config, execution_config)
         for i, item in enumerate(items[3:], 3):
             value = self._extract_value(item)
-            # logger.debug(f"Processing item {i}: {item}, value: {value}")
 
             if isinstance(item, Tree):
                 if item.data == 'input_layer':
@@ -3306,7 +3302,6 @@ class ModelTransformer(lark.Transformer):
                     loss_config = value
                 elif item.data == 'optimizer_param':
                     optimizer_config = value.get('optimizer')
-                    # logger.debug(f"Found optimizer_param: {optimizer_config}")
                 elif item.data == 'training_config':
                     training_config = value.get('params', value) if isinstance(value, dict) else value
                     # Validate training parameters
@@ -3334,10 +3329,8 @@ class ModelTransformer(lark.Transformer):
             elif isinstance(item, dict):
                 if 'optimizer' in item:
                     optimizer_config = item['optimizer']
-                    # logger.debug(f"Found optimizer in dict: {optimizer_config}")
                 elif 'type' in item and item.get('type') in {'Adam', 'SGD', 'RMSprop', 'Adagrad', 'Adadelta', 'Adamax', 'Nadam'}:
                     optimizer_config = item
-                    # logger.debug(f"Found optimizer by type: {optimizer_config}")
                 elif 'type' in item and item.get('type') == 'training_config':
                     training_config = item.get('params', {})
             else:
@@ -3360,7 +3353,6 @@ class ModelTransformer(lark.Transformer):
         # Set optimizer with default if not provided
         if optimizer_config:
             network_config['optimizer'] = optimizer_config
-            # logger.debug(f"Adding optimizer to network_config: {optimizer_config}")
         else:
             # Provide default optimizer if missing
             network_config['optimizer'] = 'Adam'
@@ -4231,7 +4223,7 @@ class ModelTransformer(lark.Transformer):
             'param_name': param_name,
             'path': path,
             'hpo': hpo_value,
-            'node': node  # Optional: for debugging
+            'node': node
         }
 
         # Check if this parameter is already tracked to avoid duplicates
@@ -4309,7 +4301,6 @@ class ModelTransformer(lark.Transformer):
                     if 'HPO(' in optimizer_info:
                         # Extract the HPO expression
                         import re
-                        # Add debug logging
                         log_by_severity(Severity.INFO, f"Processing optimizer string: {optimizer_info}")
 
                         # Extract all HPO expressions - use a more robust regex that handles nested parentheses

@@ -212,7 +212,6 @@ def resolve_hpo_params(
     logger.setLevel(logging.WARNING)
     resolved_dict = copy.deepcopy(model_dict)
 
-    # logger.debug(f"Original layers: {resolved_dict['layers']}")
     for i, layer in enumerate(resolved_dict['layers']):
         if 'params' in layer and layer['params'] is not None and 'units' in layer['params'] and isinstance(layer['params']['units'], dict) and 'hpo' in layer['params']['units']:
             hpo = layer['params']['units']['hpo']
@@ -224,14 +223,12 @@ def resolve_hpo_params(
                 low = hpo.get('start', hpo.get('low', hpo.get('min')))
                 high = hpo.get('end', hpo.get('high', hpo.get('max')))
                 layer['params']['units'] = trial.suggest_float(key, low, high, log=True)
-            # logger.debug(f"Layer {i} resolved units: {layer['params']['units']}")
 
     if resolved_dict['optimizer'] and 'params' in resolved_dict['optimizer']:
         # Clean up optimizer type
         opt_type = resolved_dict['optimizer']['type']
         if '(' in opt_type:
             resolved_dict['optimizer']['type'] = opt_type[:opt_type.index('(')].capitalize()  # 'adam(...)' -> 'Adam'
-        # logger.debug(f"Cleaned optimizer type: {resolved_dict['optimizer']['type']}")
 
         for param, val in resolved_dict['optimizer']['params'].items():
             if isinstance(val, dict) and 'hpo' in val:
@@ -243,9 +240,7 @@ def resolve_hpo_params(
                     resolved_dict['optimizer']['params'][param] = trial.suggest_float(
                         f"opt_{param}", low, high, log=True
                     )
-                # logger.debug(f"Optimizer resolved {param}: {resolved_dict['optimizer']['params'][param]}")
 
-    # logger.debug(f"Resolved dict: {resolved_dict}")
     return resolved_dict
 
 
@@ -633,3 +628,7 @@ def optimize_and_return(
         normalized_params['learning_rate'] = 0.001  # Default from optimizer_config
 
     return normalized_params
+ate'] = 0.001  # Default from optimizer_config
+
+    return normalized_params
+ms

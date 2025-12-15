@@ -894,7 +894,7 @@ class ShapePropagator:
                 logger.debug(f"_handle_upsampling2d - size is a dict without 'value' key: {size}, using default")
                 size = (2, 2)  # Default value
 
-        print(f"DEBUG: _handle_upsampling2d - size after processing: {size}")
+        logger.debug(f"_handle_upsampling2d - size after processing: {size}")
 
         # Calculate new spatial dimensions, handling None
         if data_format == 'channels_last':
@@ -915,11 +915,11 @@ class ShapePropagator:
                 new_width = w * size[1] if w is not None else None
                 return (input_shape[0], input_shape[1], new_height, new_width)
             else:
-                print(f"DEBUG: _handle_upsampling2d - Invalid input shape: {input_shape}, using default")
+                logger.debug(f"_handle_upsampling2d - Invalid input shape: {input_shape}, using default")
                 return input_shape
 
     def _handle_multiheadattention(self, input_shape, params):
-        print(f"DEBUG: _handle_multiheadattention - input_shape: {input_shape}, params: {params}")
+        logger.debug(f"_handle_multiheadattention - input_shape: {input_shape}, params: {params}")
         # MultiHeadAttention preserves the input shape: (batch, seq_len, d_model)
         return input_shape
     
@@ -944,7 +944,7 @@ class ShapePropagator:
         Returns:
             int or tuple: Calculated padding value.
         """
-        print(f"DEBUG: _calculate_padding - params: {params}, spatial_dims: {spatial_dims}")
+        logger.debug(f"_calculate_padding - params: {params}, spatial_dims: {spatial_dims}")
         padding = params.get('padding', 0)
 
         # Handle dictionary values in padding
