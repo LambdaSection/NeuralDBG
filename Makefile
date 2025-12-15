@@ -1,4 +1,4 @@
-.PHONY: help clean clean-dry install test lint format
+.PHONY: help clean clean-dry install test test-cov test-cov-report lint format
 
 help:
 	@echo "Neural DSL - Available Commands"
@@ -12,6 +12,8 @@ help:
 	@echo "  make install        - Install package with all dependencies"
 	@echo "  make install-dev    - Install with dev dependencies"
 	@echo "  make test           - Run test suite"
+	@echo "  make test-cov       - Run tests with coverage"
+	@echo "  make test-cov-report- Generate full coverage report (TEST_COVERAGE_SUMMARY.md)"
 	@echo "  make lint           - Run linters (ruff)"
 	@echo "  make format         - Format code with black/ruff"
 	@echo ""
@@ -39,6 +41,12 @@ install-dev:
 
 test:
 	pytest tests/ -v
+
+test-cov:
+	pytest tests/ -v --cov=neural --cov-report=term --cov-report=html
+
+test-cov-report:
+	python generate_test_coverage_summary.py
 
 lint:
 	ruff check .

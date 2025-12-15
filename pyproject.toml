@@ -58,3 +58,61 @@ skips = ["B101", "B601"]  # B101: assert_used (common in tests), B601: paramiko_
 [tool.bandit.assert_used]
 skips = ["*/test_*.py", "*/tests/*.py"]
 
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--showlocals",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "requires_gpu: marks tests that require GPU",
+    "requires_torch: marks tests that require PyTorch",
+    "requires_tensorflow: marks tests that require TensorFlow",
+    "requires_onnx: marks tests that require ONNX",
+]
+
+[tool.coverage.run]
+source = ["neural"]
+branch = true
+parallel = false
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+    ".venv/*",
+    ".venv312/*",
+    "neural/src/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.json]
+output = "coverage.json"
+pretty_print = true
+

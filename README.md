@@ -403,6 +403,13 @@ Run full test suite (may require optional deps such as torch/tensorflow/onnx):
 python -m pytest -q -rA
 ```
 
+Run tests with coverage and generate report:
+```powershell
+python generate_test_coverage_summary.py
+```
+
+This generates `TEST_COVERAGE_SUMMARY.md` with test statistics, coverage metrics, and recommendations. See [TESTING_QUICK_REFERENCE.md](TESTING_QUICK_REFERENCE.md) for more test commands.
+
 **Supply-chain audit**
 
 ```powershell
