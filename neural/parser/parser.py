@@ -749,8 +749,13 @@ class ModelTransformer(lark.Transformer):
             'RESIDUALCONNECTION': 'residual',
             'GLOBALAVERAGEPOOLING2D': 'global_average_pooling2d',
             'GLOBALAVERAGEPOOLING1D': 'global_average_pooling1d',
+<<<<<<< Updated upstream
             'MULTIHEADATTENTION': 'multiheadattention',
             'POSITIONALENCODING': 'positional_encoding',
+=======
+            'INCEPTION': 'inception',
+            'SQUEEZEEXCITATION': 'squeeze_excitation',
+>>>>>>> Stashed changes
         }
         self.hpo_params: List[Dict[str, Any]] = []
 
@@ -1029,6 +1034,7 @@ class ModelTransformer(lark.Transformer):
                 # Ensure 'sublayers' is present, but do not clobber existing values
                 if 'sublayers' not in layer_info:
                     layer_info['sublayers'] = sublayers or []
+
                 elif sublayers:
                     # If parsed sublayers exist for this layer instance, prefer them
                     layer_info['sublayers'] = sublayers
@@ -1063,8 +1069,12 @@ class ModelTransformer(lark.Transformer):
             self.raise_validation_error(f"Unsupported layer type: {layer_type}", layer_type_node)
             return {'type': layer_type, 'params': raw_params, 'sublayers': sublayers}
 
+<<<<<<< Updated upstream
 
     def branch_spec(self, items: List[Any]) -> Dict[str, Any]:
+=======
+    def branch_spec(self, items):
+>>>>>>> Stashed changes
         # NAME ':' '{' (layer_or_repeated)* '}'
         name_token = items[0]
         name = name_token.value if hasattr(name_token, 'value') else str(name_token)
@@ -2615,7 +2625,47 @@ class ModelTransformer(lark.Transformer):
         """
         return {"type": "LSTMDropoutWrapper", 'params': self._extract_value(items[0])}
 
+<<<<<<< Updated upstream
     def research(self, items: List[Any]) -> Dict[str, Any]:
+=======
+    def gru(self, items):
+        # Support both alias rule call (items[0] is Token) and basic_layer call
+        items = self._shift_if_token(items)
+        params = {}
+        if items and items[0] is not None:
+            param_node = items[0]  # From param_style1
+            param_values = self._extract_value(param_node)
+            if isinstance(param_values, list):
+                for val in param_values:
+                    if isinstance(val, dict):
+                        params.update(val)
+                    else:
+                        # Handle positional units parameter if present
+                        if 'units' not in params:
+                            params['units'] = val
+            elif isinstance(param_values, dict):
+                params = param_values
+            else:
+                # Single positional parameter, e.g., GRU(64)
+                params['units'] = param_values
+
+        if 'units' not in params:
+            self.raise_validation_error("GRU requires 'units' parameter", items[0])
+
+        units = params['units']
+        if isinstance(units, dict) and 'hpo' in units:
+            pass
+        else:
+            if not isinstance(units, (int, float)) or (isinstance(units, float) and not units.is_integer()):
+                self.raise_validation_error(f"GRU units must be an integer, got {units}", items[0])
+            if units <= 0:
+                self.raise_validation_error(f"GRU units must be positive, got {units}", items[0])
+            params['units'] = int(units)
+
+        return {'type': 'GRU', 'params': params, 'sublayers': []}
+
+    def research(self, items):
+>>>>>>> Stashed changes
         """
         Process a Research block.
 
@@ -3181,7 +3231,7 @@ class ModelTransformer(lark.Transformer):
         return {"input_dim": self._extract_value(items[0])}
 
     def named_output_dim(self, items):
-        return {"output_dim": self._extract_value(items[0])}
+        return {"output_dim": self._extract_value(items[1])}
 
     def groups_param(self, items):
         return {'groups': self._extract_value(items[0])}
@@ -3248,7 +3298,7 @@ class ModelTransformer(lark.Transformer):
         # Support both forms:
         # ResidualConnection(params) { ... } and ResidualConnection { ... }
         if not items:
-            return {'type': 'ResidualConnection', 'params': None, 'sublayers': []}
+            return {'type': 'ResidualConnection', 'params': {}, 'sublayers': []}
 
         first_val = self._extract_value(items[0]) if items[0] is not None else None
         params = {}
@@ -3273,8 +3323,8 @@ class ModelTransformer(lark.Transformer):
                 else:
                     sub_layers = []
 
-        # Normalize empty params to None for consistency with tests
-        final_params = params if params else None
+        # Normalize empty params to {} for consistency with tests
+        final_params = params if params else {}
         return {'type': 'ResidualConnection', 'params': final_params, 'sublayers': sub_layers}
 
     def inception(self, items):
@@ -3330,7 +3380,7 @@ class ModelTransformer(lark.Transformer):
 
     def squeeze_excitation(self, items):
         params = self._extract_value(items[0]) if items else {}
-        return {'type': 'SqueezeExcitation', 'params': params, 'sublayers': []}
+        return {'type': 'SqueezeExcitation', 'params': params if params else {}, 'sublayers': []}
 
     def quantum(self, items):
         params = self._extract_value(items[0]) if items else None
