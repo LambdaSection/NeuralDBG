@@ -578,6 +578,48 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         pass
     return p
 
+def validate_input_text(text: str) -> None:
+    """
+    Validate input text before parsing.
+    
+    Args:
+        text: Input text to validate
+        
+    Raises:
+        DSLValidationError: If input is invalid
+    """
+    if text is None:
+        raise DSLValidationError("Input cannot be None", Severity.ERROR)
+    
+    if not isinstance(text, str):
+        raise DSLValidationError(f"Input must be a string, got {type(text).__name__}", Severity.ERROR)
+    
+    if not text or not text.strip():
+        raise DSLValidationError("Input is empty or contains only whitespace", Severity.ERROR)
+    
+    if len(text) > 10 * 1024 * 1024:
+        raise DSLValidationError(f"Input too large: {len(text)} bytes (max 10MB)", Severity.ERROR)
+    
+    invalid_chars = []
+    for i, char in enumerate(text):
+        ord_val = ord(char)
+        if ord_val < 32 and char not in '\n\r\t':
+            invalid_chars.append((i, char, ord_val))
+        elif ord_val > 126 and ord_val < 128:
+            invalid_chars.append((i, char, ord_val))
+    
+    if invalid_chars:
+        first_invalid = invalid_chars[0]
+        line_no = text[:first_invalid[0]].count('\n') + 1
+        col_no = first_invalid[0] - text[:first_invalid[0]].rfind('\n')
+        raise DSLValidationError(
+            f"Invalid control character at line {line_no}, column {col_no}: "
+            f"0x{first_invalid[2]:02x} (found {len(invalid_chars)} invalid character(s) total)",
+            Severity.ERROR,
+            line=line_no,
+            column=col_no
+        )
+
 def safe_parse(parser: lark.Lark, text: str) -> Dict[str, Any]:
     """
     Safely parse text using the provided parser, handling common parsing errors.
@@ -606,6 +648,8 @@ def safe_parse(parser: lark.Lark, text: str) -> Dict[str, Any]:
         ...     print(f"Error: {e}")
     """
     warnings = []
+    
+    validate_input_text(text)
 
     # Tokenize the input and log the stream
     logger.debug("Token stream:")
@@ -824,6 +868,137 @@ class ModelTransformer(lark.Transformer):
                 f"Input dimensions must be positive, got {dimensions}",
                 severity=Severity.ERROR
             )
+    
+    def _validate_parameter_value(self, param_name: str, value: Any, item: Any = None) -> None:
+        """
+        Validate parameter values for reasonableness and detect nested structures.
+        
+        Args:
+            param_name: Name of the parameter
+            value: Value to validate
+            item: Parse tree node for error reporting
+            
+        Raises:
+            DSLValidationError: If parameter value is invalid or unreasonable
+        """
+        if value is None:
+            return
+        
+        if isinstance(value, (list, tuple)):
+            if len(value) > 100:
+                self.raise_validation_error(
+                    f"Parameter '{param_name}' has too many elements: {len(value)} (max 100)",
+                    item,
+                    severity=Severity.ERROR
+                )
+            
+            for i, elem in enumerate(value):
+                if isinstance(elem, (list, tuple)):
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' contains nested tuple/list at position {i}. "
+                        f"Nested structures are not supported",
+                        item,
+                        severity=Severity.ERROR
+                    )
+                
+                if isinstance(elem, (int, float)):
+                    if abs(elem) > 1e10:
+                        self.raise_validation_error(
+                            f"Parameter '{param_name}' element at position {i} is unreasonably large: {elem} (max magnitude 1e10)",
+                            item,
+                            severity=Severity.WARNING
+                        )
+        
+        if param_name in ['units', 'filters', 'num_heads', 'ff_dim', 'input_dim', 'output_dim']:
+            if isinstance(value, int):
+                if value <= 0:
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' must be positive, got {value}",
+                        item,
+                        severity=Severity.ERROR
+                    )
+                if value > 100000:
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' is unreasonably large: {value} (recommended max 100000)",
+                        item,
+                        severity=Severity.WARNING
+                    )
+        
+        elif param_name in ['rate', 'dropout', 'recurrent_dropout']:
+            if isinstance(value, (int, float)):
+                if value < 0 or value > 1:
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' must be between 0 and 1, got {value}",
+                        item,
+                        severity=Severity.ERROR
+                    )
+        
+        elif param_name in ['kernel_size', 'pool_size']:
+            if isinstance(value, (list, tuple)):
+                for i, dim in enumerate(value):
+                    if isinstance(dim, int) and (dim <= 0 or dim > 1000):
+                        self.raise_validation_error(
+                            f"Parameter '{param_name}' dimension at position {i} is invalid: {dim} (must be 1-1000)",
+                            item,
+                            severity=Severity.ERROR
+                        )
+            elif isinstance(value, int):
+                if value <= 0 or value > 1000:
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' is invalid: {value} (must be 1-1000)",
+                        item,
+                        severity=Severity.ERROR
+                    )
+        
+        elif param_name in ['strides', 'dilation_rate']:
+            if isinstance(value, (list, tuple)):
+                for i, dim in enumerate(value):
+                    if isinstance(dim, int) and (dim <= 0 or dim > 100):
+                        self.raise_validation_error(
+                            f"Parameter '{param_name}' dimension at position {i} is invalid: {dim} (must be 1-100)",
+                            item,
+                            severity=Severity.ERROR
+                        )
+            elif isinstance(value, int):
+                if value <= 0 or value > 100:
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' is invalid: {value} (must be 1-100)",
+                        item,
+                        severity=Severity.ERROR
+                    )
+        
+        elif param_name in ['epsilon']:
+            if isinstance(value, (int, float)):
+                if value <= 0 or value > 1:
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' must be between 0 and 1 (exclusive), got {value}",
+                        item,
+                        severity=Severity.ERROR
+                    )
+        
+        elif param_name in ['learning_rate', 'momentum', 'alpha']:
+            if isinstance(value, (int, float)):
+                if value <= 0 or value > 10:
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' is unreasonable: {value} (typical range 0.0001-10.0)",
+                        item,
+                        severity=Severity.WARNING
+                    )
+        
+        elif param_name in ['l1', 'l2', 'clipvalue', 'clipnorm']:
+            if isinstance(value, (int, float)):
+                if value < 0:
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' must be non-negative, got {value}",
+                        item,
+                        severity=Severity.ERROR
+                    )
+                if value > 1000:
+                    self.raise_validation_error(
+                        f"Parameter '{param_name}' is unreasonably large: {value}",
+                        item,
+                        severity=Severity.WARNING
+                    )
 
     def _validate_optimizer(self, optimizer_name: str, item: Any = None) -> None:
         """Validate optimizer is supported."""
@@ -836,6 +1011,92 @@ class ModelTransformer(lark.Transformer):
         valid_losses = ["mse", "cross_entropy", "binary_cross_entropy", "mae", "categorical_cross_entropy", "sparse_categorical_cross_entropy", "categorical_crossentropy"]
         if isinstance(loss_name, str) and loss_name.lower() not in valid_losses:
             self.raise_validation_error(f"Invalid loss function: {loss_name}", item)
+    
+    def _validate_layer_sequence(self, layers: List[Dict[str, Any]], item: Any = None) -> None:
+        """
+        Validate that layer sequences are compatible.
+        
+        Args:
+            layers: List of layer configurations
+            item: Parse tree node for error reporting
+            
+        Raises:
+            DSLValidationError: If layer sequence is invalid or incompatible
+        """
+        if not layers or len(layers) == 0:
+            return
+        
+        prev_layer = None
+        for i, layer in enumerate(layers):
+            if not isinstance(layer, dict) or 'type' not in layer:
+                continue
+            
+            layer_type = layer['type'].lower() if isinstance(layer['type'], str) else ''
+            
+            if prev_layer:
+                prev_type = prev_layer['type'].lower() if isinstance(prev_layer['type'], str) else ''
+                
+                if 'flatten' in layer_type and 'flatten' in prev_type:
+                    self.raise_validation_error(
+                        f"Layer {i}: Consecutive Flatten layers detected. Remove duplicate Flatten layer.",
+                        item,
+                        severity=Severity.WARNING
+                    )
+                
+                if 'conv' in layer_type and any(x in prev_type for x in ['dense', 'lstm', 'gru', 'simplernn']):
+                    self.raise_validation_error(
+                        f"Layer {i}: Convolutional layer after fully-connected/RNN layer without Reshape. "
+                        f"Consider adding a Reshape layer.",
+                        item,
+                        severity=Severity.WARNING
+                    )
+                
+                if any(x in layer_type for x in ['lstm', 'gru', 'simplernn']) and 'flatten' in prev_type:
+                    self.raise_validation_error(
+                        f"Layer {i}: RNN layer after Flatten is unusual. RNN layers expect 3D input (batch, timesteps, features).",
+                        item,
+                        severity=Severity.WARNING
+                    )
+                
+                if 'pool' in layer_type and 'flatten' in prev_type:
+                    self.raise_validation_error(
+                        f"Layer {i}: Pooling layer after Flatten is invalid. Pooling requires multi-dimensional input.",
+                        item,
+                        severity=Severity.ERROR
+                    )
+                
+                if 'conv' in layer_type and 'flatten' in prev_type:
+                    self.raise_validation_error(
+                        f"Layer {i}: Convolutional layer after Flatten is invalid. Conv layers require multi-dimensional input.",
+                        item,
+                        severity=Severity.ERROR
+                    )
+            
+            if 'conv2d' in layer_type or 'maxpooling2d' in layer_type or 'averagepooling2d' in layer_type:
+                if i == 0:
+                    pass
+                elif prev_layer and isinstance(prev_layer.get('params'), dict):
+                    prev_params = prev_layer['params']
+                    if 'data_format' in prev_params and layer.get('params', {}).get('data_format'):
+                        if prev_params['data_format'] != layer['params']['data_format']:
+                            self.raise_validation_error(
+                                f"Layer {i}: Mismatched data_format between consecutive layers. "
+                                f"Previous: {prev_params['data_format']}, Current: {layer['params']['data_format']}",
+                                item,
+                                severity=Severity.ERROR
+                            )
+            
+            prev_layer = layer
+        
+        last_layer = layers[-1] if layers else None
+        if last_layer and isinstance(last_layer, dict):
+            last_type = last_layer['type'].lower() if isinstance(last_layer['type'], str) else ''
+            if any(x in last_type for x in ['dropout', 'flatten', 'batchnormalization', 'layernormalization']):
+                self.raise_validation_error(
+                    f"Last layer is {last_layer['type']}, which is unusual. Consider adding an Output or Dense layer.",
+                    item,
+                    severity=Severity.WARNING
+                )
 
     def _extract_layer_def(self, layer_item: Any) -> Optional[LayerConfig]:
         if layer_item is None:
@@ -1280,6 +1541,15 @@ class ModelTransformer(lark.Transformer):
                 shape = shape[0]
             result[name] = shape
             i += 2
+        
+        if len(result) > 10:
+            self.raise_validation_error(
+                f"Too many named inputs: {len(result)} (max 10 supported). "
+                f"Consider using a single input with concatenation.",
+                name_token if items else None,
+                severity=Severity.WARNING
+            )
+        
         return result
 
     def flatten(self, items: List[Any]) -> LayerConfig:
@@ -1859,7 +2129,13 @@ class ModelTransformer(lark.Transformer):
         return {'validation_split': self._extract_value(items[0])}
 
     def epochs_param(self, items: List[Any]) -> Dict[str, int]:
-        return {'epochs': self._extract_value(items[0])}
+        value = self._extract_value(items[0])
+        if isinstance(value, int):
+            if value <= 0:
+                self.raise_validation_error(f"epochs must be positive, got {value}", items[0])
+            if value > 100000:
+                self.raise_validation_error(f"epochs is unreasonably large: {value} (recommended max 100000)", items[0], Severity.WARNING)
+        return {'epochs': value}
 
     def batch_size_param(self, items: List[Any]) -> Dict[str, Any]:
         value = self._extract_value(items[0])
@@ -1883,6 +2159,8 @@ class ModelTransformer(lark.Transformer):
         elif isinstance(value, (int, float)):
             if value <= 0:
                 self.raise_validation_error(f"batch_size must be positive, got {value}", items[0])
+            if value > 10000:
+                self.raise_validation_error(f"batch_size is unreasonably large: {value} (recommended max 10000)", items[0], Severity.WARNING)
             return {'batch_size': int(value)}  # Ensure integer
         else:
             self.raise_validation_error(f"Invalid batch_size value: {value}", items[0])
@@ -1987,8 +2265,10 @@ class ModelTransformer(lark.Transformer):
         elif isinstance(value, dict) and 'hpo' in value:
             # Track HPO for learning_rate
             self._track_hpo('optimizer', 'learning_rate', value, items[0])
-        elif isinstance(value, (int, float)) and value <= 0:
-            self.raise_validation_error(f"learning_rate must be positive, got {value}", items[0])
+        elif isinstance(value, (int, float)):
+            self._validate_parameter_value("learning_rate", value, items[0])
+            if value <= 0:
+                self.raise_validation_error(f"learning_rate must be positive, got {value}", items[0])
         # Handle string-based learning rate schedule for backward compatibility
         elif isinstance(value, str):
             # Special handling for ExponentialDecay
@@ -2105,6 +2385,7 @@ class ModelTransformer(lark.Transformer):
 
     def pool_size(self, items: List[Any]) -> Dict[str, Any]:
         value = self._extract_value(items[0])
+        self._validate_parameter_value("pool_size", value, items[0])
         return {'pool_size': value}
 
     def maxpooling1d(self, items: List[Any]) -> LayerConfig:
@@ -3099,6 +3380,10 @@ class ModelTransformer(lark.Transformer):
 
         if execution_config:
             network_config['execution_config'] = execution_config
+        
+        # Validate layer sequence compatibility
+        if isinstance(layers, list):
+            self._validate_layer_sequence(layers, items[0])
 
         # Validate layer compatibility using ShapePropagator
         try:
@@ -3269,13 +3554,22 @@ class ModelTransformer(lark.Transformer):
 
 
     def named_param(self, items: List[Any]) -> Dict[str, Any]:
-        return {items[0].value: self._extract_value(items[1])}
+        param_name = items[0].value
+        param_value = self._extract_value(items[1])
+        self._validate_parameter_value(param_name, param_value, items[0])
+        return {param_name: param_value}
 
     def named_float(self, items: List[Any]) -> Dict[str, float]:
-        return {items[0].value: self._extract_value(items[1])}
+        param_name = items[0].value
+        param_value = self._extract_value(items[1])
+        self._validate_parameter_value(param_name, param_value, items[0])
+        return {param_name: param_value}
 
     def named_int(self, items: List[Any]) -> Dict[str, int]:
-        return {items[0].value: self._extract_value(items[1])}
+        param_name = items[0].value
+        param_value = self._extract_value(items[1])
+        self._validate_parameter_value(param_name, param_value, items[0])
+        return {param_name: param_value}
 
     def named_string(self, items: List[Any]) -> Dict[str, str]:
         return {items[0].value: self._extract_value(items[1])}
@@ -3315,13 +3609,19 @@ class ModelTransformer(lark.Transformer):
         return self._extract_value(items[0])
 
     def named_kernel_size(self, items: List[Any]) -> Dict[str, Any]:
-        return {"kernel_size": self._extract_value(items[0])}
+        value = self._extract_value(items[0])
+        self._validate_parameter_value("kernel_size", value, items[0])
+        return {"kernel_size": value}
 
     def named_filters(self, items: List[Any]) -> Dict[str, Any]:
-        return {"filters": self._extract_value(items[0])}
+        value = self._extract_value(items[0])
+        self._validate_parameter_value("filters", value, items[0])
+        return {"filters": value}
 
     def named_units(self, items: List[Any]) -> Dict[str, Any]:
-        return {"units": self._extract_value(items[0])}
+        value = self._extract_value(items[0])
+        self._validate_parameter_value("units", value, items[0])
+        return {"units": value}
 
     def activation_param(self, items: List[Any]) -> Dict[str, Any]:
         return {"activation": self._extract_value(items[0])}
@@ -3330,16 +3630,22 @@ class ModelTransformer(lark.Transformer):
         return {"activation": self._extract_value(items[0])}
 
     def named_strides(self, items: List[Any]) -> Dict[str, Any]:
-        return {"strides": self._extract_value(items[0])}
+        value = self._extract_value(items[0])
+        self._validate_parameter_value("strides", value, items[0])
+        return {"strides": value}
 
     def named_padding(self, items: List[Any]) -> Dict[str, Any]:
         return {"padding": self._extract_value(items[0])}
 
     def named_rate(self, items: List[Any]) -> Dict[str, Any]:
-        return {"rate": self._extract_value(items[0])}
+        value = self._extract_value(items[0])
+        self._validate_parameter_value("rate", value, items[0])
+        return {"rate": value}
 
     def named_dilation_rate(self, items: List[Any]) -> Dict[str, Any]:
-        return {"dilation_rate": self._extract_value(items[0])}
+        value = self._extract_value(items[0])
+        self._validate_parameter_value("dilation_rate", value, items[0])
+        return {"dilation_rate": value}
 
     def named_groups(self, items: List[Any]) -> Dict[str, Any]:
         return {"groups": self._extract_value(items[0])}
