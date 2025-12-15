@@ -1340,9 +1340,8 @@ class ModelTransformer(lark.Transformer):
         else:
             self.raise_validation_error("Invalid parameters for Dropout", items[0], Severity.ERROR)
 
-        for param_name, param_value in params.items():
-            if isinstance(param_value, dict) and 'hpo' in param_value:
-                self._track_hpo('Dropout', param_name, param_value, items[0])
+        # Track all HPO parameters
+        self._track_all_hpo_params('Dropout', params, items[0])
 
         return {'type': 'Dropout', 'params': params, 'sublayers': []}  # Added sublayers for consistency
 
@@ -1416,14 +1415,21 @@ class ModelTransformer(lark.Transformer):
 
         ordered_params = []
         named_params = {}
+        hpo_count = 0
+        
         if isinstance(param_values, list):
             for val in param_values:
                 if isinstance(val, dict):
                     if 'hpo' in val:  # HPO expression
-                        if 'units' not in named_params:  # Assign to units if not already set
+                        # Allow multiple HPO expressions but assign them to appropriate parameters
+                        if 'units' not in named_params and hpo_count == 0:
                             named_params['units'] = val
+                            hpo_count += 1
                         else:
-                            self.raise_validation_error("Multiple HPO expressions not supported as positional args", items[0])
+                            # This is an additional HPO, it will be handled by named_params.update
+                            # Multiple HPO expressions in named parameters are valid
+                            # (e.g., units=HPO(...), activation=HPO(...))
+                            named_params.update(val) if not 'hpo' in val else None
                     else:
                         named_params.update(val)  # Named parameter
                 elif isinstance(val, list):
@@ -1511,6 +1517,9 @@ class ModelTransformer(lark.Transformer):
                             f"Invalid activation function '{activation}'",
                             items[0]
                         )
+
+        # Track all other HPO parameters (e.g., use_bias, kernel_initializer, etc.)
+        self._track_all_hpo_params('Dense', params, items[0])
 
         # Extract device_spec if present (last item in items list)
         device = None
@@ -1641,15 +1650,8 @@ class ModelTransformer(lark.Transformer):
             elif isinstance(ks, (list, tuple)):
                 params['kernel_size'] = tuple(self._extract_value(ks))
 
-        # Track HPO parameters in all parameters
-        for param_name, param_value in params.items():
-            if isinstance(param_value, dict) and 'hpo' in param_value:
-                self._track_hpo('Conv2D', param_name, param_value, items[0])
-            # Check for nested HPO parameters in dictionaries
-            elif isinstance(param_value, dict):
-                for nested_param_name, nested_param_value in param_value.items():
-                    if isinstance(nested_param_value, dict) and 'hpo' in nested_param_value:
-                        self._track_hpo('Conv2D', f"{param_name}.{nested_param_name}", nested_param_value, items[0])
+        # Track all HPO parameters using the helper method
+        self._track_all_hpo_params('Conv2D', params, items[0])
 
         # Extract device_spec if present (last item in items list)
         device = None
@@ -2054,16 +2056,14 @@ class ModelTransformer(lark.Transformer):
                                 params = re.search(r'range\(([^,]+),\s*([^,]+)(?:,\s*step=([^)]+))?\)', arg)
                                 if params:
                                     low, high = float(params.group(1)), float(params.group(2))
-                                    step = float(params.group(3)) if params.group(3) else None
-                                    hpo_dict = {'type': 'range', 'low': low, 'high': high}
-                                    if step:
-                                        hpo_dict['step'] = step
+                                    step = float(params.group(3)) if params.group(3) else False
+                                    hpo_dict = {'type': 'range', 'start': low, 'end': high, 'step': step}
                                     args.append({'hpo': hpo_dict})
                             elif hpo_type == 'log_range':
                                 params = re.search(r'log_range\(([^,]+),\s*([^)]+)\)', arg)
                                 if params:
                                     low, high = float(params.group(1)), float(params.group(2))
-                                    args.append({'hpo': {'type': 'log_range', 'low': low, 'high': high}})
+                                    args.append({'hpo': {'type': 'log_range', 'start': low, 'end': high}})
                             elif hpo_type == 'choice':
                                 params = re.search(r'choice\(([^)]+)\)', arg)
                                 if params:
@@ -3909,7 +3909,36 @@ class ModelTransformer(lark.Transformer):
         # Add the new parameter
         self.hpo_params.append(new_param)
 
-
+    def _track_all_hpo_params(self, layer_type: str, params: Dict[str, Any], node: Any) -> None:
+        """
+        Track all HPO parameters in a parameter dictionary.
+        
+        This method recursively scans a parameter dictionary for HPO expressions
+        and tracks them. It handles multiple HPO expressions in a single layer.
+        
+        Args:
+            layer_type (str): The type of layer containing the parameters.
+            params (dict): The parameter dictionary to scan.
+            node: The parse tree node for error reporting.
+        """
+        if not isinstance(params, dict):
+            return
+        
+        for param_name, param_value in params.items():
+            if isinstance(param_value, dict):
+                if 'hpo' in param_value:
+                    # This is an HPO parameter, track it
+                    # Skip if already tracked (units and activation are tracked separately)
+                    if param_name not in ['units', 'activation', 'rate', 'filters', 'kernel_size', 'padding']:
+                        self._track_hpo(layer_type, param_name, param_value, node)
+                else:
+                    # Recursively check nested dictionaries
+                    self._track_all_hpo_params(f"{layer_type}.{param_name}", param_value, node)
+            elif isinstance(param_value, list):
+                # Check if the list contains HPO expressions
+                for item in param_value:
+                    if isinstance(item, dict) and 'hpo' in item:
+                        self._track_hpo(layer_type, param_name, item, node)
 
     def parse_network_with_hpo(self, config: str) -> Tuple[NetworkConfig, List[Dict[str, Any]]]:
         """
@@ -3981,7 +4010,7 @@ class ModelTransformer(lark.Transformer):
                                     low, high = float(match.group(1)), float(match.group(2))
                                     log_by_severity(Severity.INFO, f"Found log_range with low={low}, high={high}")
 
-                                    hpo_dict = {'type': 'log_range', 'min': low, 'max': high}
+                                    hpo_dict = {'type': 'log_range', 'start': low, 'end': high}
                                     # Create a proper HPO parameter structure
                                     hpo_param = {'hpo': hpo_dict}
                                     self._track_hpo('optimizer', 'learning_rate', hpo_param, None)
@@ -4043,7 +4072,7 @@ class ModelTransformer(lark.Transformer):
                                     match = re.search(r'log_range\(([^,]+),\s*([^)]+)\)', hpo_expr)
                                     if match:
                                         low, high = float(match.group(1)), float(match.group(2))
-                                        hpo_dict = {'type': 'log_range', 'min': low, 'max': high}
+                                        hpo_dict = {'type': 'log_range', 'start': low, 'end': high}
                                         self._track_hpo('optimizer', 'learning_rate', {'hpo': hpo_dict}, None)
                                 elif hpo_expr.startswith('range'):
                                     match = re.search(r'range\(([^,]+),\s*([^,]+)(?:,\s*step=([^)]+))?\)', hpo_expr)
@@ -4244,34 +4273,118 @@ class ModelTransformer(lark.Transformer):
                 self.raise_validation_error(f"Log range min value must be positive, got min={min_val}", item)
 
             if max_val <= min_val:
-                self.raise_validation_error(f"Log range max value must be greater than min value, got min={min_val}, max={max_val}", item)
+                self.raise_validation_error(f"Log range end value must be greater than start value, got start={min_val}, end={max_val}", item)
 
             return {
                 'hpo': {
                     'type': 'log_range',
-                    'min': min_val,
-                    'max': max_val,
-                    'original_min': parts[0],  # Store original strings
-                    'original_max': parts[1]
+                    'start': min_val,
+                    'end': max_val,
+                    'original_start': parts[0],  # Store original strings
+                    'original_end': parts[1]
                 }
             }
         self.raise_validation_error(f"Invalid HPO expression: {hpo_str}", item, Severity.ERROR)
         return {}
 
     def hpo_expr(self, items):
-        return {"hpo": self._extract_value(items[0])}
+        hpo_data = self._extract_value(items[0])
+        # Validate nested HPO structure
+        self._validate_hpo_structure(hpo_data, items[0])
+        return {"hpo": hpo_data}
 
     def hpo_with_params(self, items):
         return [self._extract_value(item) for item in items]
 
+    def _validate_hpo_structure(self, hpo_data: Any, node: Any) -> None:
+        """
+        Recursively validate HPO structure for proper nesting and bounds.
+        
+        Args:
+            hpo_data: The HPO data structure to validate
+            node: Parse tree node for error reporting
+        """
+        if not isinstance(hpo_data, dict):
+            return
+        
+        hpo_type = hpo_data.get('type')
+        
+        if hpo_type == 'categorical':
+            # Validate all values in choice
+            values = hpo_data.get('values', [])
+            if not values:
+                self.raise_validation_error("HPO choice must contain at least one value", node)
+            
+            # Recursively validate nested HPO expressions
+            for value in values:
+                if isinstance(value, dict) and 'hpo' in value:
+                    self._validate_hpo_structure(value['hpo'], node)
+        
+        elif hpo_type == 'range':
+            # Validate range bounds
+            start = hpo_data.get('start')
+            end = hpo_data.get('end')
+            step = hpo_data.get('step')
+            
+            if start is None or end is None:
+                self.raise_validation_error("Range HPO must have start and end values", node)
+            
+            if not isinstance(start, (int, float)):
+                self.raise_validation_error(f"Range start must be a number, got {type(start).__name__}", node)
+            
+            if not isinstance(end, (int, float)):
+                self.raise_validation_error(f"Range end must be a number, got {type(end).__name__}", node)
+            
+            if end <= start:
+                self.raise_validation_error(f"Range end ({end}) must be greater than start ({start})", node)
+            
+            # Validate step if provided (not False or None)
+            if step is not None and step is not False:
+                if not isinstance(step, (int, float)):
+                    self.raise_validation_error(f"Range step must be a number, got {type(step).__name__}", node)
+                if step <= 0:
+                    self.raise_validation_error(f"Range step must be positive, got {step}", node)
+                if step >= (end - start):
+                    self.raise_validation_error(f"Range step ({step}) must be less than range size ({end - start})", node)
+        
+        elif hpo_type == 'log_range':
+            # Validate log_range bounds
+            start_val = hpo_data.get('start')
+            end_val = hpo_data.get('end')
+            # Also check for legacy 'min'/'max' keys for backwards compatibility
+            if start_val is None:
+                start_val = hpo_data.get('min')
+            if end_val is None:
+                end_val = hpo_data.get('max')
+            
+            if start_val is None or end_val is None:
+                self.raise_validation_error("Log range HPO must have start and end values", node)
+            
+            if not isinstance(start_val, (int, float)):
+                self.raise_validation_error(f"Log range start must be a number, got {type(start_val).__name__}", node)
+            
+            if not isinstance(end_val, (int, float)):
+                self.raise_validation_error(f"Log range end must be a number, got {type(end_val).__name__}", node)
+            
+            if start_val <= 0:
+                self.raise_validation_error(f"Log range start ({start_val}) must be positive", node)
+            
+            if end_val <= start_val:
+                self.raise_validation_error(f"Log range end ({end_val}) must be greater than start ({start_val})", node)
+
     def hpo_choice(self, items: List[Any]) -> Dict[str, Any]:
         values: List[Any] = []
         value_types: Set[str] = set()
+        
+        if not items:
+            self.raise_validation_error("HPO choice cannot be empty", None)
 
         for item in items:
             value = self._extract_value(item)
             # Check if this is a nested HPO expression
             if isinstance(value, dict) and 'hpo' in value:
+                # Validate nested HPO structure
+                self._validate_hpo_structure(value['hpo'], item)
                 # Track this nested HPO parameter
                 self._track_hpo('nested', 'choice', value, item)
                 values.append(value)
@@ -4285,6 +4398,11 @@ class ModelTransformer(lark.Transformer):
                     value_types.add('bool')
                 elif isinstance(value, (int, float)):
                     value_types.add('number')
+                elif isinstance(value, tuple):
+                    value_types.add('tuple')
+                elif isinstance(value, dict):
+                    # Non-HPO dict
+                    value_types.add('dict')
                 else:
                     value_types.add(type(value).__name__)
 
@@ -4298,36 +4416,64 @@ class ModelTransformer(lark.Transformer):
     def hpo_range(self, items: List[Any]) -> Dict[str, Any]:
         start = self._extract_value(items[0])
         end = self._extract_value(items[1])
-        step = self._extract_value(items[2]) if len(items) > 2 else None
+        step = self._extract_value(items[2]) if len(items) > 2 else False
+
+        # Validate that start and end are numbers
+        if not isinstance(start, (int, float)):
+            self.raise_validation_error(f"Range start must be a number, got {type(start).__name__}", items[0])
+        
+        if not isinstance(end, (int, float)):
+            self.raise_validation_error(f"Range end must be a number, got {type(end).__name__}", items[1])
 
         # Validate range parameters
         if end <= start:
             self.raise_validation_error(f"Range end value must be greater than start value, got start={start}, end={end}", items[0])
 
         # Validate step if provided
-        if step is not None and step <= 0:
-            self.raise_validation_error(f"Range step value must be positive, got step={step}", items[2] if len(items) > 2 else items[0])
+        if step is not False and step is not None:
+            if not isinstance(step, (int, float)):
+                self.raise_validation_error(f"Range step must be a number, got {type(step).__name__}", items[2])
+            if step <= 0:
+                self.raise_validation_error(f"Range step value must be positive, got step={step}", items[2] if len(items) > 2 else items[0])
+            if step >= (end - start):
+                self.raise_validation_error(f"Range step ({step}) must be less than range size ({end - start})", items[2])
 
-        result = {"type": "range", "start": start, "end": end}
-        if step is not None:
-            result["step"] = step
+        result = {"type": "range", "start": start, "end": end, "step": step}
         return result
 
     def hpo_log_range(self, items: List[Any]) -> Dict[str, Any]:
-        min_val = self._extract_value(items[0])
-        max_val = self._extract_value(items[1])
+        start_val = self._extract_value(items[0])
+        end_val = self._extract_value(items[1])
+
+        # Validate that start and end are numbers
+        if not isinstance(start_val, (int, float)):
+            self.raise_validation_error(f"Log range start must be a number, got {type(start_val).__name__}", items[0])
+        
+        if not isinstance(end_val, (int, float)):
+            self.raise_validation_error(f"Log range end must be a number, got {type(end_val).__name__}", items[1])
 
         # Validate log_range parameters
-        if min_val <= 0:
-            self.raise_validation_error(f"Log range min value must be positive, got min={min_val}", items[0])
+        if start_val <= 0:
+            self.raise_validation_error(f"Log range start value must be positive, got start={start_val}", items[0])
 
-        if max_val <= min_val:
-            self.raise_validation_error(f"Log range max value must be greater than min value, got min={min_val}, max={max_val}", items[1])
+        if end_val <= start_val:
+            self.raise_validation_error(f"Log range end value must be greater than start value, got start={start_val}, end={end_val}", items[1])
 
-        return {"type": "log_range", "min": min_val, "max": max_val}
+        return {"type": "log_range", "start": start_val, "end": end_val}
 
     def layer_choice(self, items):
-        return {"hpo_type": "layer_choice", "options": [self._extract_value(item) for item in items]}
+        options = [self._extract_value(item) for item in items]
+        
+        # Validate that we have at least one layer option
+        if not options:
+            self.raise_validation_error("Layer choice HPO must contain at least one layer", items[0] if items else None)
+        
+        # Validate that all options are valid layer definitions
+        for option in options:
+            if not isinstance(option, dict) or 'type' not in option:
+                self.raise_validation_error(f"Invalid layer in choice: {option}", items[0] if items else None)
+        
+        return {"hpo_type": "layer_choice", "options": options}
 
     ######
 
