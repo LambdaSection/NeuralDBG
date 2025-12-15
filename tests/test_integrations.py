@@ -1,23 +1,12 @@
 """
-Basic tests for Neural DSL platform integrations.
+Tests for Neural DSL platform integrations base classes.
 
 These tests verify the structure and basic functionality of the integrations module.
 """
 
 import pytest
 
-from neural.integrations import (
-    AzureMLConnector,
-    BaseConnector,
-    DatabricksConnector,
-    JobStatus,
-    PaperspaceConnector,
-    PlatformManager,
-    ResourceConfig,
-    RunAIConnector,
-    SageMakerConnector,
-    VertexAIConnector,
-)
+from neural.integrations import BaseConnector, JobResult, JobStatus, ResourceConfig
 
 
 class TestResourceConfig:
@@ -42,6 +31,15 @@ class TestResourceConfig:
         assert config.gpu_enabled is True
         assert config.gpu_count == 4
         assert config.memory_gb == 64
+    
+    def test_custom_params(self):
+        """Test custom parameters."""
+        config = ResourceConfig(
+            instance_type='custom',
+            custom_params={'priority': 'high', 'zone': 'us-east-1a'}
+        )
+        assert config.custom_params['priority'] == 'high'
+        assert config.custom_params['zone'] == 'us-east-1a'
 
 
 class TestJobStatus:
@@ -57,6 +55,37 @@ class TestJobStatus:
         assert JobStatus.UNKNOWN.value == 'unknown'
 
 
+class TestJobResult:
+    """Test JobResult dataclass."""
+    
+    def test_basic_result(self):
+        """Test basic job result."""
+        result = JobResult(
+            job_id='test-123',
+            status=JobStatus.SUCCEEDED
+        )
+        assert result.job_id == 'test-123'
+        assert result.status == JobStatus.SUCCEEDED
+        assert result.output is None
+        assert result.error is None
+    
+    def test_full_result(self):
+        """Test full job result with all fields."""
+        result = JobResult(
+            job_id='test-456',
+            status=JobStatus.SUCCEEDED,
+            output='Model trained successfully',
+            metrics={'accuracy': 0.95, 'loss': 0.12},
+            artifacts=['model.h5', 'metrics.json'],
+            logs_url='https://logs.example.com/test-456',
+            duration_seconds=120.5
+        )
+        assert result.job_id == 'test-456'
+        assert result.metrics['accuracy'] == 0.95
+        assert len(result.artifacts) == 2
+        assert result.duration_seconds == 120.5
+
+
 class TestBaseConnector:
     """Test BaseConnector abstract class."""
     
@@ -64,125 +93,106 @@ class TestBaseConnector:
         """Test that BaseConnector cannot be instantiated."""
         with pytest.raises(TypeError):
             BaseConnector()
-
-
-class TestConnectorInitialization:
-    """Test connector initialization."""
     
-    def test_databricks_init(self):
-        """Test Databricks connector initialization."""
-        connector = DatabricksConnector(credentials={
-            'host': 'https://test.databricks.com',
-            'token': 'test-token'
-        })
-        assert connector.host == 'https://test.databricks.com'
-        assert connector.token == 'test-token'
-        assert not connector.authenticated
-    
-    def test_sagemaker_init(self):
-        """Test SageMaker connector initialization."""
-        connector = SageMakerConnector(credentials={
-            'region': 'us-west-2'
-        })
-        assert connector.region == 'us-west-2'
-        assert not connector.authenticated
-    
-    def test_vertex_ai_init(self):
-        """Test Vertex AI connector initialization."""
-        connector = VertexAIConnector(credentials={
-            'project_id': 'test-project',
-            'location': 'us-central1'
-        })
-        assert connector.project_id == 'test-project'
-        assert connector.location == 'us-central1'
-        assert not connector.authenticated
-    
-    def test_azure_ml_init(self):
-        """Test Azure ML connector initialization."""
-        connector = AzureMLConnector(credentials={
-            'subscription_id': 'test-sub',
-            'resource_group': 'test-rg',
-            'workspace_name': 'test-ws'
-        })
-        assert connector.subscription_id == 'test-sub'
-        assert connector.resource_group == 'test-rg'
-        assert connector.workspace_name == 'test-ws'
-        assert not connector.authenticated
-    
-    def test_paperspace_init(self):
-        """Test Paperspace connector initialization."""
-        connector = PaperspaceConnector(credentials={
-            'api_key': 'test-key'
-        })
-        assert connector.api_key == 'test-key'
-        assert not connector.authenticated
-    
-    def test_runai_init(self):
-        """Test Run:AI connector initialization."""
-        connector = RunAIConnector(credentials={
-            'project': 'test-project'
-        })
-        assert connector.project == 'test-project'
-        assert not connector.authenticated
-
-
-class TestPlatformManager:
-    """Test PlatformManager."""
-    
-    def test_manager_init(self):
-        """Test manager initialization."""
-        manager = PlatformManager()
-        assert manager._active_platform is None
-        assert len(manager._connectors) == 0
-    
-    def test_list_platforms(self):
-        """Test listing available platforms."""
-        manager = PlatformManager()
-        platforms = manager.list_platforms()
+    def test_concrete_implementation(self):
+        """Test a concrete implementation of BaseConnector."""
         
-        assert 'databricks' in platforms
-        assert 'sagemaker' in platforms
-        assert 'vertex_ai' in platforms
-        assert 'azure_ml' in platforms
-        assert 'paperspace' in platforms
-        assert 'runai' in platforms
+        class TestConnector(BaseConnector):
+            def authenticate(self):
+                return True
+            
+            def submit_job(self, code, resource_config=None, environment=None,
+                          dependencies=None, job_name=None):
+                return 'job-123'
+            
+            def get_job_status(self, job_id):
+                return JobStatus.RUNNING
+            
+            def get_job_result(self, job_id):
+                return JobResult(job_id=job_id, status=JobStatus.SUCCEEDED)
+            
+            def cancel_job(self, job_id):
+                return True
+            
+            def list_jobs(self, limit=10, status_filter=None):
+                return []
+            
+            def get_logs(self, job_id):
+                return 'logs...'
+        
+        connector = TestConnector(credentials={'key': 'value'})
+        assert connector.credentials == {'key': 'value'}
+        assert connector.authenticated is False
+        
+        assert connector.authenticate() is True
+        assert connector.submit_job('code') == 'job-123'
+        assert connector.get_job_status('job-123') == JobStatus.RUNNING
+        assert connector.cancel_job('job-123') is True
+        assert connector.list_jobs() == []
+        assert connector.get_logs('job-123') == 'logs...'
     
-    def test_platform_info(self):
-        """Test getting platform information."""
-        manager = PlatformManager()
-        info = manager.get_platform_info('databricks')
+    def test_validate_credentials(self):
+        """Test credential validation."""
         
-        assert info['name'] == 'databricks'
-        assert info['configured'] is False
-        assert info['active'] is False
-        assert 'description' in info
+        class TestConnector(BaseConnector):
+            def authenticate(self):
+                return True
+            def submit_job(self, code, resource_config=None, environment=None,
+                          dependencies=None, job_name=None):
+                return 'job-123'
+            def get_job_status(self, job_id):
+                return JobStatus.RUNNING
+            def get_job_result(self, job_id):
+                return JobResult(job_id=job_id, status=JobStatus.SUCCEEDED)
+            def cancel_job(self, job_id):
+                return True
+            def list_jobs(self, limit=10, status_filter=None):
+                return []
+            def get_logs(self, job_id):
+                return 'logs...'
+        
+        connector_with_creds = TestConnector(credentials={'key': 'value'})
+        assert connector_with_creds.validate_credentials() is True
+        
+        connector_without_creds = TestConnector(credentials={})
+        assert connector_without_creds.validate_credentials() is False
     
-    def test_get_all_platform_info(self):
-        """Test getting all platform information."""
-        manager = PlatformManager()
-        all_info = manager.get_all_platform_info()
+    def test_optional_methods_not_implemented(self):
+        """Test that optional methods raise NotImplementedError."""
         
-        assert len(all_info) == 6
-        assert all(isinstance(info, dict) for info in all_info)
-        assert all('name' in info for info in all_info)
-    
-    def test_invalid_platform(self):
-        """Test handling of invalid platform."""
-        from neural.exceptions import InvalidParameterError
+        class TestConnector(BaseConnector):
+            def authenticate(self):
+                return True
+            def submit_job(self, code, resource_config=None, environment=None,
+                          dependencies=None, job_name=None):
+                return 'job-123'
+            def get_job_status(self, job_id):
+                return JobStatus.RUNNING
+            def get_job_result(self, job_id):
+                return JobResult(job_id=job_id, status=JobStatus.SUCCEEDED)
+            def cancel_job(self, job_id):
+                return True
+            def list_jobs(self, limit=10, status_filter=None):
+                return []
+            def get_logs(self, job_id):
+                return 'logs...'
         
-        manager = PlatformManager()
+        connector = TestConnector()
         
-        with pytest.raises(InvalidParameterError):
-            manager.configure_platform('invalid_platform')
-    
-    def test_get_connector_without_config(self):
-        """Test getting connector without configuration."""
-        from neural.exceptions import CloudException
+        with pytest.raises(NotImplementedError):
+            connector.upload_file('local', 'remote')
         
-        manager = PlatformManager()
+        with pytest.raises(NotImplementedError):
+            connector.download_file('remote', 'local')
         
-        with pytest.raises(CloudException):
-            manager._get_connector('databricks')
+        with pytest.raises(NotImplementedError):
+            connector.deploy_model('model', 'endpoint')
+        
+        with pytest.raises(NotImplementedError):
+            connector.delete_endpoint('endpoint')
+        
+        with pytest.raises(NotImplementedError):
+            connector.get_resource_usage()
 
 
 class TestIntegrationImports:
@@ -196,35 +206,24 @@ class TestIntegrationImports:
         assert JobStatus is not None
         assert JobResult is not None
     
-    def test_import_connectors(self):
-        """Test importing all connectors."""
-        from neural.integrations.databricks import DatabricksConnector
-        from neural.integrations.sagemaker import SageMakerConnector
-        from neural.integrations.vertex_ai import VertexAIConnector
-        from neural.integrations.azure_ml import AzureMLConnector
-        from neural.integrations.paperspace import PaperspaceConnector
-        from neural.integrations.runai import RunAIConnector
-        
-        assert DatabricksConnector is not None
-        assert SageMakerConnector is not None
-        assert VertexAIConnector is not None
-        assert AzureMLConnector is not None
-        assert PaperspaceConnector is not None
-        assert RunAIConnector is not None
-    
-    def test_import_manager(self):
-        """Test importing manager."""
-        from neural.integrations.manager import PlatformManager
-        assert PlatformManager is not None
+    def test_import_from_package(self):
+        """Test importing from package."""
+        from neural.integrations import BaseConnector, JobResult, JobStatus, ResourceConfig
+        assert BaseConnector is not None
+        assert ResourceConfig is not None
+        assert JobStatus is not None
+        assert JobResult is not None
     
     def test_import_utils(self):
         """Test importing utilities."""
         from neural.integrations.utils import (
             format_job_output,
-            get_environment_credentials,
+            load_credentials_from_file,
+            save_credentials_to_file,
         )
         assert format_job_output is not None
-        assert get_environment_credentials is not None
+        assert load_credentials_from_file is not None
+        assert save_credentials_to_file is not None
 
 
 class TestUtilities:
@@ -232,7 +231,6 @@ class TestUtilities:
     
     def test_format_job_output(self):
         """Test job output formatting."""
-        from neural.integrations.base import JobResult
         from neural.integrations.utils import format_job_output
         
         result = JobResult(
@@ -247,26 +245,26 @@ class TestUtilities:
         assert 'succeeded' in formatted
         assert '10.50s' in formatted
     
-    def test_get_environment_credentials(self):
-        """Test getting credentials from environment."""
-        from neural.integrations.utils import get_environment_credentials
+    def test_format_job_output_with_metrics(self):
+        """Test job output formatting with metrics."""
+        from neural.integrations.utils import format_job_output
         
-        creds = get_environment_credentials('databricks')
-        assert isinstance(creds, dict)
-    
-    def test_estimate_resource_cost(self):
-        """Test resource cost estimation."""
-        from neural.integrations.utils import estimate_resource_cost
-        
-        cost = estimate_resource_cost(
-            platform='sagemaker',
-            instance_type='ml.t2.medium',
-            duration_hours=1.0,
-            gpu_enabled=False
+        result = JobResult(
+            job_id='test-456',
+            status=JobStatus.SUCCEEDED,
+            metrics={'accuracy': 0.95, 'loss': 0.12}
         )
         
-        assert cost is not None
-        assert cost > 0
+        formatted = format_job_output(result)
+        assert 'accuracy' in formatted
+        assert '0.95' in formatted
+    
+    def test_format_job_output_non_result(self):
+        """Test formatting non-JobResult objects."""
+        from neural.integrations.utils import format_job_output
+        
+        formatted = format_job_output("simple string")
+        assert formatted == "simple string"
 
 
 if __name__ == '__main__':

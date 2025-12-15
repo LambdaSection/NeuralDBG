@@ -18,7 +18,7 @@ pip install -r requirements-dev.txt     # Install development dependencies (reco
 - **Visualization**: matplotlib, graphviz, plotly, networkx (charts and diagrams)
 - **Dashboard**: dash, flask (NeuralDbg interface)
 - **Cloud**: pygithub, selenium (cloud integrations)
-- **Integrations**: requests, boto3, google-cloud, azure (ML platform connectors)
+- **Integrations**: None (base classes only, no external dependencies)
 - **Teams**: click, pyyaml (multi-tenancy and team management)
 - **Federated**: numpy, pyyaml (federated learning with privacy and compression)
 - **AI**: langdetect (natural language processing and language detection)
@@ -51,7 +51,7 @@ Install specific feature groups: `pip install -e ".[hpo]"`, `pip install -e ".[a
 - `neural/no_code/` - No-code web interface
 - `neural/hpo/` - Hyperparameter optimization (Optuna integration)
 - `neural/automl/` - AutoML and Neural Architecture Search (NAS)
-- `neural/integrations/` - ML platform connectors (Databricks, SageMaker, Vertex AI, Azure ML, Paperspace, Run:AI)
+- `neural/integrations/` - Base classes for custom ML platform connectors
 - `neural/teams/` - Multi-tenancy, team management, RBAC, quotas, analytics, and billing
 - `neural/federated/` - Federated learning (client-server architecture, differential privacy, secure aggregation, compression)
 

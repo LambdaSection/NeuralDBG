@@ -1,532 +1,418 @@
 # Neural DSL Platform Integrations
 
-Complete guide to using Neural DSL with popular ML platforms.
+Guide to building custom ML platform integrations for Neural DSL.
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Supported Platforms](#supported-platforms)
-- [Usage Patterns](#usage-patterns)
+- [Creating Custom Connectors](#creating-custom-connectors)
 - [API Reference](#api-reference)
 - [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
+- [Best Practices](#best-practices)
 
 ## Overview
 
-The Neural DSL integrations module provides a unified interface to execute Neural DSL models on popular ML platforms. It handles authentication, job submission, resource management, and model deployment across different cloud providers.
+The Neural DSL integrations module provides base classes for building custom connectors to ML platforms. This allows you to execute Neural DSL models on your preferred infrastructure.
 
 ### Key Features
 
-- **Unified API**: Same interface across all platforms
-- **Authentication**: Secure credential management
-- **Remote Execution**: Submit training jobs to cloud resources
-- **Resource Management**: Configure compute, GPU, and memory
-- **Model Deployment**: Deploy models as endpoints
-- **Job Monitoring**: Track status and retrieve logs
-- **Cost Estimation**: Estimate resource costs
+- **Abstract Base Classes**: Well-defined interface for platform connectors
+- **Resource Configuration**: Flexible resource specification
+- **Job Management**: Standard job lifecycle management
+- **Extensible**: Implement only what you need
 
 ## Installation
 
-### Basic Installation
-
 ```bash
-pip install neural-dsl[integrations]
+pip install neural-dsl
 ```
 
-### Platform-Specific Installation
+No additional dependencies required for the base classes.
 
-```bash
-# Databricks
-pip install requests
+## Creating Custom Connectors
 
-# AWS SageMaker
-pip install boto3
+### Basic Connector
 
-# Google Vertex AI
-pip install google-cloud-aiplatform google-cloud-storage
-
-# Azure ML
-pip install azure-ai-ml azure-identity
-
-# Paperspace
-pip install requests
-
-# Run:AI (requires CLI)
-# See: https://docs.run.ai/latest/admin/runai-setup/cli-install/
-```
-
-### Full Installation
-
-```bash
-pip install neural-dsl[full]
-```
-
-## Quick Start
+Create a custom connector by extending `BaseConnector` and implementing the required abstract methods:
 
 ```python
-from neural.integrations import PlatformManager, ResourceConfig
+from neural.integrations import BaseConnector, JobStatus, JobResult, ResourceConfig
 
-# Initialize manager
-manager = PlatformManager()
-
-# Configure platform
-manager.configure_platform(
-    'databricks',
-    host='https://your-workspace.cloud.databricks.com',
-    token='dapi...'
-)
-
-# Define Neural DSL model
-dsl_code = """
-model MyModel {
-    input: (None, 28, 28, 1)
-    Conv2D(filters=32, kernel_size=3, activation='relu')
-    MaxPooling2D(pool_size=2)
-    Flatten()
-    Dense(units=10, activation='softmax')
-}
-"""
-
-# Submit job
-job_id = manager.submit_job(
-    platform='databricks',
-    code=dsl_code,
-    resource_config=ResourceConfig(
-        instance_type='i3.xlarge',
-        gpu_enabled=False
-    ),
-    job_name='my-training-job'
-)
-
-# Check status
-status = manager.get_job_status('databricks', job_id)
-print(f"Job status: {status}")
-
-# Get results
-result = manager.get_job_result('databricks', job_id)
-print(f"Output: {result.output}")
+class MyPlatformConnector(BaseConnector):
+    """Custom connector for MyPlatform."""
+    
+    def __init__(self, credentials=None):
+        super().__init__(credentials)
+        self.api_key = self.credentials.get('api_key', '')
+        self.endpoint = self.credentials.get('endpoint', '')
+    
+    def authenticate(self) -> bool:
+        """Authenticate with the platform."""
+        if not self.api_key or not self.endpoint:
+            return False
+        
+        # Add your authentication logic here
+        # Example: call API to validate credentials
+        try:
+            # response = requests.post(f"{self.endpoint}/auth", 
+            #                         headers={"X-API-Key": self.api_key})
+            # if response.status_code == 200:
+            self.authenticated = True
+            return True
+        except Exception as e:
+            return False
+    
+    def submit_job(self, code, resource_config=None, environment=None,
+                   dependencies=None, job_name=None) -> str:
+        """Submit a job to the platform."""
+        if not self.authenticated:
+            raise Exception("Not authenticated")
+        
+        # Add your job submission logic here
+        # Example: POST to platform API
+        job_id = "unique-job-id"
+        return job_id
+    
+    def get_job_status(self, job_id: str) -> JobStatus:
+        """Get the status of a job."""
+        # Add your status check logic here
+        # Example: GET from platform API
+        return JobStatus.RUNNING
+    
+    def get_job_result(self, job_id: str) -> JobResult:
+        """Get the result of a job."""
+        # Add your result retrieval logic here
+        return JobResult(
+            job_id=job_id,
+            status=JobStatus.SUCCEEDED,
+            output="Job completed successfully",
+            duration_seconds=10.5
+        )
+    
+    def cancel_job(self, job_id: str) -> bool:
+        """Cancel a running job."""
+        # Add your cancellation logic here
+        return True
+    
+    def list_jobs(self, limit=10, status_filter=None):
+        """List recent jobs."""
+        # Add your job listing logic here
+        return [
+            {'job_id': 'job-123', 'status': 'succeeded', 'name': 'example-job'}
+        ]
+    
+    def get_logs(self, job_id: str) -> str:
+        """Get logs for a job."""
+        # Add your log retrieval logic here
+        return "Job log output..."
 ```
 
-## Supported Platforms
-
-### Databricks
-
-**Authentication:**
-- Host URL
-- Personal access token
-- Optional cluster ID
-
-**Features:**
-- Notebook execution
-- Cluster management
-- Model serving
-- Job scheduling
-
-**Example:**
-```python
-manager.configure_platform(
-    'databricks',
-    host='https://your-workspace.cloud.databricks.com',
-    token='dapi...',
-    cluster_id='1234-567890-abc123'  # Optional
-)
-```
-
-### AWS SageMaker
-
-**Authentication:**
-- AWS access key ID
-- AWS secret access key
-- Region
-- IAM role ARN
-- S3 bucket
-
-**Features:**
-- Training jobs
-- Endpoint deployment
-- Model registry
-- Batch transform
-
-**Example:**
-```python
-manager.configure_platform(
-    'sagemaker',
-    access_key_id='AKIA...',
-    secret_access_key='wJalr...',
-    region='us-east-1',
-    role_arn='arn:aws:iam::123456789012:role/SageMakerRole',
-    s3_bucket='my-bucket'
-)
-```
-
-### Google Vertex AI
-
-**Authentication:**
-- Project ID
-- Location/Region
-- Service account credentials file
-
-**Features:**
-- Custom training jobs
-- Endpoint deployment
-- Workbench notebooks
-- AutoML integration
-
-**Example:**
-```python
-manager.configure_platform(
-    'vertex_ai',
-    project_id='my-gcp-project',
-    location='us-central1',
-    credentials_file='/path/to/service-account.json'
-)
-```
-
-### Azure ML Studio
-
-**Authentication:**
-- Subscription ID
-- Resource group
-- Workspace name
-
-**Features:**
-- Compute clusters
-- Pipeline execution
-- Model deployment
-- Experiment tracking
-
-**Example:**
-```python
-manager.configure_platform(
-    'azure_ml',
-    subscription_id='12345678-1234-1234-1234-123456789012',
-    resource_group='my-resource-group',
-    workspace_name='my-workspace'
-)
-```
-
-### Paperspace Gradient
-
-**Authentication:**
-- API key
-- Optional project ID
-
-**Features:**
-- Job execution
-- Notebook environment
-- Model deployment
-- GPU access
-
-**Example:**
-```python
-manager.configure_platform(
-    'paperspace',
-    api_key='ps_...',
-    project_id='prj...'
-)
-```
-
-### Run:AI
-
-**Authentication:**
-- Kubernetes cluster
-- Run:AI CLI configuration
-- Project name
-
-**Features:**
-- GPU orchestration
-- Distributed training
-- Resource quotas
-- Job scheduling
-
-**Example:**
-```python
-manager.configure_platform(
-    'runai',
-    cluster_url='https://my-cluster.run.ai',
-    project='my-project'
-)
-```
-
-## Usage Patterns
-
-### Single Platform
+### Using Your Connector
 
 ```python
-from neural.integrations import DatabricksConnector, ResourceConfig
-
-connector = DatabricksConnector(credentials={
-    'host': '...',
-    'token': '...'
+# Initialize with credentials
+connector = MyPlatformConnector(credentials={
+    'api_key': 'your-api-key',
+    'endpoint': 'https://api.myplatform.com'
 })
 
-connector.authenticate()
-
-job_id = connector.submit_job(
-    code=dsl_code,
-    resource_config=ResourceConfig(
-        instance_type='i3.xlarge',
-        gpu_enabled=False
+# Authenticate
+if connector.authenticate():
+    print("Authentication successful")
+    
+    # Submit a job
+    job_id = connector.submit_job(
+        code="print('Hello from Neural DSL')",
+        resource_config=ResourceConfig(
+            instance_type='standard',
+            gpu_enabled=False
+        ),
+        job_name='test-job'
     )
-)
-
-status = connector.get_job_status(job_id)
-```
-
-### Multiple Platforms
-
-```python
-from neural.integrations import PlatformManager
-
-manager = PlatformManager()
-
-# Configure multiple platforms
-manager.configure_platform('databricks', host='...', token='...')
-manager.configure_platform('sagemaker', access_key_id='...', secret_access_key='...')
-
-# Submit to different platforms
-db_job = manager.submit_job('databricks', code=code1)
-sm_job = manager.submit_job('sagemaker', code=code2)
-
-# Monitor all jobs
-print(f"Databricks: {manager.get_job_status('databricks', db_job)}")
-print(f"SageMaker: {manager.get_job_status('sagemaker', sm_job)}")
-```
-
-### Batch Processing
-
-```python
-from neural.integrations.utils import batch_submit_jobs
-
-jobs = [
-    {'code': code1, 'job_name': 'job-1'},
-    {'code': code2, 'job_name': 'job-2'},
-    {'code': code3, 'job_name': 'job-3'},
-]
-
-job_ids = batch_submit_jobs(manager, 'databricks', jobs)
-```
-
-### Waiting for Completion
-
-```python
-from neural.integrations.utils import wait_for_job_completion
-
-result = wait_for_job_completion(
-    manager,
-    platform='databricks',
-    job_id=job_id,
-    poll_interval=30,
-    timeout=3600
-)
-
-print(f"Job completed: {result.status}")
-```
-
-### Cost Estimation
-
-```python
-from neural.integrations.utils import estimate_resource_cost
-
-cost = estimate_resource_cost(
-    platform='sagemaker',
-    instance_type='ml.p3.2xlarge',
-    duration_hours=2.0,
-    gpu_enabled=True
-)
-
-print(f"Estimated cost: ${cost:.2f}")
+    
+    # Check status
+    status = connector.get_job_status(job_id)
+    print(f"Job status: {status.value}")
+    
+    # Get result
+    if status == JobStatus.SUCCEEDED:
+        result = connector.get_job_result(job_id)
+        print(f"Output: {result.output}")
 ```
 
 ## API Reference
 
-### PlatformManager
-
-```python
-class PlatformManager:
-    def configure_platform(platform, credentials=None, **kwargs) -> bool
-    def set_active_platform(platform) -> bool
-    def submit_job(platform=None, code, resource_config=None, ...) -> str
-    def get_job_status(platform=None, job_id) -> JobStatus
-    def get_job_result(platform=None, job_id) -> JobResult
-    def cancel_job(platform=None, job_id) -> bool
-    def list_jobs(platform=None, limit=10, status_filter=None) -> List[Dict]
-    def get_logs(platform=None, job_id) -> str
-    def deploy_model(platform=None, model_path, endpoint_name, ...) -> str
-    def delete_endpoint(platform=None, endpoint_name) -> bool
-    def list_platforms() -> List[str]
-    def list_configured_platforms() -> List[str]
-    def get_platform_info(platform) -> Dict
-```
-
 ### BaseConnector
 
-```python
-class BaseConnector(ABC):
-    def authenticate() -> bool
-    def submit_job(code, resource_config=None, ...) -> str
-    def get_job_status(job_id) -> JobStatus
-    def get_job_result(job_id) -> JobResult
-    def cancel_job(job_id) -> bool
-    def list_jobs(limit=10, status_filter=None) -> List[Dict]
-    def get_logs(job_id) -> str
-    def deploy_model(model_path, endpoint_name, ...) -> str
-    def delete_endpoint(endpoint_name) -> bool
-    def upload_file(local_path, remote_path) -> bool
-    def download_file(remote_path, local_path) -> bool
-    def get_resource_usage() -> Dict
-```
+Abstract base class for all platform connectors.
+
+#### Required Methods
+
+- **authenticate() -> bool**: Authenticate with the platform
+- **submit_job(code, resource_config, environment, dependencies, job_name) -> str**: Submit a job
+- **get_job_status(job_id) -> JobStatus**: Get job status
+- **get_job_result(job_id) -> JobResult**: Get job result
+- **cancel_job(job_id) -> bool**: Cancel a job
+- **list_jobs(limit, status_filter) -> List[Dict]**: List jobs
+- **get_logs(job_id) -> str**: Get job logs
+
+#### Optional Methods
+
+- **deploy_model(model_path, endpoint_name, resource_config) -> str**: Deploy a model
+- **delete_endpoint(endpoint_name) -> bool**: Delete an endpoint
+- **upload_file(local_path, remote_path) -> bool**: Upload a file
+- **download_file(remote_path, local_path) -> bool**: Download a file
+- **get_resource_usage() -> Dict**: Get resource usage statistics
 
 ### ResourceConfig
 
+Dataclass for resource configuration.
+
 ```python
-@dataclass
-class ResourceConfig:
-    instance_type: str
-    gpu_enabled: bool = False
-    gpu_count: int = 0
-    memory_gb: Optional[int] = None
-    cpu_count: Optional[int] = None
-    disk_size_gb: Optional[int] = None
-    max_runtime_hours: Optional[int] = None
-    auto_shutdown: bool = True
-    custom_params: Dict[str, Any] = field(default_factory=dict)
+ResourceConfig(
+    instance_type: str,
+    gpu_enabled: bool = False,
+    gpu_count: int = 0,
+    memory_gb: Optional[int] = None,
+    cpu_count: Optional[int] = None,
+    disk_size_gb: Optional[int] = None,
+    max_runtime_hours: Optional[int] = None,
+    auto_shutdown: bool = True,
+    custom_params: Dict[str, Any] = {}
+)
 ```
 
 ### JobStatus
 
-```python
-class JobStatus(Enum):
-    PENDING = "pending"
-    RUNNING = "running"
-    SUCCEEDED = "succeeded"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
-    UNKNOWN = "unknown"
-```
+Enumeration for job statuses.
+
+- `PENDING`: Job is queued
+- `RUNNING`: Job is executing
+- `SUCCEEDED`: Job completed successfully
+- `FAILED`: Job failed
+- `CANCELLED`: Job was cancelled
+- `UNKNOWN`: Status cannot be determined
 
 ### JobResult
 
+Dataclass for job results.
+
 ```python
-@dataclass
-class JobResult:
-    job_id: str
-    status: JobStatus
-    output: Optional[str] = None
-    error: Optional[str] = None
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    artifacts: List[str] = field(default_factory=list)
-    logs_url: Optional[str] = None
+JobResult(
+    job_id: str,
+    status: JobStatus,
+    output: Optional[str] = None,
+    error: Optional[str] = None,
+    metrics: Dict[str, Any] = {},
+    artifacts: List[str] = [],
+    logs_url: Optional[str] = None,
     duration_seconds: Optional[float] = None
+)
 ```
 
 ## Examples
 
-See `neural/integrations/examples.py` for complete examples including:
+### Example 1: Simple Connector
 
-- Unified manager usage
-- Platform-specific configurations
-- Model training workflows
-- Deployment patterns
-- Resource management
-- Batch processing
+```python
+from neural.integrations import BaseConnector, JobStatus, JobResult
 
-## Troubleshooting
+class SimpleConnector(BaseConnector):
+    def authenticate(self):
+        return True
+    
+    def submit_job(self, code, **kwargs):
+        return "job-123"
+    
+    def get_job_status(self, job_id):
+        return JobStatus.SUCCEEDED
+    
+    def get_job_result(self, job_id):
+        return JobResult(job_id=job_id, status=JobStatus.SUCCEEDED)
+    
+    def cancel_job(self, job_id):
+        return True
+    
+    def list_jobs(self, limit=10, status_filter=None):
+        return []
+    
+    def get_logs(self, job_id):
+        return ""
+```
 
-### Authentication Issues
+### Example 2: Connector with Model Deployment
 
-**Problem**: Authentication fails with credential errors.
+```python
+class AdvancedConnector(BaseConnector):
+    # ... implement required methods ...
+    
+    def deploy_model(self, model_path, endpoint_name, resource_config=None):
+        """Deploy a model as an endpoint."""
+        # Your deployment logic
+        endpoint_url = f"https://api.platform.com/endpoints/{endpoint_name}"
+        return endpoint_url
+    
+    def delete_endpoint(self, endpoint_name):
+        """Delete a deployed endpoint."""
+        # Your deletion logic
+        return True
+```
 
-**Solutions**:
-- Verify credentials are correct
-- Check environment variables
-- Ensure service accounts have proper permissions
-- Test credentials with platform's native CLI
+### Example 3: Polling for Job Completion
 
-### Job Submission Failures
+```python
+import time
 
-**Problem**: Jobs fail to submit or start.
+def wait_for_job(connector, job_id, poll_interval=30, timeout=3600):
+    """Wait for a job to complete."""
+    start_time = time.time()
+    
+    while True:
+        status = connector.get_job_status(job_id)
+        
+        if status in [JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED]:
+            return connector.get_job_result(job_id)
+        
+        if time.time() - start_time > timeout:
+            raise TimeoutError(f"Job {job_id} timed out")
+        
+        time.sleep(poll_interval)
 
-**Solutions**:
-- Check resource availability
-- Verify instance types are valid for platform
-- Ensure code has no syntax errors
-- Check platform-specific quotas and limits
-
-### Resource Unavailable
-
-**Problem**: Requested resources not available.
-
-**Solutions**:
-- Try different instance types
-- Check regional availability
-- Use smaller resource configurations
-- Enable auto-scaling if supported
-
-### Connection Timeouts
-
-**Problem**: Operations timeout or hang.
-
-**Solutions**:
-- Check network connectivity
-- Verify firewall rules
-- Increase timeout values
-- Use async operations for long-running tasks
-
-### Cost Management
-
-**Problem**: Unexpected high costs.
-
-**Solutions**:
-- Enable auto-shutdown for resources
-- Use spot/preemptible instances when possible
-- Set max_runtime_hours limits
-- Monitor resource usage regularly
-- Use cost estimation before submission
+# Usage
+result = wait_for_job(connector, job_id)
+print(f"Job completed with status: {result.status}")
+```
 
 ## Best Practices
 
-1. **Credential Security**
-   - Never hardcode credentials
-   - Use environment variables or config files
-   - Rotate keys regularly
-   - Use IAM roles when possible
+### 1. Error Handling
 
-2. **Resource Management**
-   - Always set auto_shutdown=True
-   - Use appropriate instance types
-   - Set max_runtime_hours to prevent runaway jobs
-   - Monitor resource usage
+Use the provided exception classes:
 
-3. **Error Handling**
-   - Always wrap operations in try-except blocks
-   - Check job status before retrieving results
-   - Log errors for debugging
-   - Implement retry logic for transient failures
+```python
+from neural.exceptions import CloudConnectionError, CloudExecutionError, CloudException
 
-4. **Performance**
-   - Use batch operations when possible
-   - Configure appropriate resource sizes
-   - Enable GPU only when needed
-   - Monitor and optimize job duration
+def authenticate(self):
+    try:
+        # Authentication logic
+        self.authenticated = True
+        return True
+    except Exception as e:
+        raise CloudConnectionError(f"Authentication failed: {e}")
+```
 
-5. **Cost Optimization**
-   - Estimate costs before submission
-   - Use cheaper instance types for development
-   - Leverage free tiers and credits
-   - Clean up unused resources
+### 2. Credential Management
 
-## Additional Resources
+Use the utility functions for secure credential storage:
 
-- [Neural DSL Documentation](../README.md)
-- [Platform-specific READMEs](./README.md)
-- [Example Scripts](../neural/integrations/examples.py)
-- [API Reference](../neural/integrations/)
+```python
+from neural.integrations.utils import save_credentials_to_file, load_credentials_from_file
 
-## Support
+# Save credentials securely (with 600 permissions)
+save_credentials_to_file({'api_key': 'secret'})
 
-For issues and questions:
-- GitHub Issues: https://github.com/Lemniscate-world/Neural/issues
-- Documentation: https://github.com/Lemniscate-world/Neural
+# Load credentials
+credentials = load_credentials_from_file()
+```
+
+### 3. Resource Configuration
+
+Provide sensible defaults and validate configurations:
+
+```python
+def submit_job(self, code, resource_config=None, **kwargs):
+    if resource_config is None:
+        resource_config = ResourceConfig(
+            instance_type='standard',
+            gpu_enabled=False
+        )
+    
+    # Validate
+    if resource_config.gpu_count > 8:
+        raise ValueError("Maximum 8 GPUs supported")
+    
+    # Submit job
+    ...
+```
+
+### 4. Logging
+
+Use Python's logging module:
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+def submit_job(self, code, **kwargs):
+    logger.info(f"Submitting job to {self.endpoint}")
+    # Job submission logic
+    logger.info(f"Job submitted with ID: {job_id}")
+```
+
+### 5. Retry Logic
+
+Implement retry logic for transient failures:
+
+```python
+import time
+from functools import wraps
+
+def retry(max_attempts=3, delay=1):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_attempts):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt == max_attempts - 1:
+                        raise
+                    time.sleep(delay * (2 ** attempt))
+        return wrapper
+    return decorator
+
+class RobustConnector(BaseConnector):
+    @retry(max_attempts=3)
+    def get_job_status(self, job_id):
+        # Status check logic that might fail transiently
+        ...
+```
+
+### 6. Testing
+
+Write tests for your connector:
+
+```python
+import pytest
+from neural.integrations import JobStatus
+
+def test_connector_authentication():
+    connector = MyPlatformConnector(credentials={
+        'api_key': 'test-key',
+        'endpoint': 'https://test.api.com'
+    })
+    assert connector.authenticate() is True
+
+def test_job_submission():
+    connector = MyPlatformConnector(credentials={...})
+    connector.authenticate()
+    
+    job_id = connector.submit_job("print('test')")
+    assert job_id is not None
+    assert isinstance(job_id, str)
+
+def test_job_status():
+    connector = MyPlatformConnector(credentials={...})
+    connector.authenticate()
+    
+    status = connector.get_job_status('job-123')
+    assert isinstance(status, JobStatus)
+```
+
+## Further Reading
+
+- See `neural/integrations/examples.py` for complete examples
+- See `neural/integrations/README.md` for API documentation
+- See `neural/integrations/base.py` for implementation details

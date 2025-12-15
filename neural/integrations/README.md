@@ -1,221 +1,83 @@
 # Neural DSL Platform Integrations
 
-Comprehensive integration connectors for popular ML platforms with unified API for authentication, remote execution, and resource management.
+Base classes for building ML platform integration connectors with unified API for authentication, remote execution, and resource management.
 
-## Supported Platforms
+## Overview
 
-- **Databricks**: Notebooks, clusters, and jobs API
-- **AWS SageMaker**: Studio, training jobs, and model deployment
-- **Google Vertex AI**: Training, prediction, and workbench notebooks
-- **Azure ML Studio**: Workspaces, compute clusters, and endpoints
-- **Paperspace Gradient**: Notebooks, jobs, and deployments
-- **Run:AI**: Kubernetes orchestration for GPU workloads
+The integrations module provides abstract base classes that you can extend to create custom connectors for any ML platform. This allows Neural DSL to work with your preferred cloud or on-premises infrastructure.
 
 ## Quick Start
 
-### Using the Unified Manager
+### Creating a Custom Connector
 
 ```python
-from neural.integrations import PlatformManager, ResourceConfig
+from neural.integrations import BaseConnector, JobStatus, JobResult, ResourceConfig
 
-# Initialize manager
-manager = PlatformManager()
+class MyPlatformConnector(BaseConnector):
+    """Custom connector for MyPlatform."""
+    
+    def __init__(self, credentials=None):
+        super().__init__(credentials)
+        self.api_key = self.credentials.get('api_key', '')
+        self.endpoint = self.credentials.get('endpoint', '')
+    
+    def authenticate(self) -> bool:
+        """Authenticate with the platform."""
+        if not self.api_key or not self.endpoint:
+            return False
+        # Add your authentication logic here
+        self.authenticated = True
+        return True
+    
+    def submit_job(self, code, resource_config=None, environment=None,
+                   dependencies=None, job_name=None) -> str:
+        """Submit a job to the platform."""
+        # Add your job submission logic here
+        return "job-123"
+    
+    def get_job_status(self, job_id: str) -> JobStatus:
+        """Get the status of a job."""
+        # Add your status check logic here
+        return JobStatus.RUNNING
+    
+    def get_job_result(self, job_id: str) -> JobResult:
+        """Get the result of a job."""
+        # Add your result retrieval logic here
+        return JobResult(
+            job_id=job_id,
+            status=JobStatus.SUCCEEDED,
+            output="Job completed",
+            duration_seconds=10.5
+        )
+    
+    def cancel_job(self, job_id: str) -> bool:
+        """Cancel a running job."""
+        # Add your cancellation logic here
+        return True
+    
+    def list_jobs(self, limit=10, status_filter=None):
+        """List recent jobs."""
+        # Add your job listing logic here
+        return []
+    
+    def get_logs(self, job_id: str) -> str:
+        """Get logs for a job."""
+        # Add your log retrieval logic here
+        return "Job logs..."
 
-# Configure a platform
-manager.configure_platform(
-    'databricks',
-    host='https://your-workspace.cloud.databricks.com',
-    token='your-token'
-)
+# Use your connector
+connector = MyPlatformConnector(credentials={
+    'api_key': 'your-api-key',
+    'endpoint': 'https://api.myplatform.com'
+})
 
-# Submit a job
-job_id = manager.submit_job(
-    platform='databricks',
-    code="""
-model MyModel {
-    input: (None, 28, 28, 1)
-    Conv2D(filters=32, kernel_size=3, activation='relu')
-    MaxPooling2D(pool_size=2)
-    Flatten()
-    Dense(units=10, activation='softmax')
-}
-""",
+connector.authenticate()
+
+job_id = connector.submit_job(
+    code="print('Hello from Neural DSL!')",
     resource_config=ResourceConfig(
-        instance_type='i3.xlarge',
+        instance_type='standard',
         gpu_enabled=False
-    )
-)
-
-# Check status
-status = manager.get_job_status('databricks', job_id)
-print(f"Job status: {status}")
-
-# Get results
-result = manager.get_job_result('databricks', job_id)
-print(f"Output: {result.output}")
-```
-
-### Using Individual Connectors
-
-```python
-from neural.integrations import DatabricksConnector, ResourceConfig
-
-# Initialize connector
-connector = DatabricksConnector(credentials={
-    'host': 'https://your-workspace.cloud.databricks.com',
-    'token': 'your-token',
-    'cluster_id': 'your-cluster-id'  # Optional
-})
-
-# Authenticate
-connector.authenticate()
-
-# Submit job
-job_id = connector.submit_job(
-    code="print('Hello from Databricks!')",
-    resource_config=ResourceConfig(
-        instance_type='i3.xlarge',
-        gpu_enabled=False
-    )
-)
-```
-
-## Platform-Specific Guides
-
-### Databricks
-
-```python
-from neural.integrations import DatabricksConnector
-
-connector = DatabricksConnector(credentials={
-    'host': 'https://your-workspace.cloud.databricks.com',
-    'token': 'dapi...',
-    'cluster_id': '1234-567890-abc123'  # Optional
-})
-
-connector.authenticate()
-
-# Deploy model to Model Serving
-endpoint_url = connector.deploy_model(
-    model_path='dbfs:/models/my-model',
-    endpoint_name='my-neural-model'
-)
-```
-
-### AWS SageMaker
-
-```python
-from neural.integrations import SageMakerConnector
-
-connector = SageMakerConnector(credentials={
-    'access_key_id': 'AKIA...',
-    'secret_access_key': 'wJalr...',
-    'region': 'us-east-1',
-    'role_arn': 'arn:aws:iam::123456789012:role/SageMakerRole',
-    's3_bucket': 'my-sagemaker-bucket'
-})
-
-connector.authenticate()
-
-# Submit training job
-job_id = connector.submit_job(
-    code=dsl_code,
-    resource_config=ResourceConfig(
-        instance_type='ml.p3.2xlarge',
-        gpu_enabled=True
-    )
-)
-```
-
-### Google Vertex AI
-
-```python
-from neural.integrations import VertexAIConnector
-
-connector = VertexAIConnector(credentials={
-    'project_id': 'my-gcp-project',
-    'location': 'us-central1',
-    'credentials_file': '/path/to/service-account.json'  # Optional
-})
-
-connector.authenticate()
-
-# Submit custom training job
-job_id = connector.submit_job(
-    code=dsl_code,
-    resource_config=ResourceConfig(
-        instance_type='n1-standard-4',
-        gpu_enabled=True,
-        gpu_count=1
-    )
-)
-```
-
-### Azure ML Studio
-
-```python
-from neural.integrations import AzureMLConnector
-
-connector = AzureMLConnector(credentials={
-    'subscription_id': '12345678-1234-1234-1234-123456789012',
-    'resource_group': 'my-resource-group',
-    'workspace_name': 'my-workspace'
-})
-
-connector.authenticate()
-
-# Submit training job
-job_id = connector.submit_job(
-    code=dsl_code,
-    resource_config=ResourceConfig(
-        instance_type='Standard_NC6',
-        gpu_enabled=True
-    )
-)
-```
-
-### Paperspace Gradient
-
-```python
-from neural.integrations import PaperspaceConnector
-
-connector = PaperspaceConnector(credentials={
-    'api_key': 'ps_...',
-    'project_id': 'prj...'  # Optional
-})
-
-connector.authenticate()
-
-# Submit job
-job_id = connector.submit_job(
-    code=dsl_code,
-    resource_config=ResourceConfig(
-        instance_type='P4000',
-        gpu_enabled=True
-    )
-)
-```
-
-### Run:AI
-
-```python
-from neural.integrations import RunAIConnector
-
-connector = RunAIConnector(credentials={
-    'cluster_url': 'https://my-cluster.run.ai',
-    'kubeconfig': '/path/to/kubeconfig',  # Optional
-    'project': 'my-project'
-})
-
-connector.authenticate()
-
-# Submit distributed training job
-job_id = connector.submit_job(
-    code=dsl_code,
-    resource_config=ResourceConfig(
-        instance_type='V100',
-        gpu_enabled=True,
-        gpu_count=4
     )
 )
 ```
@@ -227,7 +89,7 @@ from neural.integrations import ResourceConfig
 
 # CPU-only configuration
 cpu_config = ResourceConfig(
-    instance_type='n1-standard-4',
+    instance_type='standard',
     gpu_enabled=False,
     memory_gb=16,
     cpu_count=4,
@@ -236,12 +98,22 @@ cpu_config = ResourceConfig(
 
 # GPU configuration
 gpu_config = ResourceConfig(
-    instance_type='p3.2xlarge',
+    instance_type='gpu-standard',
     gpu_enabled=True,
-    gpu_count=1,
+    gpu_count=2,
     memory_gb=64,
     max_runtime_hours=24,
     auto_shutdown=True
+)
+
+# Custom parameters
+custom_config = ResourceConfig(
+    instance_type='custom',
+    custom_params={
+        'priority': 'high',
+        'preemptible': False,
+        'zone': 'us-east-1a'
+    }
 )
 ```
 
@@ -250,8 +122,7 @@ gpu_config = ResourceConfig(
 ### Submitting Jobs
 
 ```python
-job_id = manager.submit_job(
-    platform='sagemaker',
+job_id = connector.submit_job(
     code=dsl_code,
     resource_config=gpu_config,
     environment={'PYTHONPATH': '/app'},
@@ -264,17 +135,18 @@ job_id = manager.submit_job(
 
 ```python
 # Check status
-status = manager.get_job_status('sagemaker', job_id)
+status = connector.get_job_status(job_id)
+print(f"Status: {status.value}")
 
 # Get full result
-result = manager.get_job_result('sagemaker', job_id)
+result = connector.get_job_result(job_id)
 print(f"Status: {result.status}")
 print(f"Output: {result.output}")
 print(f"Metrics: {result.metrics}")
 print(f"Duration: {result.duration_seconds}s")
 
 # Get logs
-logs = manager.get_logs('sagemaker', job_id)
+logs = connector.get_logs(job_id)
 print(logs)
 ```
 
@@ -284,50 +156,63 @@ print(logs)
 from neural.integrations import JobStatus
 
 # List all jobs
-jobs = manager.list_jobs('databricks', limit=20)
+jobs = connector.list_jobs(limit=20)
 
 # Filter by status
-running_jobs = manager.list_jobs(
-    'databricks',
-    limit=10,
-    status_filter=JobStatus.RUNNING
-)
+running_jobs = connector.list_jobs(limit=10, status_filter=JobStatus.RUNNING)
 ```
 
 ### Canceling Jobs
 
 ```python
-success = manager.cancel_job('databricks', job_id)
+success = connector.cancel_job(job_id)
 if success:
     print("Job cancelled successfully")
 ```
 
-## Model Deployment
+## Optional Methods
+
+The BaseConnector provides optional methods you can implement for additional functionality:
+
+### Model Deployment
 
 ```python
-# Deploy model
-endpoint_url = manager.deploy_model(
-    platform='vertex_ai',
-    model_path='gs://my-bucket/models/my-model',
-    endpoint_name='neural-model-prod',
-    resource_config=ResourceConfig(
-        instance_type='n1-standard-2',
-        gpu_enabled=False
-    )
-)
+def deploy_model(self, model_path, endpoint_name, resource_config=None) -> str:
+    """Deploy a model as an endpoint."""
+    # Your deployment logic here
+    return "https://endpoint-url"
 
-# Delete endpoint
-manager.delete_endpoint('vertex_ai', 'neural-model-prod')
+def delete_endpoint(self, endpoint_name: str) -> bool:
+    """Delete a deployed endpoint."""
+    # Your deletion logic here
+    return True
 ```
 
-## Resource Management
+### File Operations
 
 ```python
-# Get resource usage
-usage = manager.get_resource_usage('runai')
-print(f"Total GPUs: {usage['total_gpus']}")
-print(f"Used GPUs: {usage['used_gpus']}")
-print(f"Available GPUs: {usage['available_gpus']}")
+def upload_file(self, local_path: str, remote_path: str) -> bool:
+    """Upload a file to the platform."""
+    # Your upload logic here
+    return True
+
+def download_file(self, remote_path: str, local_path: str) -> bool:
+    """Download a file from the platform."""
+    # Your download logic here
+    return True
+```
+
+### Resource Monitoring
+
+```python
+def get_resource_usage(self):
+    """Get resource usage statistics."""
+    # Your monitoring logic here
+    return {
+        'total_gpus': 8,
+        'used_gpus': 3,
+        'available_gpus': 5
+    }
 ```
 
 ## Error Handling
@@ -340,104 +225,14 @@ from neural.exceptions import (
 )
 
 try:
-    manager.configure_platform('databricks', host='...', token='...')
+    connector.authenticate()
 except CloudConnectionError as e:
     print(f"Authentication failed: {e}")
 
 try:
-    job_id = manager.submit_job('databricks', code=dsl_code)
+    job_id = connector.submit_job(code=dsl_code)
 except CloudExecutionError as e:
     print(f"Job submission failed: {e}")
-```
-
-## Platform Information
-
-```python
-# List all available platforms
-platforms = manager.list_platforms()
-print(f"Available platforms: {platforms}")
-
-# List configured platforms
-configured = manager.list_configured_platforms()
-print(f"Configured platforms: {configured}")
-
-# Get platform info
-info = manager.get_platform_info('databricks')
-print(f"Name: {info['name']}")
-print(f"Configured: {info['configured']}")
-print(f"Active: {info['active']}")
-
-# Get all platform info
-all_info = manager.get_all_platform_info()
-for platform in all_info:
-    print(f"{platform['name']}: {platform['description']}")
-```
-
-## Advanced Usage
-
-### Multiple Platforms
-
-```python
-# Configure multiple platforms
-manager.configure_platform('databricks', host='...', token='...')
-manager.configure_platform('sagemaker', access_key_id='...', secret_access_key='...')
-
-# Switch between platforms
-manager.set_active_platform('databricks')
-job1 = manager.submit_job(code=code1)  # Runs on Databricks
-
-manager.set_active_platform('sagemaker')
-job2 = manager.submit_job(code=code2)  # Runs on SageMaker
-```
-
-### Custom Resource Configurations
-
-```python
-# Different configs for different platforms
-databricks_config = ResourceConfig(
-    instance_type='i3.xlarge',
-    gpu_enabled=False
-)
-
-sagemaker_config = ResourceConfig(
-    instance_type='ml.p3.2xlarge',
-    gpu_enabled=True,
-    gpu_count=1
-)
-
-# Submit to different platforms
-db_job = manager.submit_job('databricks', code=code, resource_config=databricks_config)
-sm_job = manager.submit_job('sagemaker', code=code, resource_config=sagemaker_config)
-```
-
-## Dependencies
-
-Install platform-specific dependencies:
-
-```bash
-# Databricks
-pip install requests
-
-# AWS SageMaker
-pip install boto3
-
-# Google Vertex AI
-pip install google-cloud-aiplatform google-cloud-storage
-
-# Azure ML
-pip install azure-ai-ml azure-identity
-
-# Paperspace
-pip install requests
-
-# Run:AI
-# Install Run:AI CLI from https://docs.run.ai/latest/admin/runai-setup/cli-install/
-```
-
-Or install all at once:
-
-```bash
-pip install neural-dsl[cloud]
 ```
 
 ## API Reference
@@ -446,7 +241,7 @@ pip install neural-dsl[cloud]
 
 Abstract base class for all platform connectors.
 
-**Methods:**
+**Required Methods:**
 - `authenticate()`: Authenticate with the platform
 - `submit_job()`: Submit a job for execution
 - `get_job_status()`: Get job status
@@ -454,30 +249,13 @@ Abstract base class for all platform connectors.
 - `cancel_job()`: Cancel a job
 - `list_jobs()`: List recent jobs
 - `get_logs()`: Get job logs
+
+**Optional Methods:**
 - `deploy_model()`: Deploy a model
 - `delete_endpoint()`: Delete an endpoint
 - `upload_file()`: Upload a file
 - `download_file()`: Download a file
 - `get_resource_usage()`: Get resource usage
-
-### PlatformManager
-
-Unified manager for all platforms.
-
-**Methods:**
-- `configure_platform()`: Configure a platform
-- `set_active_platform()`: Set active platform
-- `submit_job()`: Submit a job
-- `get_job_status()`: Get job status
-- `get_job_result()`: Get job result
-- `cancel_job()`: Cancel a job
-- `list_jobs()`: List jobs
-- `get_logs()`: Get logs
-- `deploy_model()`: Deploy a model
-- `delete_endpoint()`: Delete an endpoint
-- `list_platforms()`: List available platforms
-- `list_configured_platforms()`: List configured platforms
-- `get_platform_info()`: Get platform information
 
 ### ResourceConfig
 
@@ -492,7 +270,7 @@ Configuration for compute resources.
 - `disk_size_gb`: Disk size in GB
 - `max_runtime_hours`: Maximum runtime in hours
 - `auto_shutdown`: Enable auto-shutdown
-- `custom_params`: Custom parameters
+- `custom_params`: Dictionary of custom parameters
 
 ### JobStatus
 
@@ -515,7 +293,101 @@ Result from a job execution.
 - `status`: Job status
 - `output`: Job output
 - `error`: Error message (if failed)
-- `metrics`: Performance metrics
-- `artifacts`: Output artifacts
+- `metrics`: Dictionary of performance metrics
+- `artifacts`: List of output artifacts
 - `logs_url`: URL to view logs
-- `duration_seconds`: Execution duration
+- `duration_seconds`: Execution duration in seconds
+
+## Utilities
+
+### Credential Management
+
+```python
+from neural.integrations.utils import (
+    load_credentials_from_file,
+    save_credentials_to_file
+)
+
+# Save credentials
+save_credentials_to_file(
+    credentials={'api_key': 'secret'},
+    filepath='~/.neural/credentials.json'
+)
+
+# Load credentials
+credentials = load_credentials_from_file(filepath='~/.neural/credentials.json')
+```
+
+### Output Formatting
+
+```python
+from neural.integrations.utils import format_job_output
+
+result = connector.get_job_result(job_id)
+formatted = format_job_output(result)
+print(formatted)
+```
+
+## Examples
+
+See `examples.py` for complete examples of implementing custom connectors.
+
+## Integration Patterns
+
+### Polling Pattern
+
+```python
+import time
+
+def wait_for_completion(connector, job_id, poll_interval=30, timeout=3600):
+    """Wait for a job to complete."""
+    start_time = time.time()
+    
+    while True:
+        status = connector.get_job_status(job_id)
+        
+        if status in [JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED]:
+            return connector.get_job_result(job_id)
+        
+        if time.time() - start_time > timeout:
+            raise TimeoutError(f"Job {job_id} timed out after {timeout}s")
+        
+        time.sleep(poll_interval)
+```
+
+### Batch Submission Pattern
+
+```python
+def batch_submit_jobs(connector, jobs):
+    """Submit multiple jobs."""
+    job_ids = []
+    
+    for job_config in jobs:
+        try:
+            job_id = connector.submit_job(**job_config)
+            job_ids.append(job_id)
+        except Exception as e:
+            print(f"Failed to submit job: {e}")
+            job_ids.append(None)
+    
+    return job_ids
+```
+
+## Contributing
+
+To add support for a new platform:
+
+1. Create a new connector class that inherits from `BaseConnector`
+2. Implement all required abstract methods
+3. Add platform-specific authentication logic
+4. Add tests for your connector
+5. Update documentation with usage examples
+
+## Best Practices
+
+- Always validate credentials before attempting operations
+- Implement proper error handling for network failures
+- Use platform-specific resource configurations
+- Cache authentication tokens when possible
+- Implement retry logic for transient failures
+- Log important operations for debugging
