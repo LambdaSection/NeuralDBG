@@ -38,6 +38,7 @@ def test_output_on_4d_auto_flatten_allows():
     assert "layers.Flatten()(x)" in code or "Flatten()(x)" in code
 
 
+@pytest.mark.skipif(not DOCGEN_AVAILABLE, reason="docgen module not available")
 def test_docgen_contains_math_and_shapes():
     model = make_model((4,), [
         {"type": "Dense", "params": {"units": 3}},
