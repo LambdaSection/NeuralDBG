@@ -56,6 +56,12 @@ Thumbs.db
 .coverage
 coverage.xml
 htmlcov/
+
+# Playwright/E2E tests
+tests/aquarium_e2e/screenshots/
+tests/aquarium_e2e/.pytest_cache/
+playwright-report/
+test-results/
 *.prof
 output.prof
 tests/tmp_path/
