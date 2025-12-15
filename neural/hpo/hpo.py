@@ -313,7 +313,14 @@ def resolve_hpo_params(
 
 
 # Dynamic Models
-class DynamicPTModel(nn.Module):
+# Create a dummy base class when PyTorch is not available
+if HAS_TORCH:
+    _PTBase = nn.Module
+else:
+    class _PTBase:
+        pass
+
+class DynamicPTModel(_PTBase):
     def __init__(
         self, 
         model_dict: Dict[str, Any], 
@@ -428,7 +435,14 @@ class DynamicPTModel(nn.Module):
             x = layer(x)
         return x
 
-class DynamicTFModel(tf.keras.Model):
+# Create a dummy base class when TensorFlow is not available
+if HAS_TENSORFLOW:
+    _TFBase = tf.keras.Model
+else:
+    class _TFBase:
+        pass
+
+class DynamicTFModel(_TFBase):
     def __init__(
         self, 
         model_dict: Dict[str, Any], 

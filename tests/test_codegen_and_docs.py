@@ -1,7 +1,13 @@
 import pytest
 
 from neural.code_generation.code_generator import generate_code
-from neural.docgen.docgen import generate_markdown
+# Skip docgen import if module doesn't exist
+try:
+    from neural.docgen.docgen import generate_markdown
+    DOCGEN_AVAILABLE = True
+except (ImportError, ModuleNotFoundError):
+    DOCGEN_AVAILABLE = False
+    generate_markdown = None
 
 
 def make_model(input_shape, layers):
