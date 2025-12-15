@@ -214,6 +214,14 @@ class TeamManager:
         quota: Optional[Dict] = None,
     ) -> Team:
         """Create a new team."""
+        if not name or not organization_id:
+            raise ValueError("Name and organization_id are required")
+        
+        # Check if organization exists
+        org_dir = self._get_org_dir(organization_id)
+        if not org_dir.exists():
+            raise ValueError(f"Organization {organization_id} does not exist")
+        
         team = Team(
             name=name,
             description=description,
@@ -221,7 +229,10 @@ class TeamManager:
         )
         
         if quota:
-            team.quota = team.quota.__class__(**quota)
+            try:
+                team.quota = team.quota.__class__(**quota)
+            except Exception as e:
+                raise ValueError(f"Invalid quota configuration: {e}")
         
         self._teams[team.team_id] = team
         self._save_teams(organization_id)

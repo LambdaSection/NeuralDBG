@@ -241,9 +241,13 @@ class AutoMLEngine:
             GridSearchStrategy,
             RandomSearchStrategy,
             BayesianSearchStrategy,
-            EvolutionarySearchStrategy,
-            RegularizedEvolutionStrategy
+            EvolutionarySearchStrategy
         )
+        try:
+            from .search_strategies import RegularizedEvolutionStrategy
+        except ImportError:
+            RegularizedEvolutionStrategy = None
+        
         from .early_stopping import (
             MedianPruner,
             HyperbandPruner,

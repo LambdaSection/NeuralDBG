@@ -113,7 +113,14 @@ class BillingManager:
         payment_method_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Create a subscription for an organization."""
+        if billing_cycle not in ["monthly", "annual"]:
+            raise ValueError("billing_cycle must be 'monthly' or 'annual'")
+        
         billing_data = self._load_billing_data(org.org_id)
+        
+        # Check if subscription already exists
+        if billing_data.get('subscription') and billing_data['subscription'].get('status') == 'active':
+            raise ValueError(f"Organization {org.org_id} already has an active subscription")
         
         pricing = self.get_plan_pricing(plan)
         amount = pricing['monthly_price'] if billing_cycle == 'monthly' else pricing['annual_price']

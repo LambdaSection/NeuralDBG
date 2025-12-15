@@ -226,9 +226,14 @@ class BayesianSearchStrategy(SearchStrategy):
         
         z = (mean - best_y) / std
         
-        from scipy.stats import norm
-        ei = std * (z * norm.cdf(z) + norm.pdf(z))
-        return ei
+        try:
+            from scipy.stats import norm
+            ei = std * (z * norm.cdf(z) + norm.pdf(z))
+            return ei
+        except ImportError:
+            logger.warning("scipy not available, using simplified EI calculation")
+            # Simplified EI approximation without scipy
+            return mean + 2 * std
     
     def _upper_confidence_bound(self, mean: float, std: float, kappa: float = 2.0) -> float:
         """Calculate upper confidence bound."""

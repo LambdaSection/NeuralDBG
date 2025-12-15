@@ -361,6 +361,20 @@ class DataQualityMonitor:
             'total_warnings': sum(len(r.warnings) for r in recent_reports),
             'recent_reports': [r.to_dict() for r in recent_reports[-10:]]
         }
+    
+    def get_current_metrics(self) -> Optional[Dict[str, Any]]:
+        """Get current quality metrics."""
+        if not self.quality_history:
+            return None
+        
+        latest = self.quality_history[-1]
+        return {
+            'quality_score': latest.quality_score,
+            'is_healthy': latest.is_healthy,
+            'missing_rate': latest.missing_rate,
+            'outlier_rate': latest.outlier_rate,
+            'invalid_rate': latest.invalid_rate
+        }
 
 
 class DataQualityChecker:

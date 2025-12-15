@@ -195,6 +195,10 @@ class FederatedClient:
             import torch.optim as optim
             from torch.utils.data import DataLoader, TensorDataset
             
+            if self.model is None:
+                logger.error("Model is not initialized")
+                return {'loss': 0.0, 'accuracy': 0.0}
+            
             if isinstance(self.local_data, tuple) and len(self.local_data) == 2:
                 X, y = self.local_data
                 X_tensor = torch.tensor(X, dtype=torch.float32)

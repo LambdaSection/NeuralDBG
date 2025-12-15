@@ -55,6 +55,9 @@ class TeamExperimentTracker:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Create a new experiment in the team."""
+        if not experiment_id or not name:
+            raise ValueError("experiment_id and name are required")
+        
         AccessController.require_permission(user_id, team, Permission.CREATE_EXPERIMENTS)
         
         if not team.quota.check_quota('experiments'):

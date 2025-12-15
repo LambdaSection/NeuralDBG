@@ -14,6 +14,14 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+def _safe_get_metric(metrics: Dict[str, Any], key: str, default: float = 0.0) -> float:
+    """Safely get metric value, handling nested dicts."""
+    value = metrics.get(key, default)
+    if isinstance(value, dict):
+        value = value.get('max', value.get('last', default))
+    return float(value) if value is not None else default
+
+
 class EarlyStoppingStrategy(ABC):
     """Base class for early stopping strategies."""
     

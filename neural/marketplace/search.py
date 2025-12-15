@@ -110,7 +110,11 @@ class SemanticSearch:
             return self.embeddings_cache[model_id]
 
         # Get model metadata
-        model_info = self.registry.get_model_info(model_id)
+        try:
+            model_info = self.registry.get_model_info(model_id)
+        except ValueError:
+            # Model not found, return zero embedding
+            return np.zeros(len(self._simple_embedding("")))
 
         # Create text representation
         text_parts = [

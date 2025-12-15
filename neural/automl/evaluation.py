@@ -262,15 +262,19 @@ class ArchitectureEvaluator:
         import torch
         import torch.nn as nn
         
-        from neural.execution_optimization.execution import get_device
+        try:
+            from neural.execution_optimization.execution import get_device
+            device = get_device(self.device)
+        except ImportError:
+            device = torch.device('cuda' if torch.cuda.is_available() and self.device in ['auto', 'cuda'] else 'cpu')
         
-        device = get_device(self.device)
         model.eval()
         
         criterion = nn.CrossEntropyLoss()
         total_loss = 0.0
         correct = 0
         total = 0
+        num_batches = 0
         
         with torch.no_grad():
             for data, target in val_data:
@@ -282,10 +286,11 @@ class ArchitectureEvaluator:
                 pred = output.argmax(dim=1)
                 correct += pred.eq(target).sum().item()
                 total += target.size(0)
+                num_batches += 1
         
         return {
-            'loss': total_loss / len(val_data),
-            'accuracy': correct / total
+            'loss': total_loss / max(num_batches, 1),
+            'accuracy': correct / max(total, 1)
         }
     
     def _validate_tensorflow(self, model, val_data) -> Dict[str, float]:

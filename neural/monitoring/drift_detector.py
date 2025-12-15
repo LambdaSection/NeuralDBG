@@ -355,3 +355,18 @@ class DriftDetector:
             },
             'recent_metrics': [m.to_dict() for m in recent_metrics[-10:]]
         }
+    
+    def get_current_metrics(self) -> Optional[Dict[str, Any]]:
+        """Get current drift metrics."""
+        if not self.drift_history:
+            return None
+        
+        latest = self.drift_history[-1]
+        return {
+            'drift_score': latest.concept_drift_score,
+            'is_drifting': latest.is_drifting,
+            'drift_severity': latest.drift_severity,
+            'prediction_drift': latest.prediction_drift,
+            'performance_drift': latest.performance_drift,
+            'data_distribution_drift': latest.data_distribution_drift
+        }

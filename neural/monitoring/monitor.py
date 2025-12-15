@@ -122,10 +122,66 @@ class ModelMonitor:
         self.total_errors = 0
     
     def get_metrics(self) -> Dict[str, Any]:
-        return {"accuracy": 0.0, "latency_p99": 0.0, "error_rate": 0.0}
+        """Get current metrics."""
+        metrics = {
+            "accuracy": 0.0,
+            "latency_p99": 0.0,
+            "error_rate": self.total_errors / self.total_predictions if self.total_predictions > 0 else 0.0,
+            "total_predictions": self.total_predictions,
+            "total_errors": self.total_errors,
+            "uptime_seconds": time.time() - self.start_time
+        }
+        
+        # Add drift metrics if available
+        if hasattr(self.drift_detector, 'get_current_metrics'):
+            drift_metrics = self.drift_detector.get_current_metrics()
+            if drift_metrics:
+                metrics.update(drift_metrics)
+        
+        # Add quality metrics if available
+        if hasattr(self.quality_monitor, 'get_current_metrics'):
+            quality_metrics = self.quality_monitor.get_current_metrics()
+            if quality_metrics:
+                metrics.update(quality_metrics)
+        
+        return metrics
     
     def detect_anomalies(self) -> List[Dict[str, Any]]:
-        return []
+        """Detect anomalies in monitoring data."""
+        anomalies = []
+        
+        # Check drift
+        drift_report = self.drift_detector.get_drift_report(window=100)
+        if drift_report.get('status') == 'ok' and drift_report.get('drift_rate', 0) > 0.2:
+            anomalies.append({
+                'type': 'drift',
+                'severity': 'warning',
+                'message': f"High drift rate: {drift_report['drift_rate']:.2%}",
+                'timestamp': time.time()
+            })
+        
+        # Check quality
+        quality_report = self.quality_monitor.get_quality_summary(window=100)
+        if quality_report.get('status') == 'ok' and quality_report.get('healthy_rate', 1.0) < 0.9:
+            anomalies.append({
+                'type': 'quality',
+                'severity': 'warning',
+                'message': f"Low quality rate: {quality_report['healthy_rate']:.2%}",
+                'timestamp': time.time()
+            })
+        
+        # Check error rate
+        if self.total_predictions > 0:
+            error_rate = self.total_errors / self.total_predictions
+            if error_rate > 0.05:
+                anomalies.append({
+                    'type': 'error_rate',
+                    'severity': 'critical',
+                    'message': f"High error rate: {error_rate:.2%}",
+                    'timestamp': time.time()
+                })
+        
+        return anomalies
     
     def _setup_default_alert_rules(self):
         """Setup default alert rules."""

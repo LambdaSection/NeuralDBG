@@ -154,11 +154,15 @@ class MarketplaceAPI:
             except ValueError as e:
                 return jsonify({"status": "error", "message": str(e)}), 404
 
-        @self.app.route('/api/models/<model_id>/download', methods=['POST'])
+        @self.app.route('/api/models/<model_id>/download', methods=['POST', 'GET'])
         def download_model(model_id):
             """Download a model."""
             try:
-                output_dir = request.json.get('output_dir', '.') if request.json else '.'
+                if request.method == 'POST':
+                    output_dir = request.json.get('output_dir', '.') if request.json else '.'
+                else:
+                    output_dir = request.args.get('output_dir', '.')
+                
                 file_path = self.registry.download_model(model_id, output_dir)
 
                 return jsonify({
@@ -168,6 +172,8 @@ class MarketplaceAPI:
                 })
             except (ValueError, FileNotFoundError) as e:
                 return jsonify({"status": "error", "message": str(e)}), 404
+            except Exception as e:
+                return jsonify({"status": "error", "message": f"Internal server error: {str(e)}"}), 500
 
         @self.app.route('/api/models/upload', methods=['POST'])
         @_require_auth_if_enabled
@@ -359,10 +365,19 @@ class MarketplaceAPI:
         # HuggingFace Hub integration routes
         if self.hf_available:
             @self.app.route('/api/hub/upload', methods=['POST'])
+            @_require_auth_if_enabled
             def upload_to_hub():
                 """Upload model to HuggingFace Hub."""
                 try:
                     data = request.json
+                    if not data:
+                        return jsonify({"status": "error", "message": "No data provided"}), 400
+                    
+                    required_fields = ['model_path', 'repo_id', 'model_name']
+                    for field in required_fields:
+                        if field not in data:
+                            return jsonify({"status": "error", "message": f"Missing required field: {field}"}), 400
+                    
                     result = self.hf.upload_to_hub(
                         model_path=data['model_path'],
                         repo_id=data['repo_id'],

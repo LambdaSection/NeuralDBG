@@ -28,6 +28,12 @@ class FedAvg(AggregationStrategy):
         num_samples_list: List[int],
         **kwargs
     ) -> List[np.ndarray]:
+        if not weights_list:
+            raise ValueError("weights_list cannot be empty")
+        
+        if len(weights_list) != len(num_samples_list):
+            raise ValueError("weights_list and num_samples_list must have the same length")
+        
         total_samples = sum(num_samples_list)
         
         if total_samples == 0:
@@ -41,6 +47,9 @@ class FedAvg(AggregationStrategy):
             weighted_sum = np.zeros_like(weights_list[0][layer_idx])
             
             for client_weights, num_samples in zip(weights_list, num_samples_list):
+                if layer_idx >= len(client_weights):
+                    logger.warning(f"Client has fewer layers than expected, skipping layer {layer_idx}")
+                    continue
                 weight = num_samples / total_samples
                 weighted_sum += weight * client_weights[layer_idx]
             

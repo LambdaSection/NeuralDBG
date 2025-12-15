@@ -14,6 +14,14 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+def validate_architecture(architecture: Dict[str, Any]) -> bool:
+    """Validate architecture configuration."""
+    if not isinstance(architecture, dict):
+        return False
+    required_keys = ['input', 'layers']
+    return all(key in architecture for key in required_keys)
+
+
 class LayerChoice:
     """Represents a choice among multiple layer configurations."""
     

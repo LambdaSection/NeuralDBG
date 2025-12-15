@@ -118,11 +118,21 @@ class FederatedServer:
         weights_list = [r['weights'] for r in client_results]
         num_samples_list = [r['num_samples'] for r in client_results]
         
-        aggregated_weights = self.aggregation_strategy.aggregate(
-            weights_list,
-            num_samples_list,
-            secure=use_secure_aggregation,
-        )
+        # Check if aggregation strategy supports secure parameter
+        from neural.federated.aggregation import SecureAggregator
+        
+        if use_secure_aggregation:
+            secure_agg = SecureAggregator()
+            aggregated_weights = secure_agg.secure_aggregate(
+                weights_list,
+                num_samples_list,
+                aggregation_strategy=self.aggregation_strategy
+            )
+        else:
+            aggregated_weights = self.aggregation_strategy.aggregate(
+                weights_list,
+                num_samples_list
+            )
         
         avg_loss = np.mean([r['metrics'].get('loss', 0) for r in client_results])
         avg_accuracy = np.mean([r['metrics'].get('accuracy', 0) for r in client_results])

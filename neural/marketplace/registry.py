@@ -214,8 +214,12 @@ class ModelRegistry:
         if not source_file.exists():
             raise FileNotFoundError(f"Model file not found: {source_file}")
 
+        # Ensure output directory exists
+        output_path_dir = Path(output_dir)
+        output_path_dir.mkdir(parents=True, exist_ok=True)
+        
         # Copy to output directory
-        output_path = Path(output_dir) / model_metadata["file"]
+        output_path = output_path_dir / model_metadata["file"]
         shutil.copy(source_file, output_path)
 
         # Update download count
@@ -254,10 +258,11 @@ class ModelRegistry:
             raise ValueError(f"Model not found: {model_id}")
 
         # Update view count
-        if model_id in self.stats:
-            self.stats[model_id]["views"] += 1
-        else:
-            self.stats[model_id] = {"downloads": 0, "views": 1, "last_accessed": None}
+        if model_id not in self.stats:
+            self.stats[model_id] = {"downloads": 0, "views": 0, "last_accessed": None}
+        
+        self.stats[model_id]["views"] += 1
+        self.stats[model_id]["last_accessed"] = datetime.now().isoformat()
         self._save_stats()
 
         return self.metadata["models"][model_id]

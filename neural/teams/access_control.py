@@ -167,6 +167,12 @@ class AccessController:
         permission: Permission,
     ) -> None:
         """Require a permission or raise an exception."""
+        if not user_id:
+            raise PermissionError("User ID is required")
+        
+        if not team:
+            raise PermissionError("Team is required")
+        
         if not cls.has_permission(user_id, team, permission):
             role = team.get_member_role(user_id)
             raise PermissionError(
