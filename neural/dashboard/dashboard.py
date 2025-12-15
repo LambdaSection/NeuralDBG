@@ -231,7 +231,7 @@ def update_interval(new_interval: int) -> List[int]:
     return [new_interval]
 
 propagator = ShapePropagator()
-def start_dashboard_server(host: str = "localhost", port: int = 5001):
+def start_dashboard_server(host: str = "localhost", port: int = 5001) -> None:
     if socketio is not None:
         threading.Thread(
             target=socketio.run,
@@ -399,7 +399,7 @@ def update_trace_graph(n: int, viz_type: str, selected_layers: Optional[List[str
     Output("flops_memory_chart", "figure"),
     Input("interval_component", "n_intervals")
 )
-def update_flops_memory_chart(n: int) -> List[go.Figure]:
+def update_flops_memory_chart(n: int) -> go.Figure:
     """Update FLOPs and memory usage visualization."""
     trace_source = get_trace_data()
     if not trace_source:
@@ -1219,7 +1219,7 @@ def update_distributed_profiling_chart(n: int) -> go.Figure:
 
 # Add health check endpoints to Flask server
 @server.route('/health')
-def health_check():
+def health_check() -> Dict[str, str]:
     """Health check endpoint for dashboard service."""
     return {
         "status": "healthy",
@@ -1228,7 +1228,7 @@ def health_check():
     }
 
 @server.route('/health/live')
-def liveness_probe():
+def liveness_probe() -> Tuple[Dict[str, str], int]:
     """Kubernetes liveness probe."""
     health_checker = HealthChecker()
     if health_checker.get_liveness_status():
@@ -1236,7 +1236,7 @@ def liveness_probe():
     return {"status": "dead"}, 503
 
 @server.route('/health/ready')
-def readiness_probe():
+def readiness_probe() -> Tuple[Dict[str, str], int]:
     """Kubernetes readiness probe."""
     health_checker = HealthChecker()
     if health_checker.get_readiness_status(['dashboard']):

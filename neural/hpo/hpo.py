@@ -119,6 +119,70 @@ def validate_hpo_bounds(
     return low, high
 
 
+
+def validate_hpo_categorical(param_name: str, values: List[Any]) -> List[Any]:
+    """Validate categorical HPO parameter values.
+    
+    Args:
+        param_name: Name of the parameter
+        values: List of categorical values
+        
+    Returns:
+        Validated list of values
+        
+    Raises:
+        InvalidHPOConfigError: If values are invalid
+    """
+    if not values or not isinstance(values, list):
+        raise InvalidHPOConfigError(
+            f"Parameter '{param_name}' must have a non-empty list of values"
+        )
+    return values
+
+
+def validate_hpo_bounds(
+    param_name: str, 
+    low: Union[int, float], 
+    high: Union[int, float], 
+    hpo_type: str
+) -> Tuple[Union[int, float], Union[int, float]]:
+    """Validate HPO parameter bounds.
+    
+    Args:
+        param_name: Name of the parameter
+        low: Lower bound
+        high: Upper bound
+        hpo_type: Type of HPO (range or log_range)
+        
+    Returns:
+        Tuple of (validated_low, validated_high)
+        
+    Raises:
+        InvalidHPOConfigError: If bounds are invalid
+    """
+    if low is None or high is None:
+        raise InvalidHPOConfigError(
+            f"Parameter '{param_name}' must have both low and high bounds defined"
+        )
+    
+    if not isinstance(low, (int, float)) or not isinstance(high, (int, float)):
+        raise InvalidHPOConfigError(
+            f"Parameter '{param_name}' bounds must be numeric, got low={type(low)}, high={type(high)}"
+        )
+    
+    if low >= high:
+        raise InvalidHPOConfigError(
+            f"Parameter '{param_name}' lower bound ({low}) must be less than upper bound ({high})"
+        )
+    
+    if hpo_type == 'log_range' and low <= 0:
+        raise InvalidHPOConfigError(
+            f"Parameter '{param_name}' lower bound for log_range must be positive, got {low}"
+        )
+    
+    return low, high
+
+
 # Data Loader
 def get_data(
     dataset_name: str, 

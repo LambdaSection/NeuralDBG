@@ -3134,28 +3134,28 @@ class ModelTransformer(lark.Transformer):
         return params
 
 
-    def named_param(self, items):
+    def named_param(self, items: List[Any]) -> Dict[str, Any]:
         return {items[0].value: self._extract_value(items[1])}
 
-    def named_float(self, items):
+    def named_float(self, items: List[Any]) -> Dict[str, float]:
         return {items[0].value: self._extract_value(items[1])}
 
-    def named_int(self, items):
+    def named_int(self, items: List[Any]) -> Dict[str, int]:
         return {items[0].value: self._extract_value(items[1])}
 
-    def named_string(self, items):
+    def named_string(self, items: List[Any]) -> Dict[str, str]:
         return {items[0].value: self._extract_value(items[1])}
 
-    def number(self, items):
+    def number(self, items: List[Any]) -> Union[int, float]:
         return self._extract_value(items[0])
 
-    def rate(self, items):
+    def rate(self, items: List[Any]) -> Dict[str, Any]:
         return {'rate': self._extract_value(items[0])}
 
-    def simple_float(self, items):
+    def simple_float(self, items: List[Any]) -> float:
         return self._extract_value(items[0])
 
-    def number_or_none(self, items):
+    def number_or_none(self, items: List[Any]) -> Optional[Union[int, float]]:
         if not items:
             return None
         value = self._extract_value(items[0])
@@ -3166,80 +3166,80 @@ class ModelTransformer(lark.Transformer):
         except Exception as e:
             self.raise_validation_error(f"Error converting {value} to a number: {e}", items[0])
 
-    def value(self, items):
+    def value(self, items: List[Any]) -> Any:
         if isinstance(items[0], Token):
             return items[0].value
         return items[0]
 
-    def explicit_tuple(self, items):
+    def explicit_tuple(self, items: List[Any]) -> Tuple[Any, ...]:
         return tuple(self._extract_value(item) for item in items)
 
-    def bool_value(self, items):
+    def bool_value(self, items: List[Any]) -> bool:
         return self._extract_value(items[0])
 
-    def simple_number(self, items):
+    def simple_number(self, items: List[Any]) -> Union[int, float]:
         return self._extract_value(items[0])
 
-    def named_kernel_size(self, items):
+    def named_kernel_size(self, items: List[Any]) -> Dict[str, Any]:
         return {"kernel_size": self._extract_value(items[0])}
 
-    def named_filters(self, items):
+    def named_filters(self, items: List[Any]) -> Dict[str, Any]:
         return {"filters": self._extract_value(items[0])}
 
-    def named_units(self, items):
+    def named_units(self, items: List[Any]) -> Dict[str, Any]:
         return {"units": self._extract_value(items[0])}
 
-    def activation_param(self, items):
+    def activation_param(self, items: List[Any]) -> Dict[str, Any]:
         return {"activation": self._extract_value(items[0])}
 
-    def named_activation(self, items):
+    def named_activation(self, items: List[Any]) -> Dict[str, Any]:
         return {"activation": self._extract_value(items[0])}
 
-    def named_strides(self, items):
+    def named_strides(self, items: List[Any]) -> Dict[str, Any]:
         return {"strides": self._extract_value(items[0])}
 
-    def named_padding(self, items):
+    def named_padding(self, items: List[Any]) -> Dict[str, Any]:
         return {"padding": self._extract_value(items[0])}
 
-    def named_rate(self, items):
+    def named_rate(self, items: List[Any]) -> Dict[str, Any]:
         return {"rate": self._extract_value(items[0])}
 
-    def named_dilation_rate(self, items):
+    def named_dilation_rate(self, items: List[Any]) -> Dict[str, Any]:
         return {"dilation_rate": self._extract_value(items[0])}
 
-    def named_groups(self, items):
+    def named_groups(self, items: List[Any]) -> Dict[str, Any]:
         return {"groups": self._extract_value(items[0])}
 
-    def named_size(self, items):
+    def named_size(self, items: List[Any]) -> Dict[str, Any]:
         name = str(items[0])
         value = tuple(int(x) for x in items[2].children)
         return {name: value}
 
-    def named_dropout(self, items):
+    def named_dropout(self, items: List[Any]) -> Dict[str, Any]:
         return {"dropout": self._extract_value(items[0])}
 
-    def named_return_sequences(self, items):
+    def named_return_sequences(self, items: List[Any]) -> Dict[str, Any]:
         return {"return_sequences": self._extract_value(items[0])}
 
-    def named_input_dim(self, items):
+    def named_input_dim(self, items: List[Any]) -> Dict[str, Any]:
         return {"input_dim": self._extract_value(items[0])}
 
-    def named_output_dim(self, items):
+    def named_output_dim(self, items: List[Any]) -> Dict[str, Any]:
         return {"output_dim": self._extract_value(items[1])}
 
-    def groups_param(self, items):
+    def groups_param(self, items: List[Any]) -> Dict[str, Any]:
         return {'groups': self._extract_value(items[0])}
 
-    def device_param(self, items):
+    def device_param(self, items: List[Any]) -> Dict[str, Any]:
         return {'device': self._extract_value(items[0])}
 
 
     ### Advanced Layers ###
 
-    def activation(self, items):
+    def activation(self, items: List[Any]) -> Dict[str, Any]:
         """Process activation layer with or without parameters."""
-        params = {}
-        function_name = None
+        params: Dict[str, Any] = {}
+        function_name: Optional[str] = None
 
         # Extract parameters from items[0] (param_style1 result)
         raw_params = self._extract_value(items[0]) if items and items[0] is not None else None
@@ -3250,7 +3250,7 @@ class ModelTransformer(lark.Transformer):
         # Process raw_params
         if isinstance(raw_params, list):
             ordered_params = [p for p in raw_params if not isinstance(p, dict)]
-            named_params = {}
+            named_params: Dict[str, Any] = {}
             for param in raw_params:
                 if isinstance(param, dict):
                     named_params.update(param)
@@ -3280,15 +3280,15 @@ class ModelTransformer(lark.Transformer):
 
         return {'type': 'Activation', 'params': params, 'sublayers': []}
 
-    def named_alpha(self, items):
+    def named_alpha(self, items: List[Any]) -> float:
         return self._extract_value(items[0])
 
-    def attention(self, items):
+    def attention(self, items: List[Any]) -> Dict[str, Any]:
         params = self._extract_value(items[0]) if items else None
         return {'type': 'Attention', 'params': params, 'sublayers': []}
 
 
-    def residual(self, items):
+    def residual(self, items: List[Any]) -> Dict[str, Any]:
         # Support both forms:
         # ResidualConnection(params) { ... } and ResidualConnection { ... }
         if not items:

@@ -2,7 +2,7 @@ import logging
 import os
 import re
 import warnings
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -35,8 +35,8 @@ def _policy_ensure_2d_before_dense_tf(
     rank_non_batch: int,
     auto_flatten_output: bool,
     propagator: ShapePropagator,
-    current_input_shape,
-):
+    current_input_shape: Tuple[Optional[int], ...],
+) -> Tuple[str, Tuple[Optional[int], ...]]:
     """Ensure 2D input for Dense/Output in TF.
 
     Returns (insert_code, updated_shape). insert_code is a string to append to the TF code.
@@ -63,10 +63,10 @@ def _policy_ensure_2d_before_dense_tf(
 def _policy_ensure_2d_before_dense_pt(
     rank_non_batch: int,
     auto_flatten_output: bool,
-    forward_code_body,
+    forward_code_body: List[str],
     propagator: ShapePropagator,
-    current_input_shape,
-):
+    current_input_shape: Tuple[Optional[int], ...],
+) -> Tuple[Optional[int], ...]:
     """Ensure 2D input for Dense/Output in PyTorch.
 
     Mutates forward_code_body when flatten is inserted and returns the updated shape.
@@ -539,7 +539,7 @@ def load_file(filename: str) -> Any:
             reason=f"Unsupported file type. Expected .neural, .nr, or .rnr"
         )
 
-def generate_onnx(model_data):
+def generate_onnx(model_data: Dict[str, Any]) -> Any:
     """Generate ONNX model"""
     # Import ONNX only when needed (avoid hard dependency for TF/PyTorch paths)
     import onnx
@@ -600,7 +600,7 @@ def export_onnx(model_data: Dict[str, Any], filename: str = "model.onnx") -> str
     onnx.save(model, filename)
     return f"ONNX model saved to {filename}"
 
-def generate_tensorflow_layer(layer_type, params):
+def generate_tensorflow_layer(layer_type: str, params: Dict[str, Any]) -> Optional[str]:
     """Generate TensorFlow layer code"""
     if layer_type == "Embedding":
         input_dim = params.get("input_dim", 10000)
@@ -710,7 +710,7 @@ def generate_tensorflow_layer(layer_type, params):
 
 
 # Pytorch Layers Code Generator
-def generate_pytorch_layer(layer_type, params, input_shape: Optional[tuple] = None):
+def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape: Optional[tuple] = None) -> Optional[str]:
     """Generate PyTorch layer code"""
     if layer_type == "Embedding":
         num_embeddings = params.get("input_dim", 10000)
@@ -1022,7 +1022,7 @@ def generate_pytorch_layer(layer_type, params, input_shape: Optional[tuple] = No
 
 ## Optimized Code Generation ##
 
-def generate_optimized_dsl(config, best_params):
+def generate_optimized_dsl(config: str, best_params: Dict[str, Any]) -> str:
     """Generate optimized DSL code with the best hyperparameters."""
     try:
         transformer = ModelTransformer()

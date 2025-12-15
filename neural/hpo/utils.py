@@ -45,7 +45,7 @@ def extract_best_params(study, normalize: bool = True) -> Dict[str, Any]:
     return params
 
 
-def trials_to_dataframe(trials: List[Dict[str, Any]]):
+def trials_to_dataframe(trials: List[Dict[str, Any]]) -> Any:
     """
     Convert trials list to pandas DataFrame for analysis.
     
@@ -53,7 +53,7 @@ def trials_to_dataframe(trials: List[Dict[str, Any]]):
         trials: List of trial dictionaries
         
     Returns:
-        pandas DataFrame
+        pandas DataFrame or None if pandas not available
     """
     try:
         import pandas as pd
@@ -88,7 +88,7 @@ def trials_to_dataframe(trials: List[Dict[str, Any]]):
         return None
 
 
-def save_trials(trials: List[Dict[str, Any]], filepath: str):
+def save_trials(trials: List[Dict[str, Any]], filepath: str) -> None:
     """
     Save trials to a JSON file.
     
