@@ -5,7 +5,7 @@ import logging
 import re
 import traceback
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union, cast
 
 import lark
 import plotly.graph_objects as go
@@ -753,10 +753,7 @@ class ModelTransformer(lark.Transformer):
             'GLOBALAVERAGEPOOLING1D': 'global_average_pooling1d',
             'MULTIHEADATTENTION': 'multiheadattention',
             'POSITIONALENCODING': 'positional_encoding',
-<<<<<<< HEAD
-=======
             'EMBEDDING': 'embedding',
->>>>>>> ce1c4965 (Fix validation failures for transformer example tests in test_examples.py)
             'INCEPTION': 'inception',
             'SQUEEZEEXCITATION': 'squeeze_excitation',
         }
@@ -1089,11 +1086,17 @@ class ModelTransformer(lark.Transformer):
 
     def device_spec(self, items: List[Any]) -> Optional[str]:
         """Process device specification correctly (e.g., @ "cuda:0")."""
-        # Expect pattern: AT STRING (or AT NAME in future grammar). Extract the second element.
-        if len(items) > 1:
+        # Expect pattern: AT STRING (or AT NAME in future grammar).
+        # items[0] = AT token, items[1] = STRING token
+        if len(items) >= 2:
+            # Extract the STRING token (second item)
             return self._extract_value(items[1])
+        elif len(items) == 1:
+            # Fallback: if only one item, it should be the STRING
+            return self._extract_value(items[0])
         # Fallback: nothing usable
         return None
+    
     def params(self, items: List[Any]) -> List[Any]:
         return [self._extract_value(item) for item in items]
     def param(self, items: List[Any]) -> Any:
@@ -4132,7 +4135,7 @@ class ModelTransformer(lark.Transformer):
 
     def hpo_choice(self, items: List[Any]) -> Dict[str, Any]:
         values: List[Any] = []
-        value_types: set[str] = set()
+        value_types: Set[str] = set()
 
         for item in items:
             value = self._extract_value(item)
@@ -4164,17 +4167,20 @@ class ModelTransformer(lark.Transformer):
     def hpo_range(self, items: List[Any]) -> Dict[str, Any]:
         start = self._extract_value(items[0])
         end = self._extract_value(items[1])
-        step = self._extract_value(items[2]) if len(items) > 2 else False
+        step = self._extract_value(items[2]) if len(items) > 2 else None
 
         # Validate range parameters
         if end <= start:
             self.raise_validation_error(f"Range end value must be greater than start value, got start={start}, end={end}", items[0])
 
         # Validate step if provided
-        if step and step <= 0:
+        if step is not None and step <= 0:
             self.raise_validation_error(f"Range step value must be positive, got step={step}", items[2] if len(items) > 2 else items[0])
 
-        return {"type": "range", "start": start, "end": end, "step": step}
+        result = {"type": "range", "start": start, "end": end}
+        if step is not None:
+            result["step"] = step
+        return result
 
     def hpo_log_range(self, items: List[Any]) -> Dict[str, Any]:
         min_val = self._extract_value(items[0])
