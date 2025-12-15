@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Set the logger level to WARNING to reduce debug output
 logger.setLevel(logging.WARNING)
 
+
 def to_number(x: str) -> Union[int, float]:
     try:
         return int(x)
@@ -131,7 +132,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
             )
         # Shallow copy to avoid modifying original layer
         layer_copy = layer.copy()
-        # Changes to nested mutable objects will affect both copies
+        # Changes to nested mutable objects will affect both copies
         if 'multiply' in layer_copy:
             del layer_copy['multiply']
         for _ in range(multiply):
@@ -190,7 +191,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
                 for sub_layer in layer.get('sub_layers', []):
                     sub_type = sub_layer['type']
                     sub_params = sub_layer.get('params', {})
-                    layer_code = generate_tensorflow_layer(sub_type, sub_params)
+                    layer_code = generate_tensorflow_layer(sub_type, sub_params, best_params)
                     if layer_code:
                         if ('\n' in layer_code) or ('x =' in layer_code):
                             code += layer_code + "\n"
@@ -198,7 +199,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
                             code += f"x = {layer_code}(x)\n"
                 code += "x = layers.Add()([x, residual_input])\n"
             else:
-                layer_code = generate_tensorflow_layer(layer_type, params)
+                layer_code = generate_tensorflow_layer(layer_type, params, best_params)
                 if layer_code:
                     if ('\n' in layer_code) or ('x =' in layer_code):
                         code += layer_code + "\n"
@@ -215,6 +216,14 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
         opt_params = []
         if isinstance(optimizer_config, dict):
             for k, v in optimizer_config.get('params', {}).items():
+                # Handle HPO parameters
+                if isinstance(v, dict):
+                    if 'hpo' in v and best_params and k in best_params:
+                        v = best_params[k]
+                    elif 'value' in v:
+                        v = v['value']
+                    else:
+                        continue
                 opt_params.append(f"{k}='{v}'" if isinstance(v, str) else f"{k}={v}")
         loss_entry = model_data.get('loss', {'value': 'categorical_crossentropy'})
         if loss_entry is None or not isinstance(loss_entry, (str, dict)):
@@ -247,7 +256,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
     elif backend == "pytorch":
         optimizer_config = model_data.get('optimizer', {'type': 'Adam'})
         optimizer_type = optimizer_config['type'] if isinstance(optimizer_config, dict) else optimizer_config
-        code = "import logging\nimport torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport torchvision.transforms as transforms\n"
+        code = "import logging\nimport torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport torchvision.transforms as transforms\nimport math\n"
         code += "from torchvision import datasets\n"
         code += "from torch.utils.data import DataLoader\n"
         code += "from neural.tracking.experiment_tracker import ExperimentManager\n\n"
@@ -257,6 +266,37 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
         code += "experiment_manager = ExperimentManager()\n"
         code += "experiment = experiment_manager.create_experiment()\n"
         code += "experiment.log_hyperparameters({'optimizer': '" + optimizer_type + "', 'backend': 'pytorch'})\n\n"
+        
+        # Check if we need positional encoding classes
+        needs_positional_encoding = any(layer.get('type') == 'PositionalEncoding' for layer in expanded_layers)
+        if needs_positional_encoding:
+            code += "# Sinusoidal Positional Encoding\n"
+            code += "class SinusoidalPositionalEncoding(nn.Module):\n"
+            code += "    def __init__(self, max_len=5000):\n"
+            code += "        super(SinusoidalPositionalEncoding, self).__init__()\n"
+            code += "        self.max_len = max_len\n\n"
+            code += "    def forward(self, x):\n"
+            code += "        batch_size, seq_len, d_model = x.size()\n"
+            code += "        position = torch.arange(seq_len, dtype=torch.float32, device=x.device).unsqueeze(1)\n"
+            code += "        div_term = torch.exp(torch.arange(0, d_model, 2, dtype=torch.float32, device=x.device) * -(math.log(10000.0) / d_model))\n"
+            code += "        pos_encoding = torch.zeros(seq_len, d_model, device=x.device)\n"
+            code += "        pos_encoding[:, 0::2] = torch.sin(position * div_term)\n"
+            code += "        pos_encoding[:, 1::2] = torch.cos(position * div_term)\n"
+            code += "        return x + pos_encoding.unsqueeze(0)\n\n"
+            code += "# Learnable Positional Encoding\n"
+            code += "class LearnablePositionalEncoding(nn.Module):\n"
+            code += "    def __init__(self, max_len=5000, d_model=512):\n"
+            code += "        super(LearnablePositionalEncoding, self).__init__()\n"
+            code += "        self.max_len = max_len\n"
+            code += "        self.d_model = d_model\n"
+            code += "        self.pos_embedding = None\n\n"
+            code += "    def forward(self, x):\n"
+            code += "        batch_size, seq_len, d_model = x.size()\n"
+            code += "        if self.pos_embedding is None or self.pos_embedding.size(0) != self.max_len or self.pos_embedding.size(1) != d_model:\n"
+            code += "            self.pos_embedding = nn.Parameter(torch.randn(self.max_len, d_model, device=x.device))\n"
+            code += "        positions = self.pos_embedding[:seq_len, :].unsqueeze(0)\n"
+            code += "        return x + positions\n\n"
+        
         code += "# Neural network model definition\n"
         code += "class NeuralNetworkModel(nn.Module):\n"
         code += f"{indent}def __init__(self):\n"
@@ -309,7 +349,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
             elif layer_type == "Dense":
                 # If first layer or previous layer requires flattening
                 if i == 0 or expanded_layers[i-1]['type'] in ["Input", "Flatten"]:
-                    # product of current_input_shape elements over specified axis
+                    # product of current_input_shape elements over specified axis
                     # Ensure all dimensions are integers before calculating product
                     dims = []
                     logger.warning(f"Current input shape: {current_input_shape}")
@@ -413,10 +453,22 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
                 layers_code.append(f"self.{layer_name} = {layer_code}")
                 forward_code_body.append(f"x = self.{layer_name}(x)")
             else:
-                pytorch_layer_code = generate_pytorch_layer(layer_type, params, current_input_shape)
-                if pytorch_layer_code:
-                    layers_code.append(f"self.{layer_name} = {pytorch_layer_code}")
-                    forward_code_body.append(f"x = self.{layer_name}(x)")
+                # Use generate_pytorch_layer for other layer types
+                layer_code = generate_pytorch_layer(layer_type, params, current_input_shape, best_params)
+                if layer_code:
+                    if layer_type == "MultiHeadAttention":
+                        layers_code.append(f"self.{layer_name} = {layer_code}")
+                        mode = params.get("mode", "self")
+                        if mode == "cross":
+                            forward_code_body.append(f"x, _ = self.{layer_name}(x, context, context)")
+                        else:
+                            forward_code_body.append(f"x, _ = self.{layer_name}(x, x, x)")
+                    elif layer_type in ("TransformerEncoder", "TransformerDecoder", "Embedding", "PositionalEncoding"):
+                        layers_code.append(f"self.{layer_name} = {layer_code}")
+                        forward_code_body.append(f"x = self.{layer_name}(x)")
+                    else:
+                        layers_code.append(f"self.{layer_name} = {layer_code}")
+                        forward_code_body.append(f"x = self.{layer_name}(x)")
 
             try:
                 current_input_shape = propagator.propagate(current_input_shape, layer, framework='pytorch')
@@ -526,6 +578,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
 
 def save_file(filename: str, content: str) -> None:
     """Save content to a file."""
+    import os
     try:
         # Create parent directories if they don't exist
         directory = os.path.dirname(filename)
@@ -561,14 +614,13 @@ def load_file(filename: str) -> Any:
         raise FileOperationError(
             operation='parse',
             filepath=filename,
-            reason=f"Unsupported file type. Expected .neural, .nr, or .rnr"
+            reason="Unsupported file type. Expected .neural, .nr, or .rnr"
         )
 
 def generate_onnx(model_data: Dict[str, Any]) -> Any:
     """Generate ONNX model"""
     # Import ONNX only when needed (avoid hard dependency for TF/PyTorch paths)
-    import onnx
-    from onnx import helper, TensorProto
+    from onnx import TensorProto, helper
     # Create nodes for each layer
     nodes = []
     current_input = "input"
@@ -625,112 +677,213 @@ def export_onnx(model_data: Dict[str, Any], filename: str = "model.onnx") -> str
     onnx.save(model, filename)
     return f"ONNX model saved to {filename}"
 
-def generate_tensorflow_layer(layer_type: str, params: Dict[str, Any]) -> Optional[str]:
+def _extract_param_value(param_value, default_value, best_params=None, param_name=None):
+    """Extract the actual value from a parameter that might be a dict with HPO info."""
+    if isinstance(param_value, dict):
+        # Check if this is an HPO parameter and we have best_params
+        if 'hpo' in param_value and best_params and param_name and param_name in best_params:
+            return best_params[param_name]
+        # Otherwise use the value field
+        elif 'value' in param_value:
+            return param_value['value']
+        else:
+            logger.warning(f"Dictionary parameter without 'value' key: {param_value}, using default")
+            return default_value
+    return param_value
+
+def generate_tensorflow_layer(layer_type, params, best_params=None):
     """Generate TensorFlow layer code"""
     if layer_type == "Embedding":
-        input_dim = params.get("input_dim", 10000)
-        output_dim = params.get("output_dim", 128)
-        mask_zero = params.get("mask_zero", False)
+        input_dim = _extract_param_value(params.get("input_dim", 10000), 10000, best_params, "input_dim")
+        output_dim = _extract_param_value(params.get("output_dim", 128), 128, best_params, "output_dim")
+        mask_zero = _extract_param_value(params.get("mask_zero", False), False, best_params, "mask_zero")
+        input_length = _extract_param_value(params.get("input_length", None), None, best_params, "input_length")
+        
         code = f"layers.Embedding(input_dim={input_dim}, output_dim={output_dim}"
         if mask_zero:
             code += f", mask_zero={mask_zero}"
+        if input_length:
+            code += f", input_length={input_length}"
         code += ")"
         return code
-    elif layer_type == "PositionalEncoding":
-        max_len = params.get("max_len", 5000)
-        return f"# PositionalEncoding(max_len={max_len}) - Custom implementation required"
-    elif layer_type == "GlobalAveragePooling1D":
-        return "layers.GlobalAveragePooling1D()"
+    elif layer_type == "MultiHeadAttention":
+        num_heads = _extract_param_value(params.get("num_heads", 8), 8, best_params, "num_heads")
+        key_dim = _extract_param_value(params.get("key_dim", 64), 64, best_params, "key_dim")
+        value_dim = _extract_param_value(params.get("value_dim", None), None, best_params, "value_dim")
+        dropout = _extract_param_value(params.get("dropout", 0.0), 0.0, best_params, "dropout")
+        use_bias = _extract_param_value(params.get("use_bias", True), True, best_params, "use_bias")
+        mode = _extract_param_value(params.get("mode", "self"), "self", best_params, "mode")
+        
+        value_dim_str = f", value_dim={value_dim}" if value_dim else ""
+        dropout_str = f", dropout={dropout}" if dropout > 0 else ""
+        use_bias_str = f", use_bias={use_bias}" if not use_bias else ""
+        
+        if mode == "cross":
+            return f"layers.MultiHeadAttention(num_heads={num_heads}, key_dim={key_dim}{value_dim_str}{dropout_str}{use_bias_str})(x, context)"
+        else:
+            return f"layers.MultiHeadAttention(num_heads={num_heads}, key_dim={key_dim}{value_dim_str}{dropout_str}{use_bias_str})(x, x)"
     elif layer_type == "TransformerEncoder":
-        num_heads = params.get("num_heads", 8)
-        ff_dim = params.get("ff_dim", 512)
-        dropout = params.get("dropout", 0.1)
-        code = [
-            "# TransformerEncoder block",
-            f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={ff_dim // num_heads})(x, x)",
-            f"attn_output = layers.Dropout({dropout})(attn_output)",
-            f"x = layers.Add()([x, attn_output])",
-            f"x = layers.LayerNormalization(epsilon=1e-6)(x)",
-            f"ff_output = layers.Dense({ff_dim}, activation='relu')(x)",
-            f"ff_output = layers.Dense(x.shape[-1])(ff_output)",
-            f"ff_output = layers.Dropout({dropout})(ff_output)",
-            f"x = layers.Add()([x, ff_output])",
-            f"x = layers.LayerNormalization(epsilon=1e-6)(x)"
-        ]
+        num_heads = _extract_param_value(params.get("num_heads", 8), 8, best_params, "num_heads")
+        ff_dim = _extract_param_value(params.get("ff_dim", 512), 512, best_params, "ff_dim")
+        dropout = _extract_param_value(params.get("dropout", 0.1), 0.1, best_params, "dropout")
+        num_layers = _extract_param_value(params.get("num_layers", 1), 1, best_params, "num_layers")
+        activation = _extract_param_value(params.get("activation", "relu"), "relu", best_params, "activation")
+        use_attention_mask = _extract_param_value(params.get("use_attention_mask", False), False, best_params, "use_attention_mask")
+        
+        code = ["# TransformerEncoder block"]
+        
+        if use_attention_mask:
+            code.append("# Attention mask should be provided as input")
+            code.append("attention_mask = None  # Set this to your mask tensor")
+        
+        for layer_idx in range(num_layers):
+            code.append(f"# Encoder Layer {layer_idx + 1}")
+            code.append("x = layers.LayerNormalization(epsilon=1e-6)(x)")
+            
+            if use_attention_mask:
+                code.append(f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={ff_dim})(x, x, attention_mask=attention_mask)")
+            else:
+                code.append(f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={ff_dim})(x, x)")
+            
+            code.append(f"attn_output = layers.Dropout({dropout})(attn_output)")
+            code.append("x = layers.Add()([x, attn_output])")
+            code.append("x = layers.LayerNormalization(epsilon=1e-6)(x)")
+            code.append(f"ffn_output = layers.Dense({ff_dim}, activation='{activation}')(x)")
+            code.append(f"ffn_output = layers.Dense({ff_dim})(ffn_output)")
+            code.append(f"ffn_output = layers.Dropout({dropout})(ffn_output)")
+            code.append("x = layers.Add()([x, ffn_output])")
+        
         return "\n".join(code)
     elif layer_type == "TransformerDecoder":
-        num_heads = params.get("num_heads", 8)
-        ff_dim = params.get("ff_dim", 512)
-        dropout = params.get("dropout", 0.1)
-        causal = params.get("causal", True)
+        num_heads = _extract_param_value(params.get("num_heads", 8), 8, best_params, "num_heads")
+        ff_dim = _extract_param_value(params.get("ff_dim", 512), 512, best_params, "ff_dim")
+        dropout = _extract_param_value(params.get("dropout", 0.1), 0.1, best_params, "dropout")
+        d_model = _extract_param_value(params.get("d_model", ff_dim), ff_dim, best_params, "d_model")
+        use_causal_mask = _extract_param_value(params.get("use_causal_mask", True), True, best_params, "use_causal_mask")
+        
         code = [
-            "# TransformerDecoder block",
-            f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={ff_dim // num_heads}, use_causal_mask={causal})(x, x)",
-            f"attn_output = layers.Dropout({dropout})(attn_output)",
-            f"x = layers.Add()([x, attn_output])",
-            f"x = layers.LayerNormalization(epsilon=1e-6)(x)",
-            f"ff_output = layers.Dense({ff_dim}, activation='relu')(x)",
-            f"ff_output = layers.Dense(x.shape[-1])(ff_output)",
-            f"ff_output = layers.Dropout({dropout})(ff_output)",
-            f"x = layers.Add()([x, ff_output])",
-            f"x = layers.LayerNormalization(epsilon=1e-6)(x)"
+            "# TransformerDecoder block with cross-attention",
+            "# Self-attention with causal masking",
+            "decoder_norm1 = layers.LayerNormalization(epsilon=1e-6)(x)",
         ]
+        if use_causal_mask:
+            code.append("# Apply causal mask for autoregressive decoding")
+            code.append(f"self_attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={d_model}, use_causal_mask=True)(decoder_norm1, decoder_norm1)")
+        else:
+            code.append(f"self_attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={d_model})(decoder_norm1, decoder_norm1)")
+        code.extend([
+            f"x = layers.Add()([x, layers.Dropout({dropout})(self_attn_output)])",
+            "# Cross-attention with encoder output (assume encoder_output available)",
+            "decoder_norm2 = layers.LayerNormalization(epsilon=1e-6)(x)",
+            f"cross_attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={d_model})(decoder_norm2, encoder_output, encoder_output)",
+            f"x = layers.Add()([x, layers.Dropout({dropout})(cross_attn_output)])",
+            "# Feed-forward network",
+            "decoder_norm3 = layers.LayerNormalization(epsilon=1e-6)(x)",
+            f"ff_output = layers.Dense({ff_dim}, activation='relu')(decoder_norm3)",
+            f"ff_output = layers.Dense({d_model})(ff_output)",
+            f"x = layers.Add()([x, layers.Dropout({dropout})(ff_output)])"
+        ])
         return "\n".join(code)
+    elif layer_type == "PositionalEncoding":
+        max_len = _extract_param_value(params.get("max_len", 5000), 5000, best_params, "max_len")
+        encoding_type = _extract_param_value(params.get("encoding_type", "sinusoidal"), "sinusoidal", best_params, "encoding_type")
+        
+        if encoding_type == "sinusoidal":
+            code = [
+                "# Sinusoidal Positional Encoding",
+                "import numpy as np",
+                f"def get_positional_encoding(seq_len, d_model, max_len={max_len}):",
+                "    position = np.arange(seq_len)[:, np.newaxis]",
+                "    div_term = np.exp(np.arange(0, d_model, 2) * -(np.log(10000.0) / d_model))",
+                "    pos_encoding = np.zeros((seq_len, d_model))",
+                "    pos_encoding[:, 0::2] = np.sin(position * div_term)",
+                "    pos_encoding[:, 1::2] = np.cos(position * div_term)",
+                "    return tf.constant(pos_encoding, dtype=tf.float32)",
+                "seq_len = tf.shape(x)[1]",
+                "d_model = tf.shape(x)[2]",
+                "pos_encoding = get_positional_encoding(seq_len, d_model)",
+                "x = x + pos_encoding"
+            ]
+            return "\n".join(code)
+        else:
+            code = [
+                "# Learnable Positional Encoding",
+                f"pos_embedding = layers.Embedding(input_dim={max_len}, output_dim=tf.shape(x)[2])",
+                "seq_len = tf.shape(x)[1]",
+                "positions = tf.range(start=0, limit=seq_len, delta=1)",
+                "x = x + pos_embedding(positions)"
+            ]
+            return "\n".join(code)
     elif layer_type == "BatchNormalization":
-        momentum = params.get("momentum", 0.99)
-        epsilon = params.get("epsilon", 0.001)
+        momentum = _extract_param_value(params.get("momentum", 0.99), 0.99, best_params, "momentum")
+        epsilon = _extract_param_value(params.get("epsilon", 0.001), 0.001, best_params, "epsilon")
         if momentum == 0.99 and epsilon == 0.001:
             return "layers.BatchNormalization()"
         return f"layers.BatchNormalization(momentum={momentum}, epsilon={epsilon})"
     elif layer_type == "Conv2D":
-        filters = params.get("filters", 32)
-        kernel_size = params.get("kernel_size", (3, 3))
+        filters = _extract_param_value(params.get("filters", 32), 32, best_params, "filters")
+        kernel_size = _extract_param_value(params.get("kernel_size", (3, 3)), (3, 3), best_params, "kernel_size")
         if isinstance(kernel_size, (tuple, list)):
             kernel_size = kernel_size[0]
-        padding = params.get("padding", "same")
-        activation = params.get("activation", None)
+        padding = _extract_param_value(params.get("padding", "same"), "same", best_params, "padding")
+        activation = _extract_param_value(params.get("activation", None), None, best_params, "activation")
         code = f"layers.Conv2D(filters={filters}, kernel_size={kernel_size}, padding='{padding}'"
         if activation:
             code += f", activation='{activation}'"
         code += ")"
         return code
     elif layer_type == "Dense":
-        units = params.get("units", 64)
-        activation = params.get("activation", None)
+        units = _extract_param_value(params.get("units", 64), 64, best_params, "units")
+        activation = _extract_param_value(params.get("activation", None), None, best_params, "activation")
         code = f"layers.Dense(units={units}"
         if activation:
             code += f", activation='{activation}'"
         code += ")"
         return code
     elif layer_type == "MaxPooling2D":
-        pool_size = params.get("pool_size", (2, 2))
+        pool_size = _extract_param_value(params.get("pool_size", (2, 2)), (2, 2), best_params, "pool_size")
         if isinstance(pool_size, (tuple, list)):
             pool_size = pool_size
-        strides = params.get("strides", None)
+        strides = _extract_param_value(params.get("strides", None), None, best_params, "strides")
         if strides:
             return f"layers.MaxPooling2D(pool_size={pool_size}, strides={strides})"
         return f"layers.MaxPooling2D(pool_size={pool_size})"
     elif layer_type == "AveragePooling2D":
-        pool_size = params.get("pool_size", (2, 2))
+        pool_size = _extract_param_value(params.get("pool_size", (2, 2)), (2, 2), best_params, "pool_size")
         if isinstance(pool_size, (tuple, list)):
             pool_size = pool_size[0] if isinstance(pool_size[0], int) else pool_size
         return f"layers.AveragePooling2D(pool_size={pool_size})"
     elif layer_type == "Flatten":
         return "layers.Flatten()"
     elif layer_type == "LSTM":
-        units = params.get("units", 128)
-        return_sequences = params.get("return_sequences", False)
+        units = _extract_param_value(params.get("units", 128), 128, best_params, "units")
+        return_sequences = _extract_param_value(params.get("return_sequences", False), False, best_params, "return_sequences")
         return f"layers.LSTM(units={units}, return_sequences={str(return_sequences)})"
     elif layer_type == "GRU":
-        units = params.get("units", 64)
-        return_sequences = params.get("return_sequences", False)
+        units = _extract_param_value(params.get("units", 64), 64, best_params, "units")
+        return_sequences = _extract_param_value(params.get("return_sequences", False), False, best_params, "return_sequences")
         return f"layers.GRU(units={units}, return_sequences={str(return_sequences)})"
     elif layer_type == "Dropout":
-        rate = params.get("rate", 0.5)
+        rate = _extract_param_value(params.get("rate", 0.5), 0.5, best_params, "rate")
         return f"layers.Dropout(rate={rate})"
+    elif layer_type == "GlobalAveragePooling1D":
+        return "layers.GlobalAveragePooling1D()"
+    elif layer_type == "GlobalAveragePooling2D":
+        return "layers.GlobalAveragePooling2D()"
+    elif layer_type == "GlobalAveragePooling3D":
+        return "layers.GlobalAveragePooling3D()"
+    elif layer_type == "GlobalMaxPooling1D":
+        return "layers.GlobalMaxPooling1D()"
+    elif layer_type == "GlobalMaxPooling2D":
+        return "layers.GlobalMaxPooling2D()"
+    elif layer_type == "GlobalMaxPooling3D":
+        return "layers.GlobalMaxPooling3D()"
+    elif layer_type == "LayerNormalization":
+        epsilon = _extract_param_value(params.get("epsilon", 0.001), 0.001, best_params, "epsilon")
+        return f"layers.LayerNormalization(epsilon={epsilon})"
     elif layer_type == "Output":
-        units = params.get("units", 10)
-        activation = params.get("activation", "softmax")
+        units = _extract_param_value(params.get("units", 10), 10, best_params, "units")
+        activation = _extract_param_value(params.get("activation", "softmax"), "softmax", best_params, "activation")
         return f"layers.Dense(units={units}, activation='{activation}')"
     else:
         warnings.warn(f"Unsupported layer type '{layer_type}' for tensorflow. Skipping.", UserWarning)
@@ -738,61 +891,73 @@ def generate_tensorflow_layer(layer_type: str, params: Dict[str, Any]) -> Option
 
 
 # Pytorch Layers Code Generator
-def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape: Optional[tuple] = None) -> Optional[str]:
+def generate_pytorch_layer(layer_type, params, input_shape: Optional[tuple] = None, best_params=None):
     """Generate PyTorch layer code"""
     if layer_type == "Embedding":
-        num_embeddings = params.get("input_dim", 10000)
-        embedding_dim = params.get("output_dim", 128)
+        num_embeddings = _extract_param_value(params.get("input_dim", 1000), 1000, best_params, "input_dim")
+        embedding_dim = _extract_param_value(params.get("output_dim", 128), 128, best_params, "output_dim")
         return f"nn.Embedding(num_embeddings={num_embeddings}, embedding_dim={embedding_dim})"
+    elif layer_type == "MultiHeadAttention":
+        embed_dim = _extract_param_value(params.get("embed_dim", None), None, best_params, "embed_dim")
+        num_heads = _extract_param_value(params.get("num_heads", 8), 8, best_params, "num_heads")
+        dropout = _extract_param_value(params.get("dropout", 0.0), 0.0, best_params, "dropout")
+        batch_first = _extract_param_value(params.get("batch_first", True), True, best_params, "batch_first")
+        
+        if embed_dim is None and input_shape is not None and len(input_shape) >= 2:
+            embed_dim = input_shape[-1]
+            if isinstance(embed_dim, dict):
+                embed_dim = _extract_param_value(embed_dim, 512, best_params, "embed_dim")
+        elif embed_dim is None:
+            embed_dim = 512
+        
+        return f"nn.MultiheadAttention(embed_dim={embed_dim}, num_heads={num_heads}, dropout={dropout}, batch_first={batch_first})"
+    elif layer_type == "TransformerEncoder":
+        d_model = _extract_param_value(params.get("d_model", 512), 512, best_params, "d_model")
+        nhead = _extract_param_value(params.get("num_heads", 8), 8, best_params, "num_heads")
+        dim_feedforward = _extract_param_value(params.get("ff_dim", 2048), 2048, best_params, "ff_dim")
+        dropout = _extract_param_value(params.get("dropout", 0.1), 0.1, best_params, "dropout")
+        num_layers = _extract_param_value(params.get("num_layers", 1), 1, best_params, "num_layers")
+        activation = _extract_param_value(params.get("activation", "relu"), "relu", best_params, "activation")
+        
+        if num_layers > 1:
+            return f"nn.TransformerEncoder(nn.TransformerEncoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout}, activation='{activation}'), num_layers={num_layers})"
+        else:
+            return f"nn.TransformerEncoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout}, activation='{activation}')"
+    elif layer_type == "TransformerDecoder":
+        d_model = _extract_param_value(params.get("d_model", 512), 512, best_params, "d_model")
+        nhead = _extract_param_value(params.get("num_heads", 8), 8, best_params, "num_heads")
+        dim_feedforward = _extract_param_value(params.get("ff_dim", 2048), 2048, best_params, "ff_dim")
+        dropout = _extract_param_value(params.get("dropout", 0.1), 0.1, best_params, "dropout")
+        return f"nn.TransformerDecoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout})"
     elif layer_type == "PositionalEncoding":
-        max_len = params.get("max_len", 5000)
-        d_model = params.get("d_model", 512)
-        return f"# PositionalEncoding(max_len={max_len}, d_model={d_model}) - Custom implementation required"
-    elif layer_type == "GlobalAveragePooling1D":
-        return "nn.AdaptiveAvgPool1d(1)"
+        max_len = _extract_param_value(params.get("max_len", 5000), 5000, best_params, "max_len")
+        encoding_type = _extract_param_value(params.get("encoding_type", "sinusoidal"), "sinusoidal", best_params, "encoding_type")
+        
+        if encoding_type == "sinusoidal":
+            return f"SinusoidalPositionalEncoding(max_len={max_len})"
+        else:
+            return f"LearnablePositionalEncoding(max_len={max_len})"
     elif layer_type == "Conv2D":
+        data_format = _extract_param_value(params.get("data_format", "channels_last"), "channels_last", best_params, "data_format")
         in_channels = 3  # Default value
-        if input_shape is not None and len(input_shape) == 4:
-            if input_shape[1] is not None and input_shape[1] <= 4:
-                in_channels = input_shape[1]
-            elif input_shape[-1] is not None and input_shape[-1] <= 4:
-                in_channels = input_shape[-1]
-            else:
-                in_channels = input_shape[1] if input_shape[1] is not None else input_shape[-1]
-        elif input_shape is not None and len(input_shape) > 1:
-            in_channels = input_shape[-1] if input_shape[-1] is not None else 3
-        out_channels = params.get("filters", 32)
-        # Handle dictionary values in out_channels
-        if isinstance(out_channels, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in out_channels:
-                out_channels = out_channels['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {out_channels}, using default")
-                out_channels = 32
-        kernel_size = params.get("kernel_size", 3)
-        # Handle dictionary values in kernel_size
-        if isinstance(kernel_size, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in kernel_size:
-                kernel_size = kernel_size['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {kernel_size}, using default")
-                kernel_size = 3
+        if input_shape is not None:
+            in_channels = input_shape[1] if data_format == "channels_first" else input_shape[3]
+            in_channels = in_channels if len(input_shape) > 3 else 3
+        out_channels = _extract_param_value(params.get("filters", 32), 32, best_params, "filters")
+        kernel_size = _extract_param_value(params.get("kernel_size", 3), 3, best_params, "kernel_size")
         # Handle both tuple/list and integer kernel sizes
         if isinstance(kernel_size, (tuple, list)):
             kernel_size = kernel_size[0]  # Use first element for both dimensions
         return f"nn.Conv2d(in_channels={in_channels}, out_channels={out_channels}, kernel_size={kernel_size})"
     elif layer_type == "BatchNormalization":
-        num_features = 64  # Default value
-        if input_shape and len(input_shape) == 4:
-            num_features = input_shape[1] if input_shape[1] is not None else 64
-        elif input_shape and len(input_shape) > 1:
-            num_features = input_shape[-1] if input_shape[-1] is not None else 64
-        momentum = params.get("momentum", 0.9)
-        eps = params.get("epsilon", 0.001)
+        data_format = _extract_param_value(params.get("data_format", "channels_last"), "channels_last", best_params, "data_format")
+        if input_shape and len(input_shape) > 3:
+            num_features = input_shape[1] if data_format == "channels_first" else input_shape[3]
+        else:
+            # Use the number of filters from previous Conv2D layer if available
+            num_features = _extract_param_value(params.get("filters", 64), 64, best_params, "filters")
+        momentum = _extract_param_value(params.get("momentum", 0.9), 0.9, best_params, "momentum")
+        eps = _extract_param_value(params.get("epsilon", 0.001), 0.001, best_params, "epsilon")
         # Only include momentum and eps if they differ from defaults
         if momentum == 0.9 and eps == 0.001:
             return f"nn.BatchNorm2d(num_features={num_features})"
@@ -804,40 +969,12 @@ def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape:
             dims = []
             for dim in input_shape[1:]:
                 if dim is not None:
-                    # Handle dictionary values
-                    if isinstance(dim, dict):
-                        # If it's a dictionary with a 'value' key, use that value
-                        if 'value' in dim:
-                            dims.append(dim['value'])
-                        # Otherwise, use a default value
-                        else:
-                            logger.warning(f"Dictionary dimension without 'value' key: {dim}, using default")
-                            dims.append(64)  # Default value
-                    else:
-                        dims.append(dim)
+                    dims.append(_extract_param_value(dim, 64, best_params, "dim"))
             in_features = np.prod(dims) if dims else 64
         else:
             in_features = 64
-        out_features = params.get("units", 64)
-        # Handle dictionary values in out_features
-        if isinstance(out_features, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in out_features:
-                out_features = out_features['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {out_features}, using default")
-                out_features = 64
-        activation = params.get("activation", None)
-        # Handle dictionary values in activation
-        if isinstance(activation, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in activation:
-                activation = activation['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {activation}, using default")
-                activation = None
+        out_features = _extract_param_value(params.get("units", 64), 64, best_params, "units")
+        activation = _extract_param_value(params.get("activation", None), None, best_params, "activation")
         layers = [f"nn.Linear(in_features={in_features}, out_features={out_features})"]
         if activation:
             if activation == "relu":
@@ -850,16 +987,16 @@ def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape:
                 layers.append("nn.Identity()")
         return "nn.Sequential(" + ", ".join(layers) + ")"
     elif layer_type == "MaxPooling2D":
-        pool_size = params.get("pool_size", 2)
+        pool_size = _extract_param_value(params.get("pool_size", 2), 2, best_params, "pool_size")
         # Handle both tuple/list and integer pool sizes
         if isinstance(pool_size, (tuple, list)):
             pool_size = pool_size if len(pool_size) == 2 else (pool_size[0], pool_size[0])
-        strides = params.get("strides", None)
+        strides = _extract_param_value(params.get("strides", None), None, best_params, "strides")
         if strides:
             return f"nn.MaxPool2d(kernel_size={pool_size}, stride={strides})"
         return f"nn.MaxPool2d(kernel_size={pool_size})"
     elif layer_type == "AveragePooling2D":
-        pool_size = params.get("pool_size", 2)
+        pool_size = _extract_param_value(params.get("pool_size", 2), 2, best_params, "pool_size")
         # Handle both tuple/list and integer pool sizes
         if isinstance(pool_size, (tuple, list)):
             pool_size = pool_size if len(pool_size) == 2 else (pool_size[0], pool_size[0])
@@ -867,16 +1004,7 @@ def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape:
     elif layer_type == "Flatten":
         return "nn.Flatten()"
     elif layer_type == "Dropout":
-        rate = params.get("rate", 0.5)
-        # Handle dictionary values in rate
-        if isinstance(rate, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in rate:
-                rate = rate['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {rate}, using default")
-                rate = 0.5
+        rate = _extract_param_value(params.get("rate", 0.5), 0.5, best_params, "rate")
         return f"nn.Dropout(p={rate})"
     elif layer_type == "Output":
         # Calculate in_features with proper handling of dictionary values
@@ -885,40 +1013,12 @@ def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape:
             dims = []
             for dim in input_shape[1:]:
                 if dim is not None:
-                    # Handle dictionary values
-                    if isinstance(dim, dict):
-                        # If it's a dictionary with a 'value' key, use that value
-                        if 'value' in dim:
-                            dims.append(dim['value'])
-                        # Otherwise, use a default value
-                        else:
-                            logger.warning(f"Dictionary dimension without 'value' key: {dim}, using default")
-                            dims.append(64)  # Default value
-                    else:
-                        dims.append(dim)
+                    dims.append(_extract_param_value(dim, 64, best_params, "dim"))
             in_features = np.prod(dims) if dims else 64
         else:
             in_features = 64
-        out_features = params.get("units", 10)
-        # Handle dictionary values in out_features
-        if isinstance(out_features, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in out_features:
-                out_features = out_features['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {out_features}, using default")
-                out_features = 10
-        activation = params.get("activation", "softmax")
-        # Handle dictionary values in activation
-        if isinstance(activation, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in activation:
-                activation = activation['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {activation}, using default")
-                activation = "softmax"
+        out_features = _extract_param_value(params.get("units", 10), 10, best_params, "units")
+        activation = _extract_param_value(params.get("activation", "softmax"), "softmax", best_params, "activation")
         layers = [f"nn.Linear(in_features={in_features}, out_features={out_features})"]
         if activation == "softmax":
             layers.append("nn.Softmax(dim=1)")
@@ -927,135 +1027,28 @@ def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape:
         # Get input size with proper handling of dictionary values
         if input_shape:
             input_size = input_shape[-1]
-            # Handle dictionary values
-            if isinstance(input_size, dict):
-                # If it's a dictionary with a 'value' key, use that value
-                if 'value' in input_size:
-                    input_size = input_size['value']
-                # Otherwise, use a default value
-                else:
-                    logger.warning(f"Dictionary dimension without 'value' key: {input_size}, using default")
-                    input_size = 32  # Default value
+            input_size = _extract_param_value(input_size, 32, best_params, "input_size")
         else:
             input_size = 32
 
-        hidden_size = params.get("units", 128)
-        # Handle dictionary values in hidden_size
-        if isinstance(hidden_size, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in hidden_size:
-                hidden_size = hidden_size['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {hidden_size}, using default")
-                hidden_size = 128
+        hidden_size = _extract_param_value(params.get("units", 128), 128, best_params, "units")
         return f"nn.LSTM(input_size={input_size}, hidden_size={hidden_size}, batch_first=True)"
     elif layer_type == "GRU":
-        input_size = params.get("input_size", 128)
-        # Handle dictionary values in input_size
-        if isinstance(input_size, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in input_size:
-                input_size = input_size['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {input_size}, using default")
-                input_size = 128
-
-        hidden_size = params.get("units", 64)
-        # Handle dictionary values in hidden_size
-        if isinstance(hidden_size, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in hidden_size:
-                hidden_size = hidden_size['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {hidden_size}, using default")
-                hidden_size = 64
+        input_size = _extract_param_value(params.get("input_size", 128), 128, best_params, "input_size")
+        hidden_size = _extract_param_value(params.get("units", 64), 64, best_params, "units")
         return f"nn.GRU(input_size={input_size}, hidden_size={hidden_size}, batch_first=True)"
-    elif layer_type == "TransformerEncoder":
-        # Infer d_model from input_shape if available
-        if input_shape and len(input_shape) >= 3:
-            d_model = input_shape[-1]
-        else:
-            d_model = params.get("d_model", 512)
-        # Handle dictionary values in d_model
-        if isinstance(d_model, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in d_model:
-                d_model = d_model['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {d_model}, using default")
-                d_model = 512
-
-        nhead = params.get("num_heads", 8)
-        # Handle dictionary values in nhead
-        if isinstance(nhead, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in nhead:
-                nhead = nhead['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {nhead}, using default")
-                nhead = 8
-
-        dim_feedforward = params.get("ff_dim", 2048)
-        # Handle dictionary values in dim_feedforward
-        if isinstance(dim_feedforward, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in dim_feedforward:
-                dim_feedforward = dim_feedforward['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {dim_feedforward}, using default")
-                dim_feedforward = 2048
-
-        dropout = params.get("dropout", 0.1)
-        # Handle dictionary values in dropout
-        if isinstance(dropout, dict):
-            # If it's a dictionary with a 'value' key, use that value
-            if 'value' in dropout:
-                dropout = dropout['value']
-            # Otherwise, use a default value
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {dropout}, using default")
-                dropout = 0.1
-        return f"nn.TransformerEncoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout}, batch_first=True)"
-    elif layer_type == "TransformerDecoder":
-        # Infer d_model from input_shape if available
-        if input_shape and len(input_shape) >= 3:
-            d_model = input_shape[-1]
-        else:
-            d_model = params.get("d_model", 512)
-        if isinstance(d_model, dict):
-            if 'value' in d_model:
-                d_model = d_model['value']
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {d_model}, using default")
-                d_model = 512
-        nhead = params.get("num_heads", 8)
-        if isinstance(nhead, dict):
-            if 'value' in nhead:
-                nhead = nhead['value']
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {nhead}, using default")
-                nhead = 8
-        dim_feedforward = params.get("ff_dim", 2048)
-        if isinstance(dim_feedforward, dict):
-            if 'value' in dim_feedforward:
-                dim_feedforward = dim_feedforward['value']
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {dim_feedforward}, using default")
-                dim_feedforward = 2048
-        dropout = params.get("dropout", 0.1)
-        if isinstance(dropout, dict):
-            if 'value' in dropout:
-                dropout = dropout['value']
-            else:
-                logger.warning(f"Dictionary parameter without 'value' key: {dropout}, using default")
-                dropout = 0.1
-        return f"nn.TransformerDecoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout}, batch_first=True)"
+    elif layer_type == "GlobalAveragePooling1D":
+        return "nn.AdaptiveAvgPool1d(1)"
+    elif layer_type == "GlobalAveragePooling2D":
+        return "nn.AdaptiveAvgPool2d(1)"
+    elif layer_type == "GlobalAveragePooling3D":
+        return "nn.AdaptiveAvgPool3d(1)"
+    elif layer_type == "GlobalMaxPooling1D":
+        return "nn.AdaptiveMaxPool1d(1)"
+    elif layer_type == "GlobalMaxPooling2D":
+        return "nn.AdaptiveMaxPool2d(1)"
+    elif layer_type == "GlobalMaxPooling3D":
+        return "nn.AdaptiveMaxPool3d(1)"
     else:
         warnings.warn(f"Unsupported layer type '{layer_type}' for pytorch. Skipping.", UserWarning)
         return None
@@ -1143,11 +1136,7 @@ def generate_optimized_dsl(config: str, best_params: Dict[str, Any]) -> str:
                         param_value_str = f'"{param_value}"'  # Add quotes for string values
                     elif isinstance(param_value, dict):
                         # Convert dictionary to a string representation
-                        if 'value' in param_value:
-                            param_value_str = str(param_value['value'])
-                        else:
-                            logger.warning(f"Dictionary parameter without 'value' key: {param_value}, using string representation")
-                            param_value_str = str(param_value)
+                        param_value_str = str(_extract_param_value(param_value, param_value, best_params, param_key))
                     else:
                         param_value_str = str(param_value)
 
@@ -1172,12 +1161,7 @@ def generate_optimized_dsl(config: str, best_params: Dict[str, Any]) -> str:
                         elif isinstance(lr_value, str):
                             lr_str = f'"{lr_value}"'  # Add quotes for string values
                         elif isinstance(lr_value, dict):
-                            # Convert dictionary to a string representation
-                            if 'value' in lr_value:
-                                lr_str = str(lr_value['value'])
-                            else:
-                                logger.warning(f"Dictionary parameter without 'value' key: {lr_value}, using string representation")
-                                lr_str = str(lr_value)
+                            lr_str = str(_extract_param_value(lr_value, lr_value, best_params, "learning_rate"))
                         else:
                             lr_str = str(lr_value)
 
