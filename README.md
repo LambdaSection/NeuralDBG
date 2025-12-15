@@ -242,6 +242,7 @@ This uses a language model under the hood (requires API key setup—see [docs/ai
 
 ## Documentation
 
+- [Quick Reference](docs/quick_reference.md) – Essential commands and quick-start guide
 - [DSL Language Reference](docs/dsl.md) – Complete syntax guide
 - [Deployment Guide](docs/deployment.md) – Production export options
 - [AI Integration Guide](docs/ai_integration_guide.md) – Natural language model generation
@@ -408,7 +409,7 @@ Run tests with coverage and generate report:
 python generate_test_coverage_summary.py
 ```
 
-This generates `TEST_COVERAGE_SUMMARY.md` with test statistics, coverage metrics, and recommendations. See [TESTING_QUICK_REFERENCE.md](TESTING_QUICK_REFERENCE.md) for more test commands.
+This generates `TEST_COVERAGE_SUMMARY.md` with test statistics, coverage metrics, and recommendations.
 
 **Supply-chain audit**
 

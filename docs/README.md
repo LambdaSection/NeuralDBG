@@ -5,6 +5,7 @@ Welcome to the Neural DSL documentation directory. This guide helps you navigate
 ## Quick Navigation
 
 ### Essential Reading
+- [**Quick Reference**](quick_reference.md) - **Consolidated quick-start guide** ⭐
 - [Getting Started](../GETTING_STARTED.md) - Installation and first steps
 - [Contributing Guide](../CONTRIBUTING.md) - How to contribute
 - [Changelog](../CHANGELOG.md) - Version history and changes
@@ -93,7 +94,7 @@ Features being phased out or experimental:
 ### "I want to..."
 
 **...get started quickly**
-→ [GETTING_STARTED.md](../GETTING_STARTED.md)
+→ [Quick Reference](quick_reference.md) or [GETTING_STARTED.md](../GETTING_STARTED.md)
 
 **...understand the DSL syntax**
 → [dsl.md](dsl.md)
@@ -193,6 +194,7 @@ This documentation is maintained by the Neural DSL team and community contributo
 
 **Quick Links**:
 [Home](../README.md) |
+[Quick Reference](quick_reference.md) |
 [Focus](FOCUS.md) |
 [Getting Started](../GETTING_STARTED.md) |
 [Contributing](../CONTRIBUTING.md) |

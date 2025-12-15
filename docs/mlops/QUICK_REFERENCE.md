@@ -1,5 +1,3 @@
 # DEPRECATED
 
-This file content should be consolidated into the main MLOps documentation.
-
-Please refer to the other files in this directory for MLOps documentation.
+This file has been removed and consolidated into [docs/quick_reference.md](../quick_reference.md).

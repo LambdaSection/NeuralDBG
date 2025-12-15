@@ -1,3 +1,5 @@
 # DEPRECATED
 
-This file is redundant. Please refer to `QUICKSTART.md` or `README.md` in this directory.
+This file has been removed and consolidated into [docs/quick_reference.md](../../docs/quick_reference.md).
+
+For AI integration details, see [docs/ai_integration_guide.md](../../docs/ai_integration_guide.md).

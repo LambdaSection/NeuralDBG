@@ -1,3 +1,3 @@
 # DEPRECATED
 
-This file has been consolidated. Please refer to `build/PACKAGING_GUIDE.md`.
+This file has been removed and consolidated into [docs/quick_reference.md](../../docs/quick_reference.md).

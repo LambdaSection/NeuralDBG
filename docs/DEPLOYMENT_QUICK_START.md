@@ -1,5 +1,5 @@
 # DEPRECATED
 
-This file has been consolidated into `deployment.md`.
+This file has been removed and consolidated into [docs/quick_reference.md](quick_reference.md).
 
-Please refer to that file for comprehensive deployment documentation.
+For comprehensive deployment information, see [deployment.md](deployment.md).
