@@ -7,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 import pytest
 import numpy as np
 from neural.shape_propagation.shape_propagator import ShapePropagator
+from neural.exceptions import InvalidParameterError, InvalidShapeError, ShapeMismatchError
 
 #########################################
 # 1. Conv2D with 'valid' padding (channels_last)

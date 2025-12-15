@@ -7,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")
 import pytest
 import numpy as np
 from neural.shape_propagation.shape_propagator import ShapePropagator
+from neural.exceptions import InvalidParameterError, InvalidShapeError, ShapeMismatchError
 
 #########################################
 # 1. Error when Conv2D kernel size exceeds input dimensions
@@ -18,7 +19,7 @@ def test_conv2d_kernel_too_large():
         "type": "Conv2D",
         "params": {
             "filters": 16,
-            "kernel_size": (30, 30),  # Larger than input spatial dimensions
+            "kernel_size": (30, 30),
             "padding": "valid",
             "stride": 1
         }
@@ -32,14 +33,14 @@ def test_conv2d_kernel_too_large():
 #########################################
 def test_dense_with_4d_input():
     propagator = ShapePropagator()
-    input_shape = (1, 28, 28, 3)  # 4D input
+    input_shape = (1, 28, 28, 3)
     layer = {
         "type": "Dense",
         "params": {
             "units": 64
         }
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ShapeMismatchError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "dense layer expects 2d input" in str(excinfo.value).lower()
 
@@ -58,7 +59,7 @@ def test_conv2d_missing_filters():
             "stride": 1
         }
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(InvalidParameterError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "filters" in str(excinfo.value).lower()
 
@@ -74,7 +75,7 @@ def test_dense_missing_units():
             # Missing units parameter
         }
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(InvalidParameterError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "units" in str(excinfo.value).lower()
 
@@ -87,13 +88,13 @@ def test_conv2d_negative_filters():
     layer = {
         "type": "Conv2D",
         "params": {
-            "filters": -16,  # Negative filters
+            "filters": -16,
             "kernel_size": (3, 3),
             "padding": "valid",
             "stride": 1
         }
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(InvalidParameterError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "positive" in str(excinfo.value).lower()
 
@@ -106,11 +107,11 @@ def test_maxpooling2d_pool_size_too_large():
     layer = {
         "type": "MaxPooling2D",
         "params": {
-            "pool_size": (30, 30),  # Larger than input spatial dimensions
+            "pool_size": (30, 30),
             "stride": 1
         }
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ShapeMismatchError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "pool_size" in str(excinfo.value).lower()
 
@@ -126,10 +127,10 @@ def test_conv2d_negative_stride():
             "filters": 16,
             "kernel_size": (3, 3),
             "padding": "valid",
-            "stride": -1  # Negative stride
+            "stride": -1
         }
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(InvalidParameterError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "stride" in str(excinfo.value).lower()
 
@@ -143,10 +144,10 @@ def test_maxpooling2d_negative_stride():
         "type": "MaxPooling2D",
         "params": {
             "pool_size": (2, 2),
-            "stride": -2  # Negative stride
+            "stride": -2
         }
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(InvalidParameterError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "stride" in str(excinfo.value).lower()
 
@@ -155,7 +156,7 @@ def test_maxpooling2d_negative_stride():
 #########################################
 def test_invalid_input_shape_empty():
     propagator = ShapePropagator()
-    input_shape = ()  # Empty shape
+    input_shape = ()
     layer = {
         "type": "Conv2D",
         "params": {
@@ -165,7 +166,7 @@ def test_invalid_input_shape_empty():
             "stride": 1
         }
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(InvalidShapeError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "shape" in str(excinfo.value).lower()
 
@@ -174,7 +175,7 @@ def test_invalid_input_shape_empty():
 #########################################
 def test_invalid_input_shape_negative():
     propagator = ShapePropagator()
-    input_shape = (1, -28, 28, 3)  # Negative dimension
+    input_shape = (1, -28, 28, 3)
     layer = {
         "type": "Conv2D",
         "params": {
@@ -184,7 +185,7 @@ def test_invalid_input_shape_negative():
             "stride": 1
         }
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(InvalidShapeError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "negative" in str(excinfo.value).lower()
 
@@ -203,7 +204,7 @@ def test_missing_layer_type():
             "stride": 1
         }
     }
-    with pytest.raises(KeyError) as excinfo:
+    with pytest.raises(InvalidParameterError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "type" in str(excinfo.value).lower()
 
@@ -217,7 +218,7 @@ def test_missing_params():
         "type": "Conv2D"
         # Missing params
     }
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(InvalidParameterError) as excinfo:
         propagator.propagate(input_shape, layer, framework="tensorflow")
     assert "filters" in str(excinfo.value).lower()
 

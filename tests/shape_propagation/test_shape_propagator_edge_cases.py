@@ -9,6 +9,7 @@ from neural.shape_propagation.shape_propagator import (
     ShapePropagator, ShapeValidator, PerformanceMonitor,
     detect_dead_neurons, detect_activation_anomalies, TORCH_AVAILABLE
 )
+from neural.exceptions import InvalidParameterError, InvalidShapeError, ShapeMismatchError
 
 
 class TestShapePropagatorInitialization:
@@ -41,7 +42,7 @@ class TestLayerValidation:
         propagator = ShapePropagator()
         input_shape = (1, 28, 28, 1)
         layer = {"params": {"filters": 32}}
-        with pytest.raises(KeyError):
+        with pytest.raises(InvalidParameterError):
             propagator.propagate(input_shape, layer)
     
     def test_propagate_empty_input_shape(self):
@@ -49,7 +50,7 @@ class TestLayerValidation:
         propagator = ShapePropagator()
         input_shape = ()
         layer = {"type": "Dense", "params": {"units": 64}}
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(InvalidShapeError) as exc_info:
             propagator.propagate(input_shape, layer)
         assert "Input shape cannot be empty" in str(exc_info.value)
     
@@ -58,7 +59,7 @@ class TestLayerValidation:
         propagator = ShapePropagator()
         input_shape = (1, -28, 28, 1)
         layer = {"type": "Conv2D", "params": {"filters": 32, "kernel_size": 3}}
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(InvalidShapeError) as exc_info:
             propagator.propagate(input_shape, layer)
         assert "negative dimensions" in str(exc_info.value)
 
@@ -93,7 +94,6 @@ class TestConv2DEdgeCases:
                 "padding": "same"
             }
         }
-        # Should use default value
         output_shape = propagator.propagate(input_shape, layer, framework="tensorflow")
         assert len(output_shape) == 4
     
@@ -111,7 +111,7 @@ class TestConv2DEdgeCases:
             }
         }
         output_shape = propagator.propagate(input_shape, layer, framework="tensorflow")
-        assert output_shape[1] == 14  # Height reduced by stride
+        assert output_shape[1] == 14
     
     def test_conv2d_filters_as_dict(self):
         """Test Conv2D with filters as dict"""
@@ -172,9 +172,7 @@ class TestConv2DEdgeCases:
                 "stride": 1
             }
         }
-        # Should handle invalid dimensions gracefully
         output_shape = propagator.propagate(input_shape, layer, framework="tensorflow")
-        # Default fallback should be applied
         assert output_shape[1] >= 1 and output_shape[2] >= 1
 
 
@@ -225,12 +223,11 @@ class TestMaxPooling2DEdgeCases:
     def test_maxpooling2d_invalid_input_shape(self):
         """Test MaxPooling2D with invalid input shape"""
         propagator = ShapePropagator()
-        input_shape = (1, 8)  # 2D instead of 4D
+        input_shape = (1, 8)
         layer = {
             "type": "MaxPooling2D",
             "params": {"pool_size": 2}
         }
-        # Should handle gracefully with default values
         output_shape = propagator.propagate(input_shape, layer, framework="tensorflow")
         assert len(output_shape) >= 2
 
@@ -268,7 +265,7 @@ class TestDenseLayerEdgeCases:
             "type": "Dense",
             "params": {"units": 10}
         }
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ShapeMismatchError) as exc_info:
             propagator.propagate(input_shape, layer, framework="tensorflow")
         assert "expects 2D input" in str(exc_info.value)
 
@@ -327,12 +324,11 @@ class TestGlobalAveragePooling2D:
     def test_gap2d_invalid_input_shape(self):
         """Test GlobalAveragePooling2D with invalid input shape"""
         propagator = ShapePropagator()
-        input_shape = (1, 512)  # 2D instead of 4D
+        input_shape = (1, 512)
         layer = {
             "type": "GlobalAveragePooling2D",
             "params": {}
         }
-        # Should handle gracefully with default
         output_shape = propagator.propagate(input_shape, layer, framework="tensorflow")
         assert len(output_shape) >= 1
 
@@ -482,8 +478,8 @@ class TestPerformanceComputation:
         flops, mem, compute_time, transfer_time = propagator._compute_performance(
             layer, input_shape, output_shape
         )
-        assert flops == 0  # Default for unknown layers
-        assert mem > 0  # Memory should still be computed
+        assert flops == 0
+        assert mem > 0
 
 
 class TestExecutionTrace:
@@ -514,14 +510,13 @@ class TestShapeValidator:
         """Test Conv validation with correct 4D input"""
         input_shape = (1, 28, 28, 3)
         params = {"kernel_size": 3}
-        # Should not raise
         ShapeValidator.validate_layer("Conv2D", input_shape, params)
     
     def test_validate_conv_invalid_dimensions(self):
         """Test Conv validation with invalid dimensions"""
-        input_shape = (1, 28, 3)  # 3D instead of 4D
+        input_shape = (1, 28, 3)
         params = {"kernel_size": 3}
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ShapeMismatchError) as exc_info:
             ShapeValidator.validate_layer("Conv2D", input_shape, params)
         assert "4D input" in str(exc_info.value)
     
@@ -529,7 +524,7 @@ class TestShapeValidator:
         """Test Conv validation with kernel larger than input"""
         input_shape = (1, 10, 10, 3)
         params = {"kernel_size": 15}
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ShapeMismatchError) as exc_info:
             ShapeValidator.validate_layer("Conv2D", input_shape, params)
         assert "exceeds input dimension" in str(exc_info.value)
     
@@ -537,14 +532,13 @@ class TestShapeValidator:
         """Test Dense validation with correct 2D input"""
         input_shape = (1, 128)
         params = {"units": 64}
-        # Should not raise
         ShapeValidator.validate_layer("Dense", input_shape, params)
     
     def test_validate_dense_higher_d_input(self):
         """Test Dense validation with higher dimensional input"""
         input_shape = (1, 7, 7, 64)
         params = {"units": 10}
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ShapeMismatchError) as exc_info:
             ShapeValidator.validate_layer("Dense", input_shape, params)
         assert "2D input" in str(exc_info.value)
 
@@ -578,7 +572,6 @@ class TestLayerHandlerRegistry:
         output_shape = propagator.propagate(input_shape, layer)
         assert output_shape == (1, 999)
         
-        # Clean up
         del ShapePropagator.LAYER_HANDLERS["Dense"]
 
 
@@ -664,7 +657,7 @@ class TestDetectionFunctions:
         layer = DummyLayer()
         layer.__class__.__name__ = "TestLayer"
         input_tensor = torch.randn(1, 10)
-        output_tensor = torch.randn(1, 10) * 1000  # Large values
+        output_tensor = torch.randn(1, 10) * 1000
         
         result = detect_activation_anomalies(layer, input_tensor, output_tensor)
         assert result['anomaly'] is True
@@ -709,8 +702,6 @@ class TestMultiInputPropagation:
             ],
             "outputs": ["concat"]
         }
-        # This tests the concatenate handling in propagate_model
-        # The actual shape depends on the Concatenate handler implementation
 
 
 class TestPerformanceMonitor:

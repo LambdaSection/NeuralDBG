@@ -8,6 +8,7 @@ from unittest.mock import patch, MagicMock
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from neural.shape_propagation.shape_propagator import ShapePropagator
+from neural.exceptions import InvalidParameterError, InvalidShapeError, ShapeMismatchError
 
 
 class TestShapeVisualization:
