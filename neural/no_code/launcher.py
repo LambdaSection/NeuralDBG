@@ -3,6 +3,9 @@ Launcher for the No-Code Interface
 Supports both classic Dash UI and modern React Flow UI
 """
 import argparse
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -33,13 +36,13 @@ def main():
     args = parser.parse_args()
     
     if args.ui == 'react':
-        print("🚀 Starting Neural DSL No-Code Designer (React Flow UI)")
-        print(f"🌐 Open your browser to http://{args.host}:{args.port}")
+        logger.info(f"🚀 Starting Neural DSL No-Code Designer (React Flow UI)")
+        logger.info(f"🌐 Open your browser to http://{args.host}:{args.port}")
         from neural.no_code.app import app
         app.run(host=args.host, port=args.port, debug=args.debug)
     else:
-        print("🚀 Starting Neural DSL No-Code Interface (Classic Dash UI)")
-        print(f"🌐 Open your browser to http://{args.host}:{args.port}")
+        logger.info(f"🚀 Starting Neural DSL No-Code Interface (Classic Dash UI)")
+        logger.info(f"🌐 Open your browser to http://{args.host}:{args.port}")
         from neural.no_code.no_code import app
         app.run_server(host=args.host, port=args.port, debug=args.debug)
 

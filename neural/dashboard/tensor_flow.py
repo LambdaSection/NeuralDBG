@@ -1,9 +1,12 @@
+import logging
 import time
 
 import networkx as nx
 import numpy as np
 
 from neural.exceptions import DependencyError
+
+logger = logging.getLogger(__name__)
 
 # Lazy load heavy dependencies
 try:
@@ -58,7 +61,10 @@ def create_animated_network(layer_data, show_progress=True):
 
     # Initialize progress tracking
     progress_data = {
-        "steps": ["Building graph", "Creating connections", "Calculating layout", "Rendering visualization"],
+        "steps": [
+            "Building graph", "Creating connections", "Calculating layout",
+            "Rendering visualization"
+        ],
         "current_step": 0,
         "progress": 0,
         "details": "",
@@ -71,8 +77,10 @@ def create_animated_network(layer_data, show_progress=True):
     # Add nodes with layer metadata
     for i, layer in enumerate(layer_data):
         if show_progress:
-            progress_data["details"] = f"Adding node {i+1}/{len(layer_data)}: {layer['layer']}"
-            progress_data["progress"] = (i+1) / len(layer_data) * 25  # 25% for this step
+            progress_data["details"] = (
+                f"Adding node {i+1}/{len(layer_data)}: {layer['layer']}"
+            )
+            progress_data["progress"] = (i+1) / len(layer_data) * 25  # 25%
             _update_progress(progress_data)
 
         G.add_node(layer["layer"], output_shape=layer["output_shape"])
@@ -86,8 +94,11 @@ def create_animated_network(layer_data, show_progress=True):
     # Add edges (sequential for now; customize for branched architectures)
     for i in range(1, len(layer_data)):
         if show_progress:
-            progress_data["details"] = f"Connecting {layer_data[i-1]['layer']} → {layer_data[i]['layer']}"
-            progress_data["progress"] = 25 + (i) / (len(layer_data)-1) * 25  # 25-50% for this step
+            progress_data["details"] = (
+                f"Connecting {layer_data[i-1]['layer']} → "
+                f"{layer_data[i]['layer']}"
+            )
+            progress_data["progress"] = 25 + (i) / (len(layer_data)-1) * 25
             _update_progress(progress_data)
 
         G.add_edge(layer_data[i-1]["layer"], layer_data[i]["layer"])
@@ -101,7 +112,7 @@ def create_animated_network(layer_data, show_progress=True):
 
     # Use Graphviz tree layout to prevent overlaps
     if GRAPHVIZ_LAYOUT_AVAILABLE:
-        pos = graphviz_layout(G, prog="dot", args="-Grankdir=TB")  # Top-to-bottom hierarchy
+        pos = graphviz_layout(G, prog="dot", args="-Grankdir=TB")
     else:
         # Fallback to spring layout
         pos = nx.spring_layout(G)
@@ -116,7 +127,7 @@ def create_animated_network(layer_data, show_progress=True):
     for i, edge in enumerate(G.edges()):
         if show_progress:
             progress_data["details"] = f"Processing edge {i+1}/{len(G.edges())}"
-            progress_data["progress"] = 75 + (i+1) / len(G.edges()) * 12.5  # 75-87.5% for this step
+            progress_data["progress"] = 75 + (i+1) / len(G.edges()) * 12.5
             _update_progress(progress_data)
 
         x0, y0 = pos[edge[0]]
@@ -134,7 +145,7 @@ def create_animated_network(layer_data, show_progress=True):
     for i, node in enumerate(G.nodes()):
         if show_progress:
             progress_data["details"] = f"Processing node {i+1}/{len(G.nodes())}"
-            progress_data["progress"] = 87.5 + (i+1) / len(G.nodes()) * 12.5  # 87.5-100% for this step
+            progress_data["progress"] = 87.5 + (i+1) / len(G.nodes()) * 12.5
             _update_progress(progress_data)
 
         x, y = pos[node]
@@ -162,7 +173,10 @@ def create_animated_network(layer_data, show_progress=True):
             node_colors.append("lightblue")
 
         # Create hover text with shape information
-        hover_text = f"Layer: {node}<br>Shape: {output_shape}<br>Elements: {tensor_size:,}"
+        hover_text = (
+            f"Layer: {node}<br>Shape: {output_shape}<br>"
+            f"Elements: {tensor_size:,}"
+        )
         node_hover_texts.append(hover_text)
 
     # Create figure
@@ -210,10 +224,13 @@ def _update_progress(progress_data):
     elapsed = time.time() - progress_data["start_time"]
     step = progress_data["steps"][progress_data["current_step"]]
 
-    # Print progress to console
-    print(f"[{progress_data['progress']:.1f}%] Step {progress_data['current_step']+1}/4: {step}")
-    print(f"  → {progress_data['details']}")
-    print(f"  → Elapsed: {elapsed:.2f}s")
+    # Log progress information
+    logger.info(
+        f"[{progress_data['progress']:.1f}%] "
+        f"Step {progress_data['current_step']+1}/4: {step}"
+    )
+    logger.info(f"  → {progress_data['details']}")
+    logger.info(f"  → Elapsed: {elapsed:.2f}s")
 
     # You could also emit this via websockets for dashboard updates
     # This would be implemented if using with Dash/Flask
@@ -230,8 +247,11 @@ def create_progress_component():
     return html.Div([
         html.H4("Visualization Progress"),
         html.Div(id="progress-bar-container", children=[
-            html.Div(id="progress-bar",
-                     style={"width": "0%", "backgroundColor": "#4CAF50", "height": "30px"})
+            html.Div(
+                id="progress-bar",
+                style={"width": "0%", "backgroundColor": "#4CAF50",
+                       "height": "30px"}
+            )
         ], style={"width": "100%", "backgroundColor": "#ddd"}),
         html.Div(id="progress-text", children="0%"),
         html.Div(id="progress-details", children="Initializing...")

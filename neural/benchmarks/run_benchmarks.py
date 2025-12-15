@@ -8,9 +8,11 @@ and model performance.
 """
 
 import argparse
+import logging
 from pathlib import Path
 import sys
 
+logger = logging.getLogger(__name__)
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -76,16 +78,16 @@ def main():
     args = parse_args()
     
     if not args.quiet:
-        print("=" * 70)
-        print("Neural DSL Comprehensive Benchmarking Suite")
-        print("=" * 70)
-        print("\nConfiguration:")
-        print(f"  Frameworks: {', '.join(args.frameworks)}")
-        print(f"  Epochs: {args.epochs}")
-        print(f"  Batch Size: {args.batch_size}")
-        print(f"  Output Directory: {args.output_dir}")
-        print(f"  Report Directory: {args.report_dir}")
-        print()
+        logger.info("=" * 70)
+        logger.info("Neural DSL Comprehensive Benchmarking Suite")
+        logger.info("=" * 70)
+        logger.info(f"\nConfiguration:")
+        logger.info(f"  Frameworks: {', '.join(args.frameworks)}")
+        logger.info(f"  Epochs: {args.epochs}")
+        logger.info(f"  Batch Size: {args.batch_size}")
+        logger.info(f"  Output Directory: {args.output_dir}")
+        logger.info(f"  Report Directory: {args.report_dir}")
+        logger.info("")
     
     framework_map = {
         "neural": NeuralDSLImplementation,
@@ -106,16 +108,16 @@ def main():
             fw_class = framework_map[fw_name]
             frameworks.append(fw_class())
             if not args.quiet:
-                print(f"✓ Loaded {fw_name}")
+                logger.info(f"✓ Loaded {fw_name}")
         except ImportError as e:
             if not args.quiet:
-                print(f"⚠ Skipping {fw_name}: {e}")
+                logger.warning(f"⚠ Skipping {fw_name}: {e}")
         except Exception as e:
             if not args.quiet:
-                print(f"✗ Error loading {fw_name}: {e}")
+                logger.error(f"✗ Error loading {fw_name}: {e}")
     
     if not frameworks:
-        print("\n✗ No frameworks available to benchmark!")
+        logger.error("\n✗ No frameworks available to benchmark!")
         sys.exit(1)
     
     tasks = [
@@ -130,17 +132,17 @@ def main():
     runner = BenchmarkRunner(output_dir=args.output_dir, verbose=not args.quiet)
     
     if not args.quiet:
-        print(f"\n{'=' * 70}")
-        print(f"Running benchmarks: {len(frameworks)} framework(s) × {len(tasks)} task(s)")
-        print(f"{'=' * 70}\n")
+        logger.info(f"\n{'=' * 70}")
+        logger.info(f"Running benchmarks: {len(frameworks)} framework(s) × {len(tasks)} task(s)")
+        logger.info(f"{'=' * 70}\n")
     
     try:
         results = runner.run_all_benchmarks(frameworks, tasks, save_results=True)
         
         if not args.quiet:
-            print(f"\n{'=' * 70}")
-            print("Benchmark Execution Complete")
-            print(f"{'=' * 70}\n")
+            logger.info(f"\n{'=' * 70}")
+            logger.info("Benchmark Execution Complete")
+            logger.info(f"{'=' * 70}\n")
         
         report_gen = ReportGenerator(output_dir=args.report_dir)
         report_path = report_gen.generate_report(
@@ -150,18 +152,18 @@ def main():
         )
         
         if not args.quiet:
-            print(f"\n{'=' * 70}")
-            print("Benchmarking Complete!")
-            print(f"{'=' * 70}")
-            print(f"\n✓ Results saved to: {args.output_dir}")
-            print(f"✓ Report available at: {report_path}")
-            print(f"\nTo view the report, open: file://{Path(report_path).absolute()}")
+            logger.info(f"\n{'=' * 70}")
+            logger.info("Benchmarking Complete!")
+            logger.info(f"{'=' * 70}")
+            logger.info(f"\n✓ Results saved to: {args.output_dir}")
+            logger.info(f"✓ Report available at: {report_path}")
+            logger.info(f"\nTo view the report, open: file://{Path(report_path).absolute()}")
     
     except KeyboardInterrupt:
-        print("\n\n⚠ Benchmarking interrupted by user")
+        logger.warning("\n\n⚠ Benchmarking interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n\n✗ Benchmarking failed: {e}")
+        logger.error(f"\n\n✗ Benchmarking failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

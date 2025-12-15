@@ -4,10 +4,12 @@ Handles debug commands, breakpoint management, and execution control.
 """
 
 import json
+import logging
 import threading
 import time
 from typing import Any, Callable, Dict, List, Optional, Set
 
+logger = logging.getLogger(__name__)
 
 try:
     from flask_socketio import SocketIO, emit
@@ -229,13 +231,13 @@ def setup_debugger_routes(app, socketio: Optional[SocketIO], debugger: DebuggerB
     @socketio.on('connect')
     def handle_connect():
         """Handle client connection."""
-        print('Debugger client connected')
+        logger.info('Debugger client connected')
         debugger.emit_state_change()
 
     @socketio.on('disconnect')
     def handle_disconnect():
         """Handle client disconnection."""
-        print('Debugger client disconnected')
+        logger.info('Debugger client disconnected')
 
     @socketio.on('message')
     def handle_message(data):
@@ -274,7 +276,7 @@ def setup_debugger_routes(app, socketio: Optional[SocketIO], debugger: DebuggerB
                 debugger.handle_clear_all_breakpoints()
 
         except Exception as e:
-            print(f'Error handling debugger command: {e}')
+            logger.error(f'Error handling debugger command: {e}', exc_info=True)
 
     @app.route('/api/debugger/status')
     def get_debugger_status():

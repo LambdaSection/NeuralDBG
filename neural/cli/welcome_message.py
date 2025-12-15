@@ -3,12 +3,14 @@ Welcome message module for Neural CLI.
 Displays a welcome message the first time the CLI is run.
 """
 
+import logging
 import os
 from pathlib import Path
 import sys
 
 from .cli_aesthetics import Colors, animate_neural_network, print_error, print_neural_logo
 
+logger = logging.getLogger(__name__)
 
 WELCOME_MESSAGE = f"""
 {Colors.CYAN}Welcome to Neural CLI!{Colors.ENDC}
@@ -53,7 +55,8 @@ def show_welcome_message():
         if not welcome_file.exists():
             print_neural_logo()
             print(WELCOME_MESSAGE)
-            print("Here's a preview of what Neural can visualize:")
+            logger.info("Displaying welcome message to new user")
+            logger.info("Here's a preview of what Neural can visualize:")
             if not os.environ.get('NEURAL_NO_ANIMATIONS'):
                 animate_neural_network(3)
             welcome_file.touch()

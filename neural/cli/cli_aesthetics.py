@@ -3,10 +3,13 @@ CLI aesthetics module for Neural.
 Provides ASCII art, loading animations, and other visual enhancements for the CLI.
 """
 
+import logging
 import os
 import sys
 import threading
 import time
+
+logger = logging.getLogger(__name__)
 
 # Neural ASCII Logo
 NEURAL_LOGO = """
@@ -133,7 +136,10 @@ class Spinner:
         i = 0
         while self.running:
             if not self.quiet:
-                sys.stdout.write(f"\r{Colors.CYAN}{self.spinner_chars[i]}{Colors.ENDC} {self.message}")
+                sys.stdout.write(
+                    f"\r{Colors.CYAN}{self.spinner_chars[i]}{Colors.ENDC} "
+                    f"{self.message}"
+                )
                 sys.stdout.flush()
             time.sleep(self.delay)
             i = (i + 1) % len(self.spinner_chars)
@@ -155,7 +161,8 @@ class Spinner:
             self.spinner_thread.join()
 
     def __enter__(self):
-        if os.environ.get('NEURAL_NO_ANIMATIONS') or not sys.stdout.isatty() or self.quiet:
+        if (os.environ.get('NEURAL_NO_ANIMATIONS') or
+                not sys.stdout.isatty() or self.quiet):
             return self
         self.start()
         return self
@@ -164,7 +171,8 @@ class Spinner:
         self.stop()
 
 # Progress bar
-def progress_bar(iteration, total, prefix='', suffix='', length=50, fill='█', print_end="\r", quiet=False):
+def progress_bar(iteration, total, prefix='', suffix='', length=50, fill='█',
+                 print_end="\r", quiet=False):
     """
     Call in a loop to create terminal progress bar
     """
@@ -173,7 +181,9 @@ def progress_bar(iteration, total, prefix='', suffix='', length=50, fill='█', 
     percent = ("{0:.1f}").format(100 * (iteration / float(total)))
     filled_length = int(length * iteration // total)
     bar = fill * filled_length + '-' * (length - filled_length)
-    sys.stdout.write(f'\r{prefix} |{Colors.CYAN}{bar}{Colors.ENDC}| {percent}% {suffix}')
+    sys.stdout.write(
+        f'\r{prefix} |{Colors.CYAN}{bar}{Colors.ENDC}| {percent}% {suffix}'
+    )
     sys.stdout.flush()
     if iteration == total:
         sys.stdout.write('\n')
@@ -227,16 +237,24 @@ def animate_neural_network(duration=3, quiet=False):
 # Success and error messages
 def print_success(message):
     # Use ASCII fallback when Unicode is not supported to avoid encoding errors
-    print(f"{Colors.GREEN}{SYMBOL_CHECK} {message}{Colors.ENDC}")
+    output = f"{Colors.GREEN}{SYMBOL_CHECK} {message}{Colors.ENDC}"
+    print(output)
+    logger.info(message)
 
 def print_error(message):
-    print(f"{Colors.RED}{SYMBOL_CROSS} {message}{Colors.ENDC}")
+    output = f"{Colors.RED}{SYMBOL_CROSS} {message}{Colors.ENDC}"
+    print(output)
+    logger.error(message)
 
 def print_warning(message):
-    print(f"{Colors.YELLOW}{SYMBOL_WARN} {message}{Colors.ENDC}")
+    output = f"{Colors.YELLOW}{SYMBOL_WARN} {message}{Colors.ENDC}"
+    print(output)
+    logger.warning(message)
 
 def print_info(message):
-    print(f"{Colors.BLUE}{SYMBOL_INFO} {message}{Colors.ENDC}")
+    output = f"{Colors.BLUE}{SYMBOL_INFO} {message}{Colors.ENDC}"
+    print(output)
+    logger.info(message)
 
 # Print command header
 def print_command_header(command):
@@ -244,7 +262,9 @@ def print_command_header(command):
     # Fallback to ASCII when Unicode is not supported or NEURAL_ASCII=1
     if not _UNICODE or os.environ.get('NEURAL_ASCII') == '1':
         header = NEURAL_LOGO_SMALL
-    print(f"{Colors.CYAN}{header}{Colors.ENDC}")
+    output = f"{Colors.CYAN}{header}{Colors.ENDC}"
+    print(output)
+    logger.debug(f"Command header displayed: {command}")
 
 # Print Neural logo with version
 def print_neural_logo(version="1.0.0"):
@@ -252,6 +272,7 @@ def print_neural_logo(version="1.0.0"):
     print(f"{Colors.BOLD}Neural DSL {version}{Colors.ENDC}")
     print(f"{Colors.BLUE}A Neural Network Programming Language{Colors.ENDC}")
     print()
+    logger.debug(f"Neural logo displayed, version: {version}")
 
 # Print help command with better formatting
 def print_help_command(ctx, commands):
@@ -276,7 +297,11 @@ def print_help_command(ctx, commands):
         help_text = cmd.help or ""
         print(f"  {Colors.BOLD}{cmd_name.ljust(15)}{Colors.ENDC}{help_text}")
 
-    print(f"\n{Colors.BLUE}Run 'neural COMMAND --help' for more information on a command.{Colors.ENDC}")
+    print(
+        f"\n{Colors.BLUE}Run 'neural COMMAND --help' for more information "
+        f"on a command.{Colors.ENDC}"
+    )
+    logger.debug("Help command displayed")
 
 # Execute a function with a spinner
 def with_spinner(func, message="Processing", *args, **kwargs):
@@ -288,9 +313,10 @@ def with_spinner(func, message="Processing", *args, **kwargs):
 
 # Main function to test the aesthetics
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     print_neural_logo("1.0.0")
     print_command_header("visualize")
-    print("Starting shape propagation...")
+    logger.info("Starting shape propagation...")
     for i in range(101):
         progress_bar(i, 100, prefix='Progress:', suffix='Complete', length=50)
         time.sleep(0.02)

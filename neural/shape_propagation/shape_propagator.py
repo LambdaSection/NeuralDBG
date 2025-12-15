@@ -1353,8 +1353,8 @@ def detect_activation_anomalies(layer, input, output):
 ######################
 def step_debug_hook(module, input, output):
     """Pauses execution at this layer for manual debugging."""
-    print(f"Paused at layer: {module.__class__.__name__}")
-    print(f"Input shape: {input[0].shape}, Output shape: {output.shape}")
+    logger.info(f"Paused at layer: {module.__class__.__name__}")
+    logger.info(f"Input shape: {input[0].shape}, Output shape: {output.shape}")
 
     # Wait for user input before continuing
     input("Press Enter to continue...")
