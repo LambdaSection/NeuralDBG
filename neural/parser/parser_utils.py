@@ -6,7 +6,7 @@ and grammar creation that are used by the main parser.
 
 import lark
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from lark.exceptions import UnexpectedToken, UnexpectedCharacters
 
 from .error_handling import ErrorHandler
@@ -46,7 +46,7 @@ class DSLValidationError(Exception):
     """
     
     def __init__(self, message: str, severity: Severity = Severity.ERROR, 
-                 line: int = None, column: int = None):
+                 line: Optional[int] = None, column: Optional[int] = None):
         self.severity = severity
         self.line = line
         self.column = column
