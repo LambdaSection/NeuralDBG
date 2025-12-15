@@ -16,6 +16,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import List, Optional
 
 
 def run_tests(
@@ -26,7 +27,7 @@ def run_tests(
     parallel: bool = False,
     verbose: bool = True,
     slow_mo: int = 0,
-    extra_args: list[str] = None
+    extra_args: Optional[List[str]] = None
 ):
     """
     Run E2E tests with specified configuration.

@@ -4,7 +4,7 @@ Dashboard (NeuralDbg) configuration settings.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -36,7 +36,7 @@ class DashboardSettings(BaseConfig):
         gt=0,
         description="WebSocket update interval in milliseconds"
     )
-    websocket_cors_origins: list[str] = Field(
+    websocket_cors_origins: List[str] = Field(
         default=["http://localhost:8050"],
         description="Allowed WebSocket CORS origins"
     )
@@ -124,7 +124,7 @@ class DashboardSettings(BaseConfig):
         default=True,
         description="Enable data export functionality"
     )
-    export_formats: list[str] = Field(
+    export_formats: List[str] = Field(
         default=["json", "csv", "html"],
         description="Supported export formats"
     )

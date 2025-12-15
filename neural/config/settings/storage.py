@@ -5,7 +5,7 @@ Storage configuration settings.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from pydantic import Field, field_validator
 
@@ -72,7 +72,7 @@ class StorageSettings(BaseConfig):
         gt=0,
         description="Maximum file size in MB"
     )
-    allowed_extensions: list[str] = Field(
+    allowed_extensions: List[str] = Field(
         default=[".json", ".neural", ".yaml", ".yml", ".h5", ".pt", ".onnx"],
         description="Allowed file extensions"
     )

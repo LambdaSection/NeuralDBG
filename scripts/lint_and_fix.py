@@ -7,9 +7,10 @@ Installs necessary tools and runs linting checks.
 import subprocess
 import sys
 from pathlib import Path
+from typing import List, Tuple
 
 
-def run_command(cmd: list[str], description: str, check: bool = True) -> tuple[int, str, str]:
+def run_command(cmd: List[str], description: str, check: bool = True) -> Tuple[int, str, str]:
     """Run a command and return the result."""
     print(f"\n{'='*60}")
     print(f"{description}")

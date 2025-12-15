@@ -331,7 +331,7 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
         code += f"{indent}{indent}super(NeuralNetworkModel, self).__init__()\n"
 
         layers_code = []
-        forward_code_body: list[str] = []
+        forward_code_body: List[str] = []
         layer_counts = {}
 
         for i, layer in enumerate(expanded_layers):

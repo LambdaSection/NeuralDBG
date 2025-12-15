@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Optional, Union
+from typing import List, Optional, Union
 from enum import Enum
 
 
@@ -102,7 +102,7 @@ def setup_logging(
     elif isinstance(level, str):
         level = getattr(logging, level.upper(), logging.INFO)
     
-    handlers: list[logging.Handler] = []
+    handlers: List[logging.Handler] = []
     
     console_handler = logging.StreamHandler(sys.stderr)
     if format_string is None:

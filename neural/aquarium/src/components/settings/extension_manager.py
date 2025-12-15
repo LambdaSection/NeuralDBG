@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict
 
 
 class Extension:
@@ -13,9 +13,9 @@ class Extension:
         self.name = name
         self.version = version
         self.enabled = enabled
-        self.metadata: dict[str, Any] = {}
+        self.metadata: Dict[str, Any] = {}
     
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert extension to dictionary"""
         return {
             'id': self.id,
@@ -26,7 +26,7 @@ class Extension:
         }
     
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Extension:
+    def from_dict(cls, data: Dict[str, Any]) -> Extension:
         """Create extension from dictionary"""
         ext = cls(
             id=data.get('id', ''),
@@ -46,7 +46,7 @@ class ExtensionManager:
         self.extensions_dir = config_dir / 'extensions'
         self.extensions_dir.mkdir(parents=True, exist_ok=True)
         
-        self.extensions: dict[str, Extension] = {}
+        self.extensions: Dict[str, Extension] = {}
         self._load_extensions()
     
     def _load_extensions(self):
