@@ -39,7 +39,32 @@ pip install ludwig
 
 ## Usage
 
-### Quick Start
+### Quick Start (Recommended)
+
+Try the interactive quick start for a fast demo:
+
+```bash
+python neural/benchmarks/quick_start.py
+```
+
+This runs a minimal benchmark (Neural DSL vs Keras) and shows results in ~2 minutes.
+
+### Example Benchmark
+
+Run the example benchmark with various options:
+
+```bash
+# Quick test (2 frameworks, fast)
+python neural/benchmarks/example_benchmark.py --quick
+
+# Comprehensive (all frameworks)
+python neural/benchmarks/example_benchmark.py --comprehensive
+
+# Custom frameworks
+python neural/benchmarks/example_benchmark.py --frameworks neural keras raw-pytorch
+```
+
+### Full Benchmark Suite
 
 Run all benchmarks with default settings:
 
@@ -51,7 +76,7 @@ python neural/benchmarks/run_benchmarks.py
 
 ```bash
 # Benchmark specific frameworks
-python neural/benchmarks/run_benchmarks.py --frameworks neural keras pytorch-lightning
+python neural/benchmarks/run_benchmarks.py --frameworks neural keras raw-tensorflow raw-pytorch
 
 # Adjust training parameters
 python neural/benchmarks/run_benchmarks.py --epochs 10 --batch-size 64
@@ -64,6 +89,21 @@ python neural/benchmarks/run_benchmarks.py --skip-plots
 
 # Quiet mode
 python neural/benchmarks/run_benchmarks.py --quiet
+```
+
+### Publishing to Website
+
+Generate benchmarks and publish to website documentation:
+
+```bash
+# Run benchmarks and publish
+python neural/benchmarks/publish_to_website.py --run-benchmarks
+
+# Publish existing results
+python neural/benchmarks/publish_to_website.py
+
+# Custom website directory
+python neural/benchmarks/publish_to_website.py --website-dir ../website --run-benchmarks
 ```
 
 ### Programmatic Usage

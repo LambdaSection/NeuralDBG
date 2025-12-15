@@ -4,6 +4,13 @@ __pycache__/
 *$py.class
 *.pyc
 
+# Benchmark outputs (generated artifacts)
+benchmark_results/
+benchmark_reports/
+benchmark_visualizations/
+**/benchmark_results_*.json
+**/neural_dsl_benchmark_*/
+
 # Distribution / packaging
 .Python
 build/
@@ -359,6 +366,8 @@ _install_packages.py
 _setup_env.ps1
 _setup_venv.bat
 SETUP_INSTRUCTIONS.md
+manual_install.py
+setup_env.ps1
 _SETUP_COMPLETE_README.md
 _setup.bat
 _temp_requirements.txt
@@ -393,3 +402,4 @@ lemniscate/
 
 # Temporary cleanup scripts
 delete_redundant_docs.py
+QUICKSTART.md

@@ -20,6 +20,8 @@ from neural.benchmarks.framework_implementations import (
     LudwigImplementation,
     NeuralDSLImplementation,
     PyTorchLightningImplementation,
+    RawPyTorchImplementation,
+    RawTensorFlowImplementation,
 )
 from neural.benchmarks.report_generator import ReportGenerator
 
@@ -31,7 +33,7 @@ def parse_args():
     parser.add_argument(
         "--frameworks",
         nargs="+",
-        choices=["neural", "keras", "pytorch-lightning", "fastai", "ludwig", "all"],
+        choices=["neural", "keras", "raw-tensorflow", "pytorch-lightning", "raw-pytorch", "fastai", "ludwig", "all"],
         default=["all"],
         help="Frameworks to benchmark (default: all)",
     )
@@ -163,6 +165,12 @@ def main():
         print(f"\n\n✗ Benchmarking failed: {e}")
         import traceback
         traceback.print_exc()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+xc()
         sys.exit(1)
 
 

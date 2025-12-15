@@ -1,310 +1,414 @@
 # Contributing to Neural DSL Benchmarks
 
-Thank you for your interest in improving the Neural DSL benchmarking suite! This document provides guidelines for contributing new benchmarks, frameworks, and improvements.
+Thank you for your interest in improving the Neural DSL benchmarking suite! This guide will help you contribute effectively.
 
-## Getting Started
+## Ways to Contribute
 
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/Neural.git`
-3. Create a branch: `git checkout -b feature/my-new-benchmark`
-4. Make your changes
-5. Test thoroughly
-6. Submit a pull request
+### 1. Add New Framework Implementations
 
-## Areas for Contribution
+We're always looking to expand our framework comparisons. To add a new framework:
 
-### 1. New Framework Implementations
-
-To add support for a new ML framework:
+**Step 1: Create Implementation**
 
 ```python
-# neural/benchmarks/framework_implementations.py
+# In framework_implementations.py
 
-class NewFrameworkImplementation(FrameworkImplementation):
+class MyFrameworkImplementation(FrameworkImplementation):
     def __init__(self):
-        super().__init__("NewFramework")
+        super().__init__("My Framework")
     
     def setup(self):
-        # Define code that would be written
-        self.code_content = '''
-import newframework as nf
-
-model = nf.Model([
-    nf.layers.Conv2D(32, (3,3)),
-    nf.layers.Dense(10),
-])
-'''
+        # Define the code string that would be written
+        self.code_content = """
+        import myframework
+        
+        model = myframework.Model([
+            myframework.layers.Conv2D(32, 3, activation='relu'),
+            # ... rest of model definition
+        ])
+        """
     
     def build_model(self):
         # Actually build the model
-        import newframework as nf
-        self.model = nf.Model([...])
+        import myframework
+        self.model = myframework.Model([...])
     
-    def train(self, dataset, epochs, batch_size):
-        # Implement training
-        start = time.time()
-        history = self.model.fit(...)
-        training_time = time.time() - start
-        
-        return {
-            "training_time": training_time,
-            "accuracy": ...,
-            "val_accuracy": ...,
-            "val_loss": ...,
-            "peak_memory_mb": ...,
-        }
+    def train(self, dataset: str, epochs: int, batch_size: int) -> Dict[str, Any]:
+        # Train the model and return metrics
+        # Must return: training_time, accuracy, val_accuracy, val_loss, 
+        #              training_loss, peak_memory_mb, error_rate
+        pass
     
-    def predict_single(self):
-        return self.model.predict(sample)
+    def predict_single(self) -> Any:
+        # Make a single prediction
+        pass
     
-    def _save_model(self, path):
-        self.model.save(path)
+    def _save_model(self, path: str):
+        # Save model to disk
+        pass
     
-    def get_parameter_count(self):
-        return self.model.count_params()
+    def get_parameter_count(self) -> int:
+        # Return total trainable parameters
+        pass
 ```
 
-**Requirements:**
-- Must implement all abstract methods
-- Should use equivalent model architecture to existing frameworks
-- Must track accurate metrics (time, memory, accuracy)
-- Code should be well-documented
+**Step 2: Update Exports**
 
-### 2. New Benchmark Tasks
-
-Add new tasks to benchmark different model types:
+Add your implementation to `__init__.py`:
 
 ```python
-# In your benchmark script or config
+from .framework_implementations import (
+    # ... existing imports
+    MyFrameworkImplementation,
+)
 
-tasks = [
-    {
-        "name": "CIFAR10_Classification",
-        "dataset": "cifar10",
-        "epochs": 10,
-        "batch_size": 128,
-    },
-    {
-        "name": "IMDB_Sentiment_Analysis",
-        "dataset": "imdb",
-        "epochs": 5,
-        "batch_size": 32,
-    },
+__all__ = [
+    # ... existing exports
+    "MyFrameworkImplementation",
 ]
 ```
 
-**Requirements:**
-- Task must be reproducible
-- Dataset must be publicly available
-- Should test different aspects (CV, NLP, etc.)
-- Must document expected results
+**Step 3: Update CLI**
 
-### 3. Enhanced Metrics
-
-Add new metrics to collect:
+Add to `run_benchmarks.py`:
 
 ```python
-# neural/benchmarks/metrics_collector.py
+framework_map = {
+    # ... existing frameworks
+    "myframework": MyFrameworkImplementation,
+}
+```
+
+**Step 4: Test**
+
+```bash
+python neural/benchmarks/run_benchmarks.py --frameworks neural myframework --epochs 2
+```
+
+**Step 5: Document**
+
+Update `README.md` to mention the new framework.
+
+### 2. Add New Metrics
+
+To track additional performance indicators:
+
+**Step 1: Extend MetricsCollector**
+
+```python
+# In metrics_collector.py
 
 class EnhancedMetricsCollector(MetricsCollector):
-    def collect_gpu_metrics(self):
-        # Use nvidia-smi or similar
-        return {
-            "gpu_utilization": ...,
-            "gpu_memory_used": ...,
-            "gpu_temperature": ...,
-        }
+    def collect_gpu_memory(self):
+        """Collect GPU memory usage."""
+        try:
+            import torch
+            if torch.cuda.is_available():
+                return torch.cuda.memory_allocated() / (1024 ** 2)
+        except ImportError:
+            pass
+        return 0.0
+```
+
+**Step 2: Update BenchmarkResult**
+
+```python
+# In benchmark_runner.py
+
+@dataclass
+class BenchmarkResult:
+    # ... existing fields
+    gpu_memory_mb: float = 0.0
+    new_metric: float = 0.0
+```
+
+**Step 3: Collect in Runner**
+
+```python
+# In benchmark_runner.py, run_benchmark method
+
+result = BenchmarkResult(
+    # ... existing fields
+    gpu_memory_mb=metrics.get("gpu_memory_mb", 0),
+)
+```
+
+### 3. Add New Visualizations
+
+To create new chart types:
+
+**Step 1: Implement in BenchmarkVisualizer**
+
+```python
+# In visualization.py
+
+def plot_my_custom_chart(
+    self,
+    df: pd.DataFrame,
+    output_path: Optional[Path] = None,
+):
+    """Create a custom visualization."""
+    fig, ax = plt.subplots(figsize=(12, 6))
     
-    def collect_power_metrics(self):
-        # Measure power consumption
-        return {
-            "power_draw_watts": ...,
-            "energy_consumed_joules": ...,
-        }
+    # Your plotting code here
+    # ...
+    
+    if output_path:
+        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+    
+    return fig, ax
 ```
 
-**Requirements:**
-- Must work across different hardware
-- Should fail gracefully if hardware not available
-- Must be properly documented
-
-### 4. Improved Visualizations
-
-Enhance report generation with better charts:
+**Step 2: Add to generate_all_plots**
 
 ```python
-# neural/benchmarks/report_generator.py
-
-def _generate_advanced_plots(self, results, output_dir):
-    # Create interactive plotly charts
-    # Add statistical significance tests
-    # Generate comparison matrices
-    # Create radar charts for multi-metric comparison
-    pass
+def generate_all_plots(self, results_path: str, output_dir: Path):
+    # ... existing plots
+    
+    self.plot_my_custom_chart(
+        df,
+        output_path=output_dir / "my_custom_chart.png"
+    )
+    print("  ✓ My custom chart")
 ```
 
-**Requirements:**
-- Charts must be clear and informative
-- Should work with matplotlib, plotly, or seaborn
-- Must handle edge cases (missing data, etc.)
+### 4. Add New Benchmark Tasks
 
-## Testing Guidelines
+To expand beyond MNIST:
 
-### Unit Tests
+**Step 1: Update Configuration**
 
-Add tests for new functionality:
+```yaml
+# In benchmark_config.yaml
+
+tasks:
+  - name: CIFAR10_Classification
+    description: "CNN for CIFAR-10 image classification"
+    dataset: cifar10
+    model_type: cnn
+    epochs: 10
+    batch_size: 128
+    expected_accuracy: 0.75
+    priority: high
+```
+
+**Step 2: Implement Dataset Loading**
 
 ```python
-# tests/benchmarks/test_new_feature.py
+# In framework implementations
 
-import pytest
-from neural.benchmarks import MyNewFeature
-
-def test_new_feature():
-    feature = MyNewFeature()
-    result = feature.do_something()
-    assert result == expected_value
-
-@pytest.mark.slow
-def test_integration():
-    # Integration tests marked as slow
-    pass
+def train(self, dataset: str, epochs: int, batch_size: int):
+    if dataset == "cifar10":
+        # Load CIFAR-10
+        from tensorflow.keras.datasets import cifar10
+        (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+        # ... process data
+    elif dataset == "mnist":
+        # ... existing MNIST code
 ```
 
-Run tests:
+**Step 3: Update All Implementations**
+
+Make sure all framework implementations support the new dataset.
+
+### 5. Improve Documentation
+
+Documentation improvements are always welcome:
+
+- Fix typos and grammar
+- Add clarifying examples
+- Improve code comments
+- Add troubleshooting tips
+- Translate to other languages
+
+## Development Setup
+
+### 1. Clone and Install
+
 ```bash
-pytest tests/benchmarks/ -v
+git clone https://github.com/your-org/neural-dsl.git
+cd neural-dsl
+pip install -e ".[full]"
+pip install -r neural/benchmarks/requirements.txt
 ```
 
-### Integration Tests
+### 2. Run Tests
 
-For framework implementations, add integration tests:
+```bash
+# Quick test
+python neural/benchmarks/quick_start.py
 
-```python
-@pytest.mark.slow
-@pytest.mark.requires_framework("newframework")
-def test_newframework_benchmark():
-    impl = NewFrameworkImplementation()
-    impl.setup()
-    impl.build_model()
-    result = impl.train("mnist", epochs=1, batch_size=32)
-    assert result["accuracy"] > 0
+# Full test
+python neural/benchmarks/run_benchmarks.py --frameworks neural keras --epochs 2
+```
+
+### 3. Make Changes
+
+Edit the relevant files following the patterns above.
+
+### 4. Test Your Changes
+
+```bash
+# Test specific component
+python -c "from neural.benchmarks import MyNewClass; MyNewClass().test()"
+
+# Test full benchmark
+python neural/benchmarks/run_benchmarks.py --frameworks neural --epochs 1
 ```
 
 ## Code Style
 
-Follow these conventions:
+### Python Style
 
-1. **PEP 8**: Use standard Python style
-2. **Type Hints**: Add type hints to function signatures
-3. **Docstrings**: Document all public functions
-4. **Line Length**: Max 100 characters
-5. **Imports**: Organize with isort
+Follow PEP 8 and the project's existing patterns:
 
-Format code:
-```bash
-python -m ruff format neural/benchmarks/
-python -m ruff check neural/benchmarks/
+- Use type hints
+- Add docstrings to public functions
+- Keep lines under 100 characters
+- Use descriptive variable names
+
+```python
+def calculate_speedup(
+    baseline_time: float,
+    comparison_time: float,
+) -> float:
+    """
+    Calculate speedup relative to baseline.
+    
+    Args:
+        baseline_time: Reference time in seconds
+        comparison_time: Time to compare in seconds
+    
+    Returns:
+        Speedup factor (higher is faster)
+    """
+    if comparison_time <= 0:
+        return 0.0
+    return baseline_time / comparison_time
 ```
 
-## Documentation
+### Documentation Style
 
-Update documentation for new features:
-
-1. **README.md**: Add to quick start if needed
-2. **BENCHMARKS.md**: Document new metrics/frameworks
-3. **Docstrings**: Add to all functions
-4. **Examples**: Create example scripts
-
-## Pull Request Process
-
-1. **Update Tests**: Add tests for new functionality
-2. **Update Docs**: Document changes
-3. **Run Tests**: Ensure all tests pass
-4. **Run Benchmarks**: Verify benchmarks work end-to-end
-5. **Format Code**: Run ruff/pylint
-6. **Create PR**: Include description of changes
-
-### PR Template
+Use clear, concise language:
 
 ```markdown
-## Description
-Brief description of changes
+## Good
 
-## Type of Change
-- [ ] New framework implementation
-- [ ] New benchmark task
-- [ ] Bug fix
-- [ ] Performance improvement
-- [ ] Documentation update
+Run benchmarks with custom parameters:
+\`\`\`bash
+python run_benchmarks.py --epochs 10
+\`\`\`
 
-## Testing
-- [ ] Unit tests added/updated
-- [ ] Integration tests pass
-- [ ] Benchmarks run successfully
+## Less Good
 
-## Checklist
-- [ ] Code follows style guidelines
+You can run the benchmarks and specify different parameters 
+if you want to by using the command line arguments like this:
+\`\`\`bash
+python run_benchmarks.py --epochs 10
+\`\`\`
+```
+
+## Testing Guidelines
+
+### What to Test
+
+1. **New Framework Implementations**
+   - Model builds successfully
+   - Training completes without errors
+   - Metrics are collected correctly
+   - LOC counting is accurate
+
+2. **New Metrics**
+   - Values are reasonable
+   - Doesn't slow down benchmarks
+   - Works across different frameworks
+
+3. **New Visualizations**
+   - Charts render correctly
+   - Data is accurate
+   - Labels are clear
+   - Colors are distinct
+
+### How to Test
+
+```bash
+# Manual testing
+python neural/benchmarks/example_benchmark.py --quick
+
+# Check output
+ls -l benchmark_results/
+ls -l benchmark_reports/
+
+# Verify charts
+open benchmark_reports/neural_dsl_benchmark_*/index.html
+```
+
+## Submitting Changes
+
+### 1. Create Branch
+
+```bash
+git checkout -b feature/my-new-framework
+```
+
+### 2. Make Changes
+
+Edit files, add features, fix bugs.
+
+### 3. Test Locally
+
+```bash
+python neural/benchmarks/run_benchmarks.py --frameworks neural --epochs 1
+```
+
+### 4. Commit
+
+```bash
+git add neural/benchmarks/framework_implementations.py
+git commit -m "Add MyFramework implementation for benchmarking"
+```
+
+### 5. Push
+
+```bash
+git push origin feature/my-new-framework
+```
+
+### 6. Open Pull Request
+
+- Describe what you changed and why
+- Include benchmark results if applicable
+- Reference any related issues
+
+## PR Checklist
+
+Before submitting a PR:
+
+- [ ] Code follows project style
+- [ ] All existing tests pass
+- [ ] New tests added for new features
 - [ ] Documentation updated
-- [ ] Tests added/updated
-- [ ] All tests pass
-```
-
-## Performance Considerations
-
-When adding benchmarks:
-
-1. **Memory Efficiency**: Avoid loading entire datasets into memory
-2. **Time Efficiency**: Use appropriate batch sizes and epochs
-3. **Resource Cleanup**: Always clean up temporary files
-4. **Graceful Degradation**: Handle missing dependencies
-
-Example:
-```python
-def cleanup(self):
-    # Clean up resources
-    for temp_file in self.temp_files:
-        try:
-            os.remove(temp_file)
-        except Exception:
-            pass
-```
-
-## Common Issues
-
-### Framework Not Installed
-
-Handle gracefully:
-```python
-try:
-    import newframework
-except ImportError:
-    raise ImportError(
-        "NewFramework not installed. Install with: "
-        "pip install newframework"
-    )
-```
-
-### Dataset Download Failures
-
-Provide clear error messages:
-```python
-try:
-    dataset = load_dataset(name)
-except Exception as e:
-    raise RuntimeError(
-        f"Failed to load dataset {name}. "
-        f"Please check your internet connection and try again. "
-        f"Error: {e}"
-    )
-```
+- [ ] Benchmark results included (if applicable)
+- [ ] No merge conflicts
+- [ ] Commit messages are clear
 
 ## Questions?
 
-- Open an issue: https://github.com/Lemniscate-world/Neural/issues
-- Discussion forum: https://github.com/Lemniscate-world/Neural/discussions
-- Email: Lemniscate_zero@proton.me
+- **GitHub Issues**: [Ask questions](https://github.com/your-org/neural-dsl/issues)
+- **Discord**: [Join our community](#)
+- **Email**: benchmarks@neural-dsl.org
+
+## Recognition
+
+All contributors will be:
+- Listed in CONTRIBUTORS.md
+- Mentioned in release notes
+- Acknowledged in documentation
 
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
+
+---
+
+Thank you for helping make Neural DSL benchmarks better! 🚀

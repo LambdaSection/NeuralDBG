@@ -1,15 +1,41 @@
-# Required dependencies for benchmarking suite
-numpy>=1.23.0
+# Neural DSL Benchmarking Suite Requirements
+#
+# These are the dependencies needed to run comprehensive benchmarks
+# comparing Neural DSL against competing frameworks.
+
+# Core benchmarking
+numpy>=1.19.0
 pandas>=1.3.0
-matplotlib>=3.5.0
-psutil>=5.9.0
+matplotlib>=3.3.0
+pyyaml>=5.4.0
+psutil>=5.8.0
 
-# Neural DSL core (installed from parent directory)
-# pip install -e ".[full]"
+# Neural DSL (install parent package)
+# Run: pip install -e ".[full]" from project root
 
-# Framework dependencies (optional, install as needed)
-# tensorflow>=2.6.0
-# torch>=1.10.0
-# pytorch-lightning>=1.5.0
+# Required ML frameworks (for comparison)
+tensorflow>=2.10.0
+torch>=1.12.0
+
+# Optional competing frameworks (uncomment to benchmark)
+# pytorch-lightning>=1.8.0
 # fastai>=2.7.0
-# ludwig>=0.6.0
+# ludwig>=0.6.0  # Warning: large dependency
+
+# Data visualization (optional but recommended)
+seaborn>=0.11.0
+plotly>=5.0.0
+
+# Report generation
+jinja2>=3.0.0
+
+# Code analysis
+pylint>=2.12.0
+radon>=5.1.0
+
+# Progress bars and UI
+tqdm>=4.62.0
+
+# Testing and validation
+pytest>=7.0.0
+pytest-benchmark>=3.4.0

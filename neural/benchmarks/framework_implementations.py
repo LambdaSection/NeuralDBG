@@ -745,3 +745,307 @@ model.train(dataset=train_df)"""
 
     def get_parameter_count(self) -> int:
         return 0
+
+
+class RawTensorFlowImplementation(FrameworkImplementation):
+    def __init__(self):
+        super().__init__("Raw TensorFlow")
+
+    def setup(self):
+        self.code_content = """import tensorflow as tf
+
+# Define input placeholder
+inputs = tf.keras.Input(shape=(28, 28, 1))
+
+# Build model layers
+x = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(inputs)
+x = tf.keras.layers.MaxPooling2D((2, 2))(x)
+x = tf.keras.layers.Flatten()(x)
+x = tf.keras.layers.Dense(128, activation='relu')(x)
+x = tf.keras.layers.Dropout(0.5)(x)
+outputs = tf.keras.layers.Dense(10, activation='softmax')(x)
+
+# Create model
+model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+# Define loss and optimizer
+loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+
+# Compile model
+model.compile(optimizer=optimizer, loss=loss_fn, metrics=['accuracy'])
+
+# Training loop
+@tf.function
+def train_step(x, y):
+    with tf.GradientTape() as tape:
+        predictions = model(x, training=True)
+        loss = loss_fn(y, predictions)
+    gradients = tape.gradient(loss, model.trainable_variables)
+    optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+    return loss"""
+
+    def build_model(self):
+        try:
+            import tensorflow as tf
+        except ImportError as e:
+            raise DependencyError(
+                dependency="tensorflow",
+                feature="Raw TensorFlow model building",
+                install_hint="pip install tensorflow"
+            ) from e
+        
+        inputs = tf.keras.Input(shape=(28, 28, 1))
+        x = tf.keras.layers.Conv2D(32, (3, 3), activation='relu')(inputs)
+        x = tf.keras.layers.MaxPooling2D((2, 2))(x)
+        x = tf.keras.layers.Flatten()(x)
+        x = tf.keras.layers.Dense(128, activation='relu')(x)
+        x = tf.keras.layers.Dropout(0.5)(x)
+        outputs = tf.keras.layers.Dense(10, activation='softmax')(x)
+        
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
+        
+        loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
+        optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+        
+        self.model.compile(optimizer=optimizer, loss=loss_fn, metrics=['accuracy'])
+
+    def train(self, dataset: str, epochs: int, batch_size: int) -> Dict[str, Any]:
+        try:
+            import tensorflow as tf
+        except ImportError as e:
+            raise DependencyError(
+                dependency="tensorflow",
+                feature="Raw TensorFlow training",
+                install_hint="pip install tensorflow"
+            ) from e
+        
+        (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+        x_train = x_train.reshape(-1, 28, 28, 1).astype("float32") / 255.0
+        x_test = x_test.reshape(-1, 28, 28, 1).astype("float32") / 255.0
+        
+        x_train = x_train[:5000]
+        y_train = y_train[:5000]
+        x_test = x_test[:1000]
+        y_test = y_test[:1000]
+        
+        start_time = time.time()
+        history = self.model.fit(
+            x_train, y_train,
+            validation_data=(x_test, y_test),
+            epochs=epochs,
+            batch_size=batch_size,
+            verbose=0,
+        )
+        training_time = time.time() - start_time
+        
+        loss, accuracy = self.model.evaluate(x_test, y_test, verbose=0)
+        
+        return {
+            "training_time": training_time,
+            "accuracy": accuracy,
+            "val_accuracy": history.history["val_accuracy"][-1],
+            "val_loss": history.history["val_loss"][-1],
+            "training_loss": history.history["loss"][-1],
+            "peak_memory_mb": 0,
+            "error_rate": 1.0 - accuracy,
+        }
+
+    def predict_single(self):
+        sample = np.random.randn(1, 28, 28, 1).astype("float32")
+        return self.model.predict(sample, verbose=0)
+
+    def _save_model(self, path: str):
+        self.model.save(path)
+
+    def get_parameter_count(self) -> int:
+        return self.model.count_params()
+
+
+class RawPyTorchImplementation(FrameworkImplementation):
+    def __init__(self):
+        super().__init__("Raw PyTorch")
+
+    def setup(self):
+        self.code_content = """import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+# Define model architecture
+class MNISTNet(nn.Module):
+    def __init__(self):
+        super(MNISTNet, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(32 * 13 * 13, 128)
+        self.dropout = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(128, 10)
+    
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = x.view(-1, 32 * 13 * 13)
+        x = F.relu(self.fc1(x))
+        x = self.dropout(x)
+        x = self.fc2(x)
+        return x
+
+# Initialize model, loss, and optimizer
+model = MNISTNet()
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# Training loop
+def train_epoch(model, dataloader, criterion, optimizer):
+    model.train()
+    running_loss = 0.0
+    for inputs, labels in dataloader:
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        running_loss += loss.item()
+    return running_loss / len(dataloader)
+
+# Evaluation
+def evaluate(model, dataloader):
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for inputs, labels in dataloader:
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    return correct / total"""
+
+    def build_model(self):
+        try:
+            import torch
+            import torch.nn as nn
+            import torch.nn.functional as F
+        except ImportError as e:
+            raise DependencyError(
+                dependency="torch",
+                feature="Raw PyTorch model building",
+                install_hint="pip install torch"
+            ) from e
+        
+        class MNISTNet(nn.Module):
+            def __init__(self):
+                super(MNISTNet, self).__init__()
+                self.conv1 = nn.Conv2d(1, 32, 3)
+                self.pool = nn.MaxPool2d(2, 2)
+                self.fc1 = nn.Linear(32 * 13 * 13, 128)
+                self.dropout = nn.Dropout(0.5)
+                self.fc2 = nn.Linear(128, 10)
+            
+            def forward(self, x):
+                x = self.pool(F.relu(self.conv1(x)))
+                x = x.view(-1, 32 * 13 * 13)
+                x = F.relu(self.fc1(x))
+                x = self.dropout(x)
+                x = self.fc2(x)
+                return x
+        
+        self.model = MNISTNet()
+        self.criterion = nn.CrossEntropyLoss()
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+
+    def train(self, dataset: str, epochs: int, batch_size: int) -> Dict[str, Any]:
+        try:
+            import torch
+            from torch.utils.data import DataLoader, TensorDataset
+        except ImportError as e:
+            raise DependencyError(
+                dependency="torch",
+                feature="Raw PyTorch training",
+                install_hint="pip install torch"
+            ) from e
+        
+        try:
+            from tensorflow.keras.datasets import mnist
+        except ImportError as e:
+            raise DependencyError(
+                dependency="tensorflow",
+                feature="MNIST dataset loading",
+                install_hint="pip install tensorflow"
+            ) from e
+        
+        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+        x_train = torch.FloatTensor(x_train[:5000]).reshape(-1, 1, 28, 28) / 255.0
+        y_train = torch.LongTensor(y_train[:5000])
+        x_test = torch.FloatTensor(x_test[:1000]).reshape(-1, 1, 28, 28) / 255.0
+        y_test = torch.LongTensor(y_test[:1000])
+        
+        train_dataset = TensorDataset(x_train, y_train)
+        val_dataset = TensorDataset(x_test, y_test)
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=batch_size)
+        
+        start_time = time.time()
+        for epoch in range(epochs):
+            self.model.train()
+            for inputs, labels in train_loader:
+                self.optimizer.zero_grad()
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs, labels)
+                loss.backward()
+                self.optimizer.step()
+        
+        training_time = time.time() - start_time
+        
+        self.model.eval()
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for inputs, labels in val_loader:
+                outputs = self.model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+        
+        accuracy = correct / total
+        
+        return {
+            "training_time": training_time,
+            "accuracy": accuracy,
+            "val_accuracy": accuracy,
+            "val_loss": 0.0,
+            "training_loss": 0.0,
+            "peak_memory_mb": 0,
+            "error_rate": 1.0 - accuracy,
+        }
+
+    def predict_single(self):
+        try:
+            import torch
+        except ImportError as e:
+            raise DependencyError(
+                dependency="torch",
+                feature="Raw PyTorch prediction",
+                install_hint="pip install torch"
+            ) from e
+        
+        self.model.eval()
+        sample = torch.randn(1, 1, 28, 28)
+        with torch.no_grad():
+            return self.model(sample)
+
+    def _save_model(self, path: str):
+        try:
+            import torch
+        except ImportError as e:
+            raise DependencyError(
+                dependency="torch",
+                feature="Raw PyTorch model saving",
+                install_hint="pip install torch"
+            ) from e
+        
+        torch.save(self.model.state_dict(), path)
+
+    def get_parameter_count(self) -> int:
+        return sum(p.numel() for p in self.model.parameters())
