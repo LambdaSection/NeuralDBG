@@ -160,6 +160,11 @@ class PyTorchGenerator(BaseCodeGenerator):
                 layer_code = f"nn.Embedding(num_embeddings={num_embeddings}, embedding_dim={embedding_dim})"
                 layers_code.append(f"self.{layer_name} = {layer_code}")
                 forward_code_body.append(f"x = self.{layer_name}(x)")
+            elif layer_type == "PositionalEncoding":
+                layer_code = self.generate_layer(layer_type, params)
+                if layer_code:
+                    layers_code.append(f"self.{layer_name} = {layer_code}")
+                    forward_code_body.append(f"x = self.{layer_name}(x)")
             elif layer_type == "TransformerEncoder":
                 layer_code = self.generate_layer(layer_type, params)
                 if layer_code:
@@ -174,6 +179,31 @@ class PyTorchGenerator(BaseCodeGenerator):
                         forward_code_body.append(f"x = self.{layer_name}(x, src_key_padding_mask=None)")
                     else:
                         forward_code_body.append(f"x = self.{layer_name}(x)")
+            elif layer_type == "TransformerDecoder":
+                layer_code = self.generate_layer(layer_type, params)
+                if layer_code:
+                    layers_code.append(f"self.{layer_name} = {layer_code}")
+                    forward_code_body.append(f"# TransformerDecoder requires memory from encoder")
+                    forward_code_body.append(f"# x = self.{layer_name}(x, memory)")
+                    forward_code_body.append(f"x = self.{layer_name}(x, x)  # Self-attention only for now")
+            elif layer_type == "Flatten":
+                # Flatten is handled inline, no layer needed
+                forward_code_body.append(f"x = x.view(x.size(0), -1)  # Flatten")
+            elif layer_type == "GlobalAveragePooling1D":
+                layer_code = self.generate_layer(layer_type, params)
+                if layer_code:
+                    layers_code.append(f"self.{layer_name} = {layer_code}")
+                    forward_code_body.append(f"x = self.{layer_name}(x).squeeze(-1)  # Remove last dim after pooling")
+            elif layer_type == "Reshape":
+                target_shape = params.get("target_shape", None)
+                if target_shape:
+                    forward_code_body.append(f"x = x.view(x.size(0), {', '.join(map(str, target_shape))})")
+            elif layer_type == "LayerNormalization":
+                # Get the normalized shape from input
+                if self.current_input_shape and len(self.current_input_shape) >= 2:
+                    normalized_shape = self.current_input_shape[1:]
+                    layers_code.append(f"self.{layer_name} = nn.LayerNorm({normalized_shape})")
+                    forward_code_body.append(f"x = self.{layer_name}(x)")
             elif layer_type == "Output":
                 in_features = self.current_input_shape[-1]
                 if isinstance(in_features, dict):
@@ -524,7 +554,20 @@ def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape:
                 hidden_size = 64
         return f"nn.GRU(input_size={input_size}, hidden_size={hidden_size}, batch_first=True)"
     elif layer_type == "TransformerEncoder":
-        d_model = params.get("d_model", 512)
+        # Infer d_model from input_shape if not explicitly provided
+        d_model = params.get("d_model", None)
+        if d_model is None and input_shape is not None and len(input_shape) >= 3:
+            # For transformer, input shape is (batch, seq_len, d_model)
+            d_model = input_shape[-1]
+            if isinstance(d_model, dict):
+                if 'value' in d_model:
+                    d_model = d_model['value']
+                else:
+                    logger.warning(f"Dictionary dimension without 'value' key: {d_model}, using default")
+                    d_model = 512
+        elif d_model is None:
+            d_model = 512
+        
         if isinstance(d_model, dict):
             if 'value' in d_model:
                 d_model = d_model['value']
@@ -585,7 +628,20 @@ def generate_pytorch_layer(layer_type: str, params: Dict[str, Any], input_shape:
         else:
             return f"nn.TransformerEncoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout}, activation='{activation}')"
     elif layer_type == "TransformerDecoder":
-        d_model = params.get("d_model", 512)
+        # Infer d_model from input_shape if not explicitly provided
+        d_model = params.get("d_model", None)
+        if d_model is None and input_shape is not None and len(input_shape) >= 3:
+            # For transformer, input shape is (batch, seq_len, d_model)
+            d_model = input_shape[-1]
+            if isinstance(d_model, dict):
+                if 'value' in d_model:
+                    d_model = d_model['value']
+                else:
+                    logger.warning(f"Dictionary dimension without 'value' key: {d_model}, using default")
+                    d_model = 512
+        elif d_model is None:
+            d_model = 512
+        
         if isinstance(d_model, dict):
             if 'value' in d_model:
                 d_model = d_model['value']

@@ -132,6 +132,8 @@ class TensorFlowGenerator(BaseCodeGenerator):
             num_layers = params.get("num_layers", 1)
             activation = params.get("activation", "relu")
             use_attention_mask = params.get("use_attention_mask", False)
+            # d_model is used for key_dim in MultiHeadAttention and can be inferred from input
+            d_model = params.get("d_model", None)
             
             code = ["# TransformerEncoder block"]
             
@@ -143,16 +145,19 @@ class TensorFlowGenerator(BaseCodeGenerator):
                 code.append(f"# Encoder Layer {layer_idx + 1}")
                 code.append(f"x = layers.LayerNormalization(epsilon=1e-6)(x)")
                 
+                # Use d_model if provided, otherwise use ff_dim for key_dim
+                key_dim = d_model if d_model else ff_dim
+                
                 if use_attention_mask:
-                    code.append(f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={ff_dim})(x, x, attention_mask=attention_mask)")
+                    code.append(f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={key_dim})(x, x, attention_mask=attention_mask)")
                 else:
-                    code.append(f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={ff_dim})(x, x)")
+                    code.append(f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={key_dim})(x, x)")
                 
                 code.append(f"attn_output = layers.Dropout({dropout})(attn_output)")
                 code.append(f"x = layers.Add()([x, attn_output])")
                 code.append(f"x = layers.LayerNormalization(epsilon=1e-6)(x)")
                 code.append(f"ffn_output = layers.Dense({ff_dim}, activation='{activation}')(x)")
-                code.append(f"ffn_output = layers.Dense({ff_dim})(ffn_output)")
+                code.append(f"ffn_output = layers.Dense({key_dim})(ffn_output)")
                 code.append(f"ffn_output = layers.Dropout({dropout})(ffn_output)")
                 code.append(f"x = layers.Add()([x, ffn_output])")
             
@@ -262,6 +267,16 @@ class TensorFlowGenerator(BaseCodeGenerator):
             return "layers.GlobalMaxPooling2D()"
         elif layer_type == "GlobalMaxPooling3D":
             return "layers.GlobalMaxPooling3D()"
+        elif layer_type == "Reshape":
+            target_shape = params.get("target_shape", None)
+            if target_shape:
+                return f"layers.Reshape({target_shape})"
+            else:
+                return None
+        elif layer_type == "LayerNormalization":
+            axis = params.get("axis", -1)
+            epsilon = params.get("epsilon", 1e-6)
+            return f"layers.LayerNormalization(axis={axis}, epsilon={epsilon})"
         elif layer_type == "Output":
             units = params.get("units", 10)
             activation = params.get("activation", "softmax")
