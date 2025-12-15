@@ -11,7 +11,6 @@ from neural.exceptions import (
     FileOperationError,
     InvalidParameterError,
     UnsupportedBackendError,
-    UnsupportedLayerError,
 )
 from neural.parser.parser import ModelTransformer, create_parser
 from neural.shape_propagation.shape_propagator import ShapePropagator
@@ -369,7 +368,6 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
 
             if layer_type == "Residual":
                 residual_layers = []
-                residual_forward = []
                 for sub_layer in layer.get('sub_layers', []):
                     sub_type = sub_layer['type']
                     sub_params = sub_layer.get('params', {})
@@ -657,9 +655,13 @@ def load_file(filename: str) -> Any:
 def generate_onnx(model_data: Dict[str, Any]) -> Any:
     """Generate ONNX model"""
     # Import ONNX only when needed (avoid hard dependency for TF/PyTorch paths)
-    from onnx import TensorProto, helper
+    import numpy as np
+    from onnx import TensorProto, helper, numpy_helper
+    
     # Create nodes for each layer
     nodes = []
+    initializers = []
+    value_infos = []
     current_input = "input"
     output_shape = list(model_data["input"]["shape"])  # Track output shape
 
@@ -669,36 +671,204 @@ def generate_onnx(model_data: Dict[str, Any]) -> Any:
         output_name = f"layer_{i}_output"
 
         if layer_type == "Conv2D":
+            filters = params.get('filters', 32)
+            kernel_size = params.get('kernel_size', [3, 3])
+            if isinstance(kernel_size, int):
+                kernel_size = [kernel_size, kernel_size]
+            strides = params.get('strides', [1, 1])
+            if isinstance(strides, int):
+                strides = [strides, strides]
+            
+            # Determine input channels from output_shape
+            if len(output_shape) == 3:
+                in_channels = output_shape[-1]
+            elif len(output_shape) == 4:
+                in_channels = output_shape[-1]
+            else:
+                in_channels = 3
+            
+            # Create weight tensor (filters, in_channels, kernel_h, kernel_w)
+            weight_name = f"conv_{i}_weight"
+            weight_shape = [filters, in_channels, kernel_size[0], kernel_size[1]]
+            weight_data = np.random.randn(*weight_shape).astype(np.float32) * 0.01
+            weight_tensor = numpy_helper.from_array(weight_data, name=weight_name)
+            initializers.append(weight_tensor)
+            
+            # Create bias tensor
+            bias_name = f"conv_{i}_bias"
+            bias_data = np.zeros([filters], dtype=np.float32)
+            bias_tensor = numpy_helper.from_array(bias_data, name=bias_name)
+            initializers.append(bias_tensor)
+            
             nodes.append(helper.make_node(
                 'Conv',
+                inputs=[current_input, weight_name, bias_name],
+                outputs=[output_name],
+                kernel_shape=kernel_size,
+                strides=strides
+            ))
+            
+            # Update output shape for Conv2D
+            if len(output_shape) == 3:
+                new_h = output_shape[0] - kernel_size[0] + 1
+                new_w = output_shape[1] - kernel_size[1] + 1
+                output_shape = [new_h, new_w, filters]
+            elif len(output_shape) == 4:
+                new_h = output_shape[1] - kernel_size[0] + 1
+                new_w = output_shape[2] - kernel_size[1] + 1
+                output_shape = [output_shape[0], new_h, new_w, filters]
+            
+            value_infos.append(helper.make_tensor_value_info(
+                output_name, TensorProto.FLOAT, output_shape
+            ))
+            
+        elif layer_type == "MaxPooling2D":
+            pool_size = params.get('pool_size', [2, 2])
+            if isinstance(pool_size, int):
+                pool_size = [pool_size, pool_size]
+            
+            nodes.append(helper.make_node(
+                'MaxPool',
                 inputs=[current_input],
                 outputs=[output_name],
-                kernel_shape=params.get('kernel_size', [3, 3]),
-                strides=params.get('strides', [1, 1])
+                kernel_shape=pool_size,
+                strides=pool_size
             ))
-            # Update output shape for Conv2D (keeps spatial dims, changes channels)
-            if len(output_shape) == 4:
-                output_shape[-1] = params.get('filters', 32)
-        elif layer_type == "Output":
-            units = params.get('units', 10)
+            
+            # Update shape for pooling
+            if len(output_shape) == 3:
+                output_shape = [output_shape[0] // pool_size[0], 
+                               output_shape[1] // pool_size[1], 
+                               output_shape[2]]
+            elif len(output_shape) == 4:
+                output_shape = [output_shape[0],
+                               output_shape[1] // pool_size[0],
+                               output_shape[2] // pool_size[1],
+                               output_shape[3]]
+            
+            value_infos.append(helper.make_tensor_value_info(
+                output_name, TensorProto.FLOAT, output_shape
+            ))
+            
+        elif layer_type == "Flatten":
+            nodes.append(helper.make_node(
+                'Flatten',
+                inputs=[current_input],
+                outputs=[output_name],
+                axis=1
+            ))
+            
+            # Update shape: flatten to (batch, features)
+            if len(output_shape) > 1:
+                if output_shape[0] is None:
+                    features = 1
+                    for dim in output_shape[1:]:
+                        if dim is not None:
+                            features *= dim
+                    output_shape = [None, features]
+                else:
+                    features = 1
+                    for dim in output_shape:
+                        if dim is not None:
+                            features *= dim
+                    output_shape = [1, features]
+            
+            value_infos.append(helper.make_tensor_value_info(
+                output_name, TensorProto.FLOAT, output_shape
+            ))
+            
+        elif layer_type == "Dense":
+            units = params.get('units', 64)
+            
+            # Determine input features
+            if isinstance(output_shape[-1], int):
+                in_features = output_shape[-1]
+            else:
+                in_features = 128
+            
+            # Create weight tensor
+            weight_name = f"dense_{i}_weight"
+            weight_shape = [units, in_features]
+            weight_data = np.random.randn(*weight_shape).astype(np.float32) * 0.01
+            weight_tensor = numpy_helper.from_array(weight_data, name=weight_name)
+            initializers.append(weight_tensor)
+            
+            # Create bias tensor
+            bias_name = f"dense_{i}_bias"
+            bias_data = np.zeros([units], dtype=np.float32)
+            bias_tensor = numpy_helper.from_array(bias_data, name=bias_name)
+            initializers.append(bias_tensor)
+            
             nodes.append(helper.make_node(
                 'Gemm',
-                inputs=[current_input],
-                outputs=[output_name]
+                inputs=[current_input, weight_name, bias_name],
+                outputs=[output_name],
+                alpha=1.0,
+                beta=1.0,
+                transB=1
             ))
+            
+            # Update shape
+            output_shape = [output_shape[0], units]
+            
+            value_infos.append(helper.make_tensor_value_info(
+                output_name, TensorProto.FLOAT, output_shape
+            ))
+            
+        elif layer_type == "Output":
+            units = params.get('units', 10)
+            
+            # Determine input features
+            if isinstance(output_shape[-1], int):
+                in_features = output_shape[-1]
+            else:
+                in_features = 128
+            
+            # Create weight tensor
+            weight_name = f"output_{i}_weight"
+            weight_shape = [units, in_features]
+            weight_data = np.random.randn(*weight_shape).astype(np.float32) * 0.01
+            weight_tensor = numpy_helper.from_array(weight_data, name=weight_name)
+            initializers.append(weight_tensor)
+            
+            # Create bias tensor
+            bias_name = f"output_{i}_bias"
+            bias_data = np.zeros([units], dtype=np.float32)
+            bias_tensor = numpy_helper.from_array(bias_data, name=bias_name)
+            initializers.append(bias_tensor)
+            
+            nodes.append(helper.make_node(
+                'Gemm',
+                inputs=[current_input, weight_name, bias_name],
+                outputs=[output_name],
+                alpha=1.0,
+                beta=1.0,
+                transB=1
+            ))
+            
             # Output layer produces (batch, units)
             output_shape = [output_shape[0], units]
-        # Add other layer types as needed
+            
+            value_infos.append(helper.make_tensor_value_info(
+                output_name, TensorProto.FLOAT, output_shape
+            ))
 
         current_input = output_name
 
     # Create graph with nodes
+    input_info = helper.make_tensor_value_info(
+        "input", TensorProto.FLOAT, model_data["input"]["shape"]
+    )
+    output_info = helper.make_tensor_value_info(
+        current_input, TensorProto.FLOAT, output_shape
+    )
     graph = helper.make_graph(
         nodes=nodes,
         name="NeuralModel",
-        inputs=[helper.make_tensor_value_info("input", TensorProto.FLOAT, model_data["input"]["shape"])],
-        outputs=[helper.make_tensor_value_info(current_input, TensorProto.FLOAT, output_shape)],
-        initializer=[]
+        inputs=[input_info],
+        outputs=[output_info],
+        initializer=initializers,
+        value_info=value_infos
     )
 
     # Create model
