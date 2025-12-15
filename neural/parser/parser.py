@@ -195,9 +195,10 @@ def create_parser(start_rule: str = 'network') -> lark.Lark:
         GLOBALAVERAGEPOOLING1D: "globalaveragepooling1d"i
         MULTIHEADATTENTION: "multiheadattention"i
         POSITIONALENCODING: "positionalencoding"i
+        EMBEDDING: "embedding"i
 
         // Layer type tokens (case-insensitive)
-        LAYER_TYPE.2: "dense"i | "conv2d"i | "conv1d"i | "conv3d"i | "dropout"i | "flatten"i | "lstm"i | "gru"i | "simplernndropoutwrapper"i | "simplernn"i | "output"i| "transformer"i | "transformerencoder"i | "transformerdecoder"i | "conv2dtranspose"i | "maxpooling2d"i | "maxpooling1d"i | "maxpooling3d"i | "batchnormalization"i | "gaussiannoise"i | "instancenormalization"i | "groupnormalization"i | "activation"i | "add"i | "subtract"i | "multiply"i | "average"i | "maximum"i | "concatenate"i | "dot"i | "timedistributed"i | "residualconnection"i | "globalaveragepooling2d"i | "globalaveragepooling1d"i | "multiheadattention"i | "positionalencoding"i
+        LAYER_TYPE.2: "dense"i | "conv2d"i | "conv1d"i | "conv3d"i | "dropout"i | "embedding"i | "flatten"i | "lstm"i | "gru"i | "simplernndropoutwrapper"i | "simplernn"i | "output"i| "transformer"i | "transformerencoder"i | "transformerdecoder"i | "conv2dtranspose"i | "maxpooling2d"i | "maxpooling1d"i | "maxpooling3d"i | "batchnormalization"i | "gaussiannoise"i | "instancenormalization"i | "groupnormalization"i | "activation"i | "add"i | "subtract"i | "multiply"i | "average"i | "maximum"i | "concatenate"i | "dot"i | "timedistributed"i | "residualconnection"i | "globalaveragepooling2d"i | "globalaveragepooling1d"i | "multiheadattention"i | "positionalencoding"i
 
         // Basic tokens
         NAME: /[a-zA-Z_][a-zA-Z0-9_]*/
@@ -724,8 +725,8 @@ class ModelTransformer(lark.Transformer):
             'SIMPLERNNDROPOUTWRAPPER': 'simple_rnn_dropout',
             'OUTPUT': 'output',
             'TRANSFORMER': 'transformer',
-            'TRANSFORMER_ENCODER': 'transformer',
-            'TRANSFORMER_DECODER': 'transformer',
+            'TRANSFORMER_ENCODER': 'transformer_encoder',
+            'TRANSFORMER_DECODER': 'transformer_decoder',
             'MULTIHEADATTENTION': 'multiheadattention',
             'CONV2DTRANSPOSE': 'conv2d_transpose',
             'LSTMCELL': 'lstmcell',
@@ -752,6 +753,10 @@ class ModelTransformer(lark.Transformer):
             'GLOBALAVERAGEPOOLING1D': 'global_average_pooling1d',
             'MULTIHEADATTENTION': 'multiheadattention',
             'POSITIONALENCODING': 'positional_encoding',
+<<<<<<< HEAD
+=======
+            'EMBEDDING': 'embedding',
+>>>>>>> ce1c4965 (Fix validation failures for transformer example tests in test_examples.py)
             'INCEPTION': 'inception',
             'SQUEEZEEXCITATION': 'squeeze_excitation',
         }
@@ -3379,14 +3384,60 @@ class ModelTransformer(lark.Transformer):
     ## Transformers - Encoders - Decoders ##
 
 
-    def transformer(self, items):
-        if isinstance(items[0], Token):
-            transformer_type = items[0].value
-        else:
-            self.raise_validation_error("Invalid transformer syntax: missing type identifier", items[0])
+    def _process_transformer_params(self, items, transformer_type):
+        """Helper method to process transformer parameters."""
         params = {}
         sub_layers = []
-        param_idx = 1
+        
+        if items and items[0] is not None:
+            raw_params = self._extract_value(items[0])
+            if isinstance(raw_params, list):
+                for param in raw_params:
+                    if isinstance(param, dict):
+                        params.update(param)
+            elif isinstance(raw_params, dict):
+                params = raw_params
+        
+        for key in ['num_heads', 'ff_dim']:
+            if key in params:
+                val = params[key]
+                if isinstance(val, dict) and 'hpo' in val:
+                    continue
+                if not isinstance(val, int) or val <= 0:
+                    self.raise_validation_error(f"{transformer_type} {key} must be a positive integer, got {val}", items[0] if items else None)
+        
+        return {'type': transformer_type, 'params': params, 'sublayers': sub_layers}
+    
+    def transformer_encoder(self, items):
+        """Process TransformerEncoder layer."""
+        items = self._shift_if_token(items)
+        return self._process_transformer_params(items, 'TransformerEncoder')
+    
+    def transformer_decoder(self, items):
+        """Process TransformerDecoder layer."""
+        items = self._shift_if_token(items)
+        return self._process_transformer_params(items, 'TransformerDecoder')
+
+    def transformer(self, items):
+        """Process Transformer layer (generic or from advanced_layer grammar)."""
+        # Handle both advanced_layer (with Token) and basic_layer (with params only) calls
+        if isinstance(items[0], Token):
+            # Called from advanced_layer grammar rule
+            transformer_type = items[0].value
+            if transformer_type.lower() == 'transformerencoder':
+                transformer_type = 'TransformerEncoder'
+            elif transformer_type.lower() == 'transformerdecoder':
+                transformer_type = 'TransformerDecoder'
+            elif transformer_type.lower() == 'transformer':
+                transformer_type = 'Transformer'
+            param_idx = 1
+        else:
+            # Called from basic_layer
+            transformer_type = 'Transformer'
+            param_idx = 0
+        
+        params = {}
+        sub_layers = []
 
         if len(items) > param_idx:
             raw_params = self._extract_value(items[param_idx])
@@ -3407,7 +3458,7 @@ class ModelTransformer(lark.Transformer):
                 if isinstance(val, dict) and 'hpo' in val:
                     continue
                 if not isinstance(val, int) or val <= 0:
-                    self.raise_validation_error(f"{transformer_type} {key} must be a positive integer, got {val}", items[0])
+                    self.raise_validation_error(f"{transformer_type} {key} must be a positive integer, got {val}", items[0] if items else None)
 
         return {'type': transformer_type, 'params': params, 'sublayers': sub_layers}
 
@@ -3462,14 +3513,26 @@ class ModelTransformer(lark.Transformer):
         Raises:
             DSLValidationError: If input_dim or output_dim are not positive integers.
         """
-        params = self._extract_value(items[0]) if items else {}
-        if params is not None:  # Handle the case where params might be None
+        items = self._shift_if_token(items)
+        params = self._extract_value(items[0]) if items and items[0] is not None else {}
+        
+        # Handle case where params is a list of dicts
+        if isinstance(params, list):
+            merged_params = {}
+            for param in params:
+                if isinstance(param, dict):
+                    merged_params.update(param)
+            params = merged_params
+        
+        if params is not None and isinstance(params, dict):
             for key in ['input_dim', 'output_dim']:
                 if key in params:
                     dim = params[key]
+                    if isinstance(dim, dict) and 'hpo' in dim:
+                        continue
                     if not isinstance(dim, int) or dim <= 0:
-                        self.raise_validation_error(f"Embedding {key} must be a positive integer, got {dim}", items[0])
-        return {'type': 'Embedding', 'params': params, 'sublayers': []}
+                        self.raise_validation_error(f"Embedding {key} must be a positive integer, got {dim}", items[0] if items else None)
+        return {'type': 'Embedding', 'params': params or {}, 'sublayers': []}
 
     ### Lambda Layers ###
 

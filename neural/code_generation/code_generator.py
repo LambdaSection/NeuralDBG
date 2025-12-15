@@ -602,18 +602,49 @@ def export_onnx(model_data: Dict[str, Any], filename: str = "model.onnx") -> str
 
 def generate_tensorflow_layer(layer_type, params):
     """Generate TensorFlow layer code"""
-    if layer_type == "TransformerEncoder":
+    if layer_type == "Embedding":
+        input_dim = params.get("input_dim", 10000)
+        output_dim = params.get("output_dim", 128)
+        mask_zero = params.get("mask_zero", False)
+        code = f"layers.Embedding(input_dim={input_dim}, output_dim={output_dim}"
+        if mask_zero:
+            code += f", mask_zero={mask_zero}"
+        code += ")"
+        return code
+    elif layer_type == "PositionalEncoding":
+        max_len = params.get("max_len", 5000)
+        return f"# PositionalEncoding(max_len={max_len}) - Custom implementation required"
+    elif layer_type == "GlobalAveragePooling1D":
+        return "layers.GlobalAveragePooling1D()"
+    elif layer_type == "TransformerEncoder":
         num_heads = params.get("num_heads", 8)
         ff_dim = params.get("ff_dim", 512)
         dropout = params.get("dropout", 0.1)
+        # key_dim is typically the model dimension (embed_dim) divided by num_heads
+        # We'll use ff_dim as a proxy for model dimension here
+        key_dim = params.get("key_dim", 64)  # Default to 64 if not specified
         code = [
             "# TransformerEncoder block",
             f"x = layers.LayerNormalization(epsilon=1e-6)(x)",
-            f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={ff_dim})(x, x)",
+            f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={key_dim})(x, x)",
             f"x = layers.Add()([x, attn_output])",
             f"x = layers.LayerNormalization(epsilon=1e-6)(x)",
             f"x = layers.Dense({ff_dim}, activation='relu')(x)",
-            f"x = layers.Dense({ff_dim})(x)",
+            f"x = layers.Dropout({dropout})(x)"
+        ]
+        return "\n".join(code)
+    elif layer_type == "TransformerDecoder":
+        num_heads = params.get("num_heads", 8)
+        ff_dim = params.get("ff_dim", 512)
+        dropout = params.get("dropout", 0.1)
+        key_dim = params.get("key_dim", 64)
+        code = [
+            "# TransformerDecoder block",
+            f"x = layers.LayerNormalization(epsilon=1e-6)(x)",
+            f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={key_dim})(x, x)",
+            f"x = layers.Add()([x, attn_output])",
+            f"x = layers.LayerNormalization(epsilon=1e-6)(x)",
+            f"x = layers.Dense({ff_dim}, activation='relu')(x)",
             f"x = layers.Dropout({dropout})(x)"
         ]
         return "\n".join(code)
@@ -681,7 +712,17 @@ def generate_tensorflow_layer(layer_type, params):
 # Pytorch Layers Code Generator
 def generate_pytorch_layer(layer_type, params, input_shape: Optional[tuple] = None):
     """Generate PyTorch layer code"""
-    if layer_type == "Conv2D":
+    if layer_type == "Embedding":
+        num_embeddings = params.get("input_dim", 10000)
+        embedding_dim = params.get("output_dim", 128)
+        return f"nn.Embedding(num_embeddings={num_embeddings}, embedding_dim={embedding_dim})"
+    elif layer_type == "PositionalEncoding":
+        max_len = params.get("max_len", 5000)
+        d_model = params.get("d_model", 512)
+        return f"# PositionalEncoding(max_len={max_len}, d_model={d_model}) - Custom implementation required"
+    elif layer_type == "GlobalAveragePooling1D":
+        return "nn.AdaptiveAvgPool1d(1)"
+    elif layer_type == "Conv2D":
         data_format = params.get("data_format", "channels_last")
         in_channels = 3  # Default value
         if input_shape is not None:
@@ -945,6 +986,36 @@ def generate_pytorch_layer(layer_type, params, input_shape: Optional[tuple] = No
                 logger.warning(f"Dictionary parameter without 'value' key: {dropout}, using default")
                 dropout = 0.1
         return f"nn.TransformerEncoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout})"
+    elif layer_type == "TransformerDecoder":
+        d_model = params.get("d_model", 512)
+        if isinstance(d_model, dict):
+            if 'value' in d_model:
+                d_model = d_model['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {d_model}, using default")
+                d_model = 512
+        nhead = params.get("num_heads", 8)
+        if isinstance(nhead, dict):
+            if 'value' in nhead:
+                nhead = nhead['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {nhead}, using default")
+                nhead = 8
+        dim_feedforward = params.get("ff_dim", 2048)
+        if isinstance(dim_feedforward, dict):
+            if 'value' in dim_feedforward:
+                dim_feedforward = dim_feedforward['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {dim_feedforward}, using default")
+                dim_feedforward = 2048
+        dropout = params.get("dropout", 0.1)
+        if isinstance(dropout, dict):
+            if 'value' in dropout:
+                dropout = dropout['value']
+            else:
+                logger.warning(f"Dictionary parameter without 'value' key: {dropout}, using default")
+                dropout = 0.1
+        return f"nn.TransformerDecoderLayer(d_model={d_model}, nhead={nhead}, dim_feedforward={dim_feedforward}, dropout={dropout})"
     else:
         warnings.warn(f"Unsupported layer type '{layer_type}' for pytorch. Skipping.", UserWarning)
         return None
