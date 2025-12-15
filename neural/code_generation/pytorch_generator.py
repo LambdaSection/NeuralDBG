@@ -15,10 +15,11 @@ class PyTorchGenerator(BaseCodeGenerator):
         optimizer_config = self.model_data.get('optimizer', {'type': 'Adam'})
         optimizer_type = optimizer_config['type'] if isinstance(optimizer_config, dict) else optimizer_config
         
-        code = "import torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport torchvision.transforms as transforms\nimport math\n"
+        code = "import logging\nimport torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport torchvision.transforms as transforms\nimport math\n"
         code += "from torchvision import datasets\n"
         code += "from torch.utils.data import DataLoader\n"
         code += "from neural.tracking.experiment_tracker import ExperimentManager\n\n"
+        code += "logger = logging.getLogger(__name__)\n\n"
 
         code += "# Initialize Experiment Tracking\n"
         code += "experiment_manager = ExperimentManager()\n"
@@ -285,7 +286,7 @@ class PyTorchGenerator(BaseCodeGenerator):
             code += f"{self.indent}{self.indent}total += target.size(0)\n"
             code += f"{self.indent}{self.indent}correct += (predicted == target).sum().item()\n"
             code += f"{self.indent}accuracy = 100 * correct / total\n"
-            code += "print(f'Accuracy: {accuracy:.2f}%')\n"
+            code += "logger.info(f'Accuracy: {accuracy:.2f}%')\n"
             code += "experiment.log_metrics({'loss': avg_loss, 'accuracy': accuracy}, step=epoch)\n"
             if 'save_path' in tc:
                 code += f"{self.indent}{self.indent}torch.save(model.state_dict(), '{tc['save_path']}')\n"

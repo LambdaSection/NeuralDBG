@@ -573,11 +573,11 @@ def test_inference(url="http://localhost:8080/predictions/model", data=None):
     response = requests.post(url, json={"data": data})
     
     if response.status_code == 200:
-        print("Inference successful!")
-        print("Response:", json.dumps(response.json(), indent=2))
+        logger.info("Inference successful!")
+        logger.info("Response: %s", json.dumps(response.json(), indent=2))
     else:
-        print(f"Inference failed with status code: {response.status_code}")
-        print("Response:", response.text)
+        logger.error("Inference failed with status code: %d", response.status_code)
+        logger.error("Response: %s", response.text)
 
 if __name__ == "__main__":
     test_inference()
@@ -652,11 +652,11 @@ def test_inference(url="http://localhost:8501/v1/models/model:predict", data=Non
     response = requests.post(url, json=payload)
     
     if response.status_code == 200:
-        print("Inference successful!")
-        print("Response:", json.dumps(response.json(), indent=2))
+        logger.info("Inference successful!")
+        logger.info("Response: %s", json.dumps(response.json(), indent=2))
     else:
-        print(f"Inference failed with status code: {response.status_code}")
-        print("Response:", response.text)
+        logger.error("Inference failed with status code: %d", response.status_code)
+        logger.error("Response: %s", response.text)
 
 if __name__ == "__main__":
     test_inference()

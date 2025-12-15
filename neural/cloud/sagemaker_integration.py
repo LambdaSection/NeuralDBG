@@ -318,7 +318,7 @@ def output_fn(prediction, accept):
 def sagemaker_entry_point():
     """Entry point for SageMaker training."""
     if not IS_SAGEMAKER:
-        print("Not running in SageMaker environment")
+        logger.warning("Not running in SageMaker environment")
         return
 
     # Initialize the handler
@@ -342,9 +342,9 @@ def sagemaker_entry_point():
     result = handler.train_model(dsl_code, backend=backend)
 
     if result['success']:
-        print(f"Model trained successfully: {result['model_path']}")
+        logger.info(f"Model trained successfully: {result['model_path']}")
     else:
-        print(f"Model training failed: {result.get('error', 'Unknown error')}")
+        logger.error(f"Model training failed: {result.get('error', 'Unknown error')}")
         sys.exit(1)
 
 

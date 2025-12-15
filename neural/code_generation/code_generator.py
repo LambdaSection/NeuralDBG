@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 import warnings
 from typing import Any, Dict, Optional, Union
@@ -242,10 +243,11 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
     elif backend == "pytorch":
         optimizer_config = model_data.get('optimizer', {'type': 'Adam'})
         optimizer_type = optimizer_config['type'] if isinstance(optimizer_config, dict) else optimizer_config
-        code = "import torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport torchvision.transforms as transforms\n"
+        code = "import logging\nimport torch\nimport torch.nn as nn\nimport torch.optim as optim\nimport torchvision.transforms as transforms\n"
         code += "from torchvision import datasets\n"
         code += "from torch.utils.data import DataLoader\n"
         code += "from neural.tracking.experiment_tracker import ExperimentManager\n\n"
+        code += "logger = logging.getLogger(__name__)\n\n"
 
         code += "# Initialize Experiment Tracking\n"
         code += "experiment_manager = ExperimentManager()\n"
@@ -513,7 +515,7 @@ def save_file(filename: str, content: str) -> None:
             filepath=filename,
             reason=str(e)
         )
-    print(f"Successfully saved file: {filename}")
+    logger.info(f"Successfully saved file: {filename}")
 
 def load_file(filename: str) -> Any:
     """Load and parse a neural config file."""
