@@ -71,9 +71,6 @@ class ConfigValidator:
         'dashboard': [
             'SECRET_KEY',
         ],
-        'aquarium': [
-            'SECRET_KEY',
-        ],
         'celery': [
             'REDIS_HOST',
             'CELERY_BROKER_URL',
@@ -103,11 +100,6 @@ class ConfigValidator:
             'DASHBOARD_PORT': '8050',
             'DEBUG': 'false',
         },
-        'aquarium': {
-            'AQUARIUM_HOST': '0.0.0.0',
-            'AQUARIUM_PORT': '8051',
-            'DEBUG': 'false',
-        },
         'redis': {
             'REDIS_PORT': '6379',
             'REDIS_DB': '0',
@@ -132,16 +124,6 @@ class ConfigValidator:
             'message': 'Port must be between 1024 and 65535',
         },
         'DASHBOARD_PORT': {
-            'pattern': r'^\d{2,5}$',
-            'validator': lambda v: 1024 <= int(v) <= 65535,
-            'message': 'Port must be between 1024 and 65535',
-        },
-        'AQUARIUM_PORT': {
-            'pattern': r'^\d{2,5}$',
-            'validator': lambda v: 1024 <= int(v) <= 65535,
-            'message': 'Port must be between 1024 and 65535',
-        },
-        'MARKETPLACE_PORT': {
             'pattern': r'^\d{2,5}$',
             'validator': lambda v: 1024 <= int(v) <= 65535,
             'message': 'Port must be between 1024 and 65535',
@@ -205,7 +187,7 @@ class ConfigValidator:
         ----------
         services : list of str, optional
             List of services to validate. If None, validates all services.
-            Valid services: 'api', 'dashboard', 'aquarium', 'celery'
+            Valid services: 'api', 'dashboard', 'celery'
         
         Returns
         -------
@@ -304,7 +286,7 @@ class ConfigValidator:
     
     def _check_port_conflicts(self, result: ValidationResult):
         """Check for port conflicts between services."""
-        port_vars = ['API_PORT', 'DASHBOARD_PORT', 'AQUARIUM_PORT', 'MARKETPLACE_PORT', 'REDIS_PORT']
+        port_vars = ['API_PORT', 'DASHBOARD_PORT', 'REDIS_PORT']
         ports: Dict[str, List[str]] = {}
         
         for var in port_vars:

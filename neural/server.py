@@ -47,7 +47,6 @@ class FeatureRegistry:
             'nocode': True,
             'monitoring': True,
             'api': True,
-            'collaboration': False,
         }
         self._load_from_env()
     
@@ -336,7 +335,7 @@ def get_settings_layout():
     enabled_features = registry.list_enabled()
     
     feature_toggles = []
-    for feature in ['debug', 'nocode', 'monitoring', 'api', 'marketplace']:
+    for feature in ['debug', 'nocode', 'monitoring', 'api']:
         feature_toggles.append(
             dbc.Row([
                 dbc.Col(html.Label(feature.title()), width=3),

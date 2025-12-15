@@ -58,15 +58,6 @@ class HealthChecker:
                 'host': os.getenv('DASHBOARD_HOST', '0.0.0.0'),
                 'port': int(os.getenv('DASHBOARD_PORT', 8050)),
             },
-            'aquarium': {
-                'host': os.getenv('AQUARIUM_HOST', '0.0.0.0'),
-                'port': int(os.getenv('AQUARIUM_PORT', 8051)),
-            },
-            'marketplace': {
-                'host': os.getenv('MARKETPLACE_HOST', '0.0.0.0'),
-                'port': int(os.getenv('MARKETPLACE_PORT', 5000)),
-                'endpoint': '/api/stats',
-            },
             'redis': {
                 'host': os.getenv('REDIS_HOST', 'localhost'),
                 'port': int(os.getenv('REDIS_PORT', 6379)),
@@ -98,7 +89,7 @@ class HealthChecker:
         Parameters
         ----------
         service : str
-            Service name ('api', 'dashboard', 'aquarium', 'marketplace', 'redis', 'celery')
+            Service name ('api', 'dashboard', 'redis', 'celery')
         
         Returns
         -------
@@ -169,57 +160,6 @@ class HealthChecker:
     def _check_dashboard(self) -> ServiceHealth:
         """Check dashboard service health."""
         return self._check_port('dashboard')
-    
-    def _check_aquarium(self) -> ServiceHealth:
-        """Check Aquarium service health."""
-        return self._check_port('aquarium')
-    
-    def _check_marketplace(self) -> ServiceHealth:
-        """Check marketplace service health."""
-        config = self.service_configs['marketplace']
-        
-        try:
-            import requests
-            
-            start_time = time.time()
-            url = f"http://{config['host']}:{config['port']}{config['endpoint']}"
-            
-            # Use localhost if host is 0.0.0.0
-            if config['host'] == '0.0.0.0':
-                url = f"http://localhost:{config['port']}{config['endpoint']}"
-            
-            response = requests.get(url, timeout=5)
-            response_time = (time.time() - start_time) * 1000
-            
-            if response.status_code == 200:
-                data = response.json()
-                return ServiceHealth(
-                    name='marketplace',
-                    status=HealthStatus.HEALTHY,
-                    message='Marketplace is healthy',
-                    details=data.get('stats', {}),
-                    response_time_ms=response_time
-                )
-            else:
-                return ServiceHealth(
-                    name='marketplace',
-                    status=HealthStatus.DEGRADED,
-                    message=f'Marketplace returned status {response.status_code}',
-                    response_time_ms=response_time
-                )
-        
-        except ImportError:
-            return ServiceHealth(
-                name='marketplace',
-                status=HealthStatus.UNKNOWN,
-                message='requests library not available for health check'
-            )
-        except Exception as e:
-            return ServiceHealth(
-                name='marketplace',
-                status=HealthStatus.UNHEALTHY,
-                message=f'Marketplace health check failed: {str(e)}'
-            )
     
     def _check_redis(self) -> ServiceHealth:
         """Check Redis service health."""

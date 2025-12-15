@@ -38,13 +38,6 @@ class ConfigMigrator:
         'dashboard.websocket_interval': 'DASHBOARD_WEBSOCKET_INTERVAL',
         'dashboard.auth.username': 'DASHBOARD_USERNAME',
         'dashboard.auth.password': 'DASHBOARD_PASSWORD',
-        'aquarium.host': 'AQUARIUM_HOST',
-        'aquarium.port': 'AQUARIUM_PORT',
-        'aquarium.debug': 'DEBUG',
-        'marketplace.host': 'MARKETPLACE_HOST',
-        'marketplace.port': 'MARKETPLACE_PORT',
-        'marketplace.debug': 'DEBUG',
-        'marketplace.registry_dir': 'REGISTRY_DIR',
         'redis.host': 'REDIS_HOST',
         'redis.port': 'REDIS_PORT',
         'redis.db': 'REDIS_DB',
@@ -181,10 +174,6 @@ class ConfigMigrator:
                     service = 'API'
                 elif key.startswith('DASHBOARD_'):
                     service = 'Dashboard'
-                elif key.startswith('AQUARIUM_'):
-                    service = 'Aquarium'
-                elif key.startswith('MARKETPLACE_'):
-                    service = 'Marketplace'
                 elif key.startswith('REDIS_'):
                     service = 'Redis'
                 elif key.startswith('CELERY_'):
@@ -434,19 +423,6 @@ DASHBOARD_PORT=8050
 DASHBOARD_WEBSOCKET_INTERVAL=1000
 DASHBOARD_USERNAME=admin
 DASHBOARD_PASSWORD=
-
-# =============================================================================
-# AQUARIUM (Visual IDE)
-# =============================================================================
-AQUARIUM_HOST=0.0.0.0
-AQUARIUM_PORT=8051
-
-# =============================================================================
-# MARKETPLACE
-# =============================================================================
-MARKETPLACE_HOST=0.0.0.0
-MARKETPLACE_PORT=5000
-REGISTRY_DIR=neural_marketplace_registry
 
 # =============================================================================
 # REDIS
