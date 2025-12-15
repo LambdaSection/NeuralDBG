@@ -50,18 +50,18 @@ class TestLayerValidation:
         propagator = ShapePropagator()
         input_shape = ()
         layer = {"type": "Dense", "params": {"units": 64}}
-        with pytest.raises(InvalidShapeError) as exc_info:
+        with pytest.raises(InvalidShapeError) as excinfo:
             propagator.propagate(input_shape, layer)
-        assert "Input shape cannot be empty" in str(exc_info.value)
+        assert "Input shape cannot be empty" in str(excinfo.value)
     
     def test_propagate_negative_input_dimensions(self):
         """Test propagation with negative input dimensions"""
         propagator = ShapePropagator()
         input_shape = (1, -28, 28, 1)
         layer = {"type": "Conv2D", "params": {"filters": 32, "kernel_size": 3}}
-        with pytest.raises(InvalidShapeError) as exc_info:
+        with pytest.raises(InvalidShapeError) as excinfo:
             propagator.propagate(input_shape, layer)
-        assert "negative dimensions" in str(exc_info.value)
+        assert "negative dimensions" in str(excinfo.value)
 
 
 class TestConv2DEdgeCases:
@@ -155,9 +155,9 @@ class TestConv2DEdgeCases:
                 "padding": "valid"
             }
         }
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError) as excinfo:
             propagator.propagate(input_shape, layer, framework="tensorflow")
-        assert "kernel size" in str(exc_info.value).lower()
+        assert "kernel size" in str(excinfo.value).lower()
     
     def test_conv2d_invalid_output_dimensions(self):
         """Test Conv2D resulting in invalid output dimensions"""
@@ -265,9 +265,9 @@ class TestDenseLayerEdgeCases:
             "type": "Dense",
             "params": {"units": 10}
         }
-        with pytest.raises(ShapeMismatchError) as exc_info:
+        with pytest.raises(ShapeMismatchError) as excinfo:
             propagator.propagate(input_shape, layer, framework="tensorflow")
-        assert "expects 2D input" in str(exc_info.value)
+        assert "expects 2D input" in str(excinfo.value)
 
 
 class TestOutputLayerEdgeCases:
@@ -516,17 +516,17 @@ class TestShapeValidator:
         """Test Conv validation with invalid dimensions"""
         input_shape = (1, 28, 3)
         params = {"kernel_size": 3}
-        with pytest.raises(ShapeMismatchError) as exc_info:
+        with pytest.raises(ShapeMismatchError) as excinfo:
             ShapeValidator.validate_layer("Conv2D", input_shape, params)
-        assert "4D input" in str(exc_info.value)
+        assert "4D input" in str(excinfo.value)
     
     def test_validate_conv_kernel_too_large(self):
         """Test Conv validation with kernel larger than input"""
         input_shape = (1, 10, 10, 3)
         params = {"kernel_size": 15}
-        with pytest.raises(ShapeMismatchError) as exc_info:
+        with pytest.raises(ShapeMismatchError) as excinfo:
             ShapeValidator.validate_layer("Conv2D", input_shape, params)
-        assert "exceeds input dimension" in str(exc_info.value)
+        assert "exceeds input dimension" in str(excinfo.value)
     
     def test_validate_dense_2d_input(self):
         """Test Dense validation with correct 2D input"""
@@ -538,9 +538,9 @@ class TestShapeValidator:
         """Test Dense validation with higher dimensional input"""
         input_shape = (1, 7, 7, 64)
         params = {"units": 10}
-        with pytest.raises(ShapeMismatchError) as exc_info:
+        with pytest.raises(ShapeMismatchError) as excinfo:
             ShapeValidator.validate_layer("Dense", input_shape, params)
-        assert "2D input" in str(exc_info.value)
+        assert "2D input" in str(excinfo.value)
 
 
 class TestLayerHandlerRegistry:
@@ -610,9 +610,9 @@ class TestVisualizationMethods:
     def test_export_visualization_invalid_format(self):
         """Test export with invalid format"""
         propagator = ShapePropagator()
-        with pytest.raises(ValueError) as exc_info:
+        with pytest.raises(ValueError) as excinfo:
             propagator.export_visualization(format='invalid')
-        assert "Unsupported format" in str(exc_info.value)
+        assert "Unsupported format" in str(excinfo.value)
 
 
 class TestDetectionFunctions:
