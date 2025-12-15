@@ -109,10 +109,6 @@
 │              ├─ Aquarium API                                  │
 │              └─ IDE backend                                   │
 │                                                                 │
-│  Port 8080:  neural/collaboration/server.py                   │
-│              ├─ Collaboration Server                          │
-│              └─ WebSocket service                             │
-│                                                                 │
 │  Port 5001:  Internal WebSocket (dashboard)                   │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -149,7 +145,6 @@
 │  │                 Experimental Layer                       │  │
 │  │  • No-Code Builder (Visual editor)                      │  │
 │  │  • Monitoring (Production monitoring)                   │  │
-│  │  • Collaboration (Real-time editing)                    │  │
 │  │  • Marketplace (Model sharing)                          │  │
 │  │  • Aquarium (Full IDE) [To be extracted]               │  │
 │  │  • Federated (Distributed learning)                     │  │
@@ -306,20 +301,6 @@ neural compile model.neural --backend tensorflow
     ├─▶ Validate DSL
     ├─▶ Generate code
     └─▶ Run tests
-```
-
-### Team Collaboration (Optional)
-```
-Multiple Users
-    │
-    ├─▶ User 1: neural server start
-    ├─▶ User 2: neural server start
-    └─▶ User 3: neural server start
-    │
-    ▼
-Optional: Collaboration Server (Port 8080)
-    │
-    └─▶ Real-time sync (if enabled)
 ```
 
 ## Technology Stack

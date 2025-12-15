@@ -320,7 +320,7 @@ def get_settings_layout():
     enabled_features = registry.list_enabled()
     
     feature_toggles = []
-    for feature in ['debug', 'nocode', 'monitoring', 'api', 'collaboration']:
+    for feature in ['debug', 'nocode', 'monitoring', 'api', 'marketplace']:
         feature_toggles.append(
             dbc.Row([
                 dbc.Col(html.Label(feature.title()), width=3),

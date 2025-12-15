@@ -597,58 +597,6 @@ class AuditLogError(MLOpsException):
     """
 
 
-class CollaborationException(NeuralException):
-    """
-    Base exception for collaboration-related errors.
-    
-    Raised during collaborative editing, workspace management, or synchronization.
-    """
-
-
-class WorkspaceError(CollaborationException):
-    """
-    Raised when workspace operations fail.
-    
-    Examples:
-        - Workspace not found
-        - Access denied
-        - Invalid workspace configuration
-    """
-
-
-class ConflictError(CollaborationException):
-    """
-    Raised when edit conflicts occur during collaboration.
-    
-    Examples:
-        - Concurrent edits to the same lines
-        - Merge conflicts
-        - Incompatible changes
-    """
-
-
-class SyncError(CollaborationException):
-    """
-    Raised when synchronization fails.
-    
-    Examples:
-        - Network errors
-        - Version mismatch
-        - Sync timeout
-    """
-
-
-class AccessControlError(CollaborationException):
-    """
-    Raised when access control validation fails.
-    
-    Examples:
-        - Insufficient permissions
-        - Invalid credentials
-        - Token expired
-    """
-
-
 # Convenience functions for common error scenarios
 
 def raise_parser_error(
