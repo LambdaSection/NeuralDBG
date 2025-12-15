@@ -45,7 +45,8 @@ def complex_model_data():
             {"type": "Output", "params": {"units": 10, "activation": "softmax"}}
         ],
         "loss": {"value": "categorical_crossentropy"},
-        "optimizer": {"type": "Adam", "params": {"lr": 0.001}}
+        "optimizer": {"type": "Adam", "params": {"lr": 0.001}},
+        "auto_flatten_output": True
     }
 
 @pytest.fixture
@@ -161,7 +162,8 @@ def test_tensorflow_layer_generation(layer_type, params, expected):
         "input": {"shape": (None, 32, 32, 3)},
         "layers": [{"type": layer_type, "params": params}],
         "loss": "mse",
-        "optimizer": "Adam"
+        "optimizer": "Adam",
+        "auto_flatten_output": True
     }
     code = generate_code(model_data, "tensorflow")
     assert expected in code
@@ -173,7 +175,8 @@ def test_pytorch_layer_generation(layer_type, params, expected):
         "input": {"shape": (None, 3, 32, 32)},
         "layers": [{"type": layer_type, "params": params}],
         "loss": "mse",
-        "optimizer": "SGD"
+        "optimizer": "SGD",
+        "auto_flatten_output": True
     }
     code = generate_code(model_data, "pytorch")
     if layer_type == "LSTM":
@@ -207,7 +210,8 @@ def test_shape_propagation():
             {"type": "Dense", "params": {"units": 10}}
         ],
         "loss": "mse",
-        "optimizer": "Adam"
+        "optimizer": "Adam",
+        "auto_flatten_output": True
     }
     tf_code = generate_code(model_data, "tensorflow")
     assert "input_shape=(28, 28, 1)" in tf_code

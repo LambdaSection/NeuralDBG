@@ -92,6 +92,10 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
             expected="dict with 'layers' and 'input' keys"
         )
 
+    # Check if auto_flatten_output is specified in model_data
+    if 'auto_flatten_output' in model_data:
+        auto_flatten_output = model_data['auto_flatten_output']
+
     indent = "    "
     propagator = ShapePropagator(debug=False)
     # Initial input shape includes batch dimension: (None, channels, height, width)
@@ -493,6 +497,11 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
 def save_file(filename: str, content: str) -> None:
     """Save content to a file."""
     try:
+        # Create parent directories if they don't exist
+        directory = os.path.dirname(filename)
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+        
         with open(filename, 'w') as f:
             f.write(content)
     except Exception as e:
@@ -533,6 +542,7 @@ def generate_onnx(model_data):
     # Create nodes for each layer
     nodes = []
     current_input = "input"
+    output_shape = list(model_data["input"]["shape"])  # Track output shape
 
     for i, layer in enumerate(model_data['layers']):
         layer_type = layer['type']
@@ -547,6 +557,18 @@ def generate_onnx(model_data):
                 kernel_shape=params.get('kernel_size', [3, 3]),
                 strides=params.get('strides', [1, 1])
             ))
+            # Update output shape for Conv2D (keeps spatial dims, changes channels)
+            if len(output_shape) == 4:
+                output_shape[-1] = params.get('filters', 32)
+        elif layer_type == "Output":
+            units = params.get('units', 10)
+            nodes.append(helper.make_node(
+                'Gemm',
+                inputs=[current_input],
+                outputs=[output_name]
+            ))
+            # Output layer produces (batch, units)
+            output_shape = [output_shape[0], units]
         # Add other layer types as needed
 
         current_input = output_name
@@ -556,7 +578,7 @@ def generate_onnx(model_data):
         nodes=nodes,
         name="NeuralModel",
         inputs=[helper.make_tensor_value_info("input", TensorProto.FLOAT, model_data["input"]["shape"])],
-        outputs=[helper.make_tensor_value_info(current_input, TensorProto.FLOAT, None)],
+        outputs=[helper.make_tensor_value_info(current_input, TensorProto.FLOAT, output_shape)],
         initializer=[]
     )
 

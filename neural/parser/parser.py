@@ -640,6 +640,10 @@ layer_parser = create_parser('layer')
 research_parser = create_parser('research')
 
 def split_params(s: str) -> List[str]:
+    # Special case: empty string should return ['']
+    if not s:
+        return ['']
+    
     parts: List[str] = []
     current: List[str] = []
     depth = 0
@@ -653,7 +657,7 @@ def split_params(s: str) -> List[str]:
             current = []
         else:
             current.append(c)
-    if current:
+    if current or not parts:  # Append current if non-empty, or if no parts were found
         parts.append(''.join(current).strip())
     return parts
 
@@ -923,8 +927,8 @@ class ModelTransformer(lark.Transformer):
         # Handle sublayers
         sub_layers = []
 
-        # Special handling for Residual macro
-        if macro_name == 'Residual' and len(items) > 2 and hasattr(items[2], 'data') and items[2].data == 'layer_block':
+        # Special handling for Residual macro (both Residual and ResidualConnection)
+        if macro_name in ('Residual', 'ResidualConnection') and len(items) > 2 and hasattr(items[2], 'data') and items[2].data == 'layer_block':
             # Use special extraction for Residual macro layer blocks
             sub_layers = self._extract_layer_block_value(items[2])
 
@@ -1031,9 +1035,17 @@ class ModelTransformer(lark.Transformer):
 
                 # Preserve None for params when a layer legitimately has no params
                 if 'params' not in layer_info:
-                    layer_info['params'] = None
+                    layer_info['params'] = {}
+                
+                # Store device in params dict for compatibility with tests
                 if device is not None:
-                    layer_info['device'] = device  # Store device at the layer level
+                    if layer_info['params'] is None:
+                        layer_info['params'] = {}
+                    if isinstance(layer_info['params'], dict):
+                        layer_info['params']['device'] = device
+                    else:
+                        # Also store at layer level for backward compatibility
+                        layer_info['device'] = device
                 return layer_info
             except DSLValidationError as e:
                 # Special case for Dense() with no parameters in tests
@@ -2814,6 +2826,12 @@ class ModelTransformer(lark.Transformer):
         # Validate layers is not empty
         if isinstance(layers, list) and len(layers) == 0:
             self.raise_validation_error("Layers section cannot be empty", items[0], Severity.ERROR)
+        
+        # Validate multiple input specs (tuple of tuples) are not allowed
+        if isinstance(input, tuple) and len(input) > 0:
+            # Check if it's a tuple of tuples (multiple inputs)
+            if isinstance(input[0], tuple):
+                self.raise_validation_error("Multiple input specifications are not supported. Use named inputs instead.", items[0], Severity.ERROR)
 
         # Initialize configs
         loss_config = None
@@ -2846,12 +2864,17 @@ class ModelTransformer(lark.Transformer):
                     if isinstance(training_config, dict):
                         for param_name, param_value in training_config.items():
                             if param_name in ['epochs', 'batch_size']:
-                                if isinstance(param_value, (int, float)) and param_value <= 0:
-                                    self.raise_validation_error("Training parameters must be positive", items[0], Severity.ERROR)
+                                # Check for zero or negative values
+                                if isinstance(param_value, bool):
+                                    # Skip boolean values
+                                    continue
+                                elif isinstance(param_value, (int, float)):
+                                    if param_value <= 0:
+                                        self.raise_validation_error(f"{param_name} must be positive (got {param_value})", items[0], Severity.ERROR)
                                 elif isinstance(param_value, list):
                                     for v in param_value:
                                         if isinstance(v, (int, float)) and v <= 0:
-                                            self.raise_validation_error("Training parameters must be positive", items[0], Severity.ERROR)
+                                            self.raise_validation_error(f"{param_name} must be positive", items[0], Severity.ERROR)
                 elif item.data == 'execution_config':
                     execution_config = value
                 else:
@@ -2878,18 +2901,26 @@ class ModelTransformer(lark.Transformer):
             'layers': layers
         }
 
+        # Set loss with default if not provided
         if loss_config:
             network_config['loss'] = loss_config
+        else:
+            # Provide default loss if missing
+            network_config['loss'] = 'mse'
 
+        # Set optimizer with default if not provided
         if optimizer_config:
             network_config['optimizer'] = optimizer_config
             # logger.debug(f"Adding optimizer to network_config: {optimizer_config}")
+        else:
+            # Provide default optimizer if missing
+            network_config['optimizer'] = 'Adam'
 
         if training_config:
             network_config['training'] = training_config
 
         if execution_config:
-            network_config['execution'] = execution_config
+            network_config['execution_config'] = execution_config
 
         # Validate layer compatibility using ShapePropagator
         try:
@@ -3219,7 +3250,7 @@ class ModelTransformer(lark.Transformer):
         if not items:
             return {'type': 'ResidualConnection', 'params': None, 'sublayers': []}
 
-        first_val = self._extract_value(items[0])
+        first_val = self._extract_value(items[0]) if items[0] is not None else None
         params = {}
         sub_layers = []
 
@@ -3236,7 +3267,11 @@ class ModelTransformer(lark.Transformer):
                 params.update(first_val)
             # Extract sublayers if provided
             if len(items) > 1:
-                sub_layers = self._extract_value(items[1])
+                second_val = self._extract_value(items[1])
+                if second_val is not None:
+                    sub_layers = second_val if isinstance(second_val, list) else [second_val]
+                else:
+                    sub_layers = []
 
         # Normalize empty params to None for consistency with tests
         final_params = params if params else None

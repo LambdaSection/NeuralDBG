@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import keras
+from tensorflow import keras
 import numpy as np
 import optuna
 from optuna.trial import Trial
