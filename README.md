@@ -353,7 +353,13 @@ python -m pytest tests/ -v
 
 # Security audit
 python -m pip_audit -l --progress-spinner off
+
+# Clean up cache and artifacts
+.\cleanup_cache_and_artifacts.ps1  # Windows
+./cleanup_cache_and_artifacts.sh   # Unix/Linux/macOS
 ```
+
+See [CLEANUP_README.md](CLEANUP_README.md) for details on cleaning up cache, artifacts, and redundant documentation files.
 
 See the Development Workflow section at the end of this README for full details.
 

@@ -1,6 +1,14 @@
-# Cache and Artifacts Cleanup Guide
+# Cleanup Guide
 
-This guide explains how to remove cache directories, virtual environments, and test artifacts from the Neural DSL repository.
+This guide explains how to clean up the Neural DSL repository, including cache directories, virtual environments, test artifacts, and redundant documentation files.
+
+## Documentation Cleanup
+
+For removing 70+ redundant QUICK*.md and *SUMMARY.md documentation files, see **[QUICK_SUMMARY_CLEANUP_README.md](QUICK_SUMMARY_CLEANUP_README.md)**.
+
+## Cache and Artifacts Cleanup
+
+This section explains how to remove cache directories, virtual environments, and test artifacts from the repository.
 
 ## What Gets Cleaned Up
 
