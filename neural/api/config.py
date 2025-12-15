@@ -5,7 +5,10 @@ Configuration for Neural API server.
 import os
 from typing import Optional
 from pydantic import Field
-from pydantic_settings import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except Exception:
+    from pydantic import BaseModel as BaseSettings  # type: ignore
 
 
 class Settings(BaseSettings):

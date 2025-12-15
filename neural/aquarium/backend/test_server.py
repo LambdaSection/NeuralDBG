@@ -1,6 +1,10 @@
 """Tests for the backend bridge server."""
 
 import pytest
+try:
+    import httpx  # type: ignore
+except Exception:
+    pytest.skip("httpx not available", allow_module_level=True)
 from fastapi.testclient import TestClient
 
 from .server import create_app

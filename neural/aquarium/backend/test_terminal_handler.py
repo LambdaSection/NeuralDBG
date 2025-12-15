@@ -2,7 +2,7 @@
 
 import asyncio
 import pytest
-from terminal_handler import TerminalSession, TerminalManager
+from .terminal_handler import TerminalSession, TerminalManager
 
 
 class TestTerminalSession:

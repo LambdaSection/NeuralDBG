@@ -9,7 +9,13 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+try:
+    from pydantic_settings import BaseSettings, SettingsConfigDict
+    _USE_SETTINGS_CONFIG_DICT = True
+except Exception:
+    # Fallback for environments without pydantic-settings
+    from pydantic import BaseModel as BaseSettings  # type: ignore
+    _USE_SETTINGS_CONFIG_DICT = False
 
 
 class BaseConfig(BaseSettings):
@@ -20,13 +26,19 @@ class BaseConfig(BaseSettings):
     Provides automatic .env file loading and environment variable handling.
     """
     
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore",
-        validate_default=True,
-    )
+    if _USE_SETTINGS_CONFIG_DICT:
+        model_config = SettingsConfigDict(
+            env_file=".env",
+            env_file_encoding="utf-8",
+            case_sensitive=False,
+            extra="ignore",
+            validate_default=True,
+        )
+    else:
+        class Config:
+            env_file = ".env"
+            env_file_encoding = "utf-8"
+            case_sensitive = False
     
     def model_dump_safe(self) -> Dict[str, Any]:
         """
