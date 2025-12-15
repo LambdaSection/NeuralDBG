@@ -47,7 +47,8 @@ class BenchmarkRunner:
         metrics['parse_time'] = parse_time
         
         start_codegen = time.time()
-        code = generate_code(model_data, backend)
+        # Enable auto_flatten_output to handle shape propagation issues in benchmarks
+        code = generate_code(model_data, backend, auto_flatten_output=True)
         codegen_time = time.time() - start_codegen
         metrics['codegen_time'] = codegen_time
         

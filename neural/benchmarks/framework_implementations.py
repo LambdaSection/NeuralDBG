@@ -129,7 +129,8 @@ class NeuralDSLImplementation(FrameworkImplementation):
         tree = parser.parse(self.dsl_code)
         model_data = ModelTransformer().transform(tree)
         
-        generated_code = generate_code(model_data, self.backend)
+        # Enable auto_flatten_output to handle shape propagation issues
+        generated_code = generate_code(model_data, self.backend, auto_flatten_output=True)
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
             f.write(generated_code)
