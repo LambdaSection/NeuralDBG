@@ -348,6 +348,11 @@ client_data/
 install_packages.py
 verify_integrations.py
 do_install.py
+do_setup.py
+check_env.py
+test_import.py
+setup_venv.ps1
+SETUP_STATUS.md
 install.ps1
 install_deps.bat
 _install_deps.ps1
@@ -364,7 +369,7 @@ _SETUP_COMPLETE_README.md
 _setup.bat
 _temp_requirements.txt
 install_dev_deps.py
-temp_dev_requirements.txt
+temp_dev_deps.txt
 temp_pkgs/
 setup_venv.py
 install.bat

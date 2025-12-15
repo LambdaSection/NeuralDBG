@@ -510,7 +510,8 @@ if __name__ == '__main__':
         if security_config.ssl_enabled and security_config.ssl_cert_file and security_config.ssl_key_file:
             ssl_context = (security_config.ssl_cert_file, security_config.ssl_key_file)
     
-    app.run_server(
+    server = app.server
+    server.run(
         debug=True,
         host='0.0.0.0',
         port=8053,

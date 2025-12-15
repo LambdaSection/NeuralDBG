@@ -408,4 +408,4 @@ class TeacherDashboard:
         """Run the dashboard server."""
         print(f"Starting Teacher Dashboard on http://{host}:{port}")
         print(f"Teacher ID: {self.teacher_id}")
-        self.app.run_server(host=host, port=port, debug=debug)
+        self.server.run(host=host, port=port, debug=debug)

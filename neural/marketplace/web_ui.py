@@ -671,7 +671,7 @@ class MarketplaceUI:
         debug : bool
             Debug mode
         """
-        self.app.run_server(host=host, port=port, debug=debug)
+        self.app.server.run(host=host, port=port, debug=debug)
 
     def get_app(self):
         """Get Dash app instance.

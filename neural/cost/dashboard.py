@@ -73,7 +73,7 @@ class CostDashboard:
     
     def run(self, debug: bool = False):
         """Run the dashboard."""
-        self.app.run_server(debug=debug, port=self.port)
+        self.app.server.run(debug=debug, port=self.port)
     
     def _setup_layout(self):
         """Setup dashboard layout."""
