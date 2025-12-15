@@ -1,11 +1,11 @@
 """
 End-to-end performance benchmarks for complete workflows.
 """
-import time
-import pytest
-import tempfile
 import os
-from pathlib import Path
+import tempfile
+import time
+
+import pytest
 
 
 TEST_NETWORK = """
@@ -43,7 +43,7 @@ def temp_neural_file():
 
 def test_parse_and_propagate_workflow(temp_neural_file):
     """Test complete parse -> shape propagation workflow."""
-    from neural.parser.parser import create_parser, ModelTransformer
+    from neural.parser.parser import ModelTransformer, create_parser
     from neural.shape_propagation.shape_propagator import ShapePropagator
     
     start = time.time()
@@ -73,7 +73,7 @@ def test_parse_and_propagate_workflow(temp_neural_file):
 
 def test_code_generation_workflow(temp_neural_file):
     """Test parse -> transform -> code generation workflow."""
-    from neural.parser.parser import create_parser, ModelTransformer
+    from neural.parser.parser import ModelTransformer, create_parser
     
     try:
         from neural.code_generation.code_generator import generate_code
@@ -102,7 +102,7 @@ def test_code_generation_workflow(temp_neural_file):
 
 def test_visualization_workflow(temp_neural_file):
     """Test parse -> transform -> visualize workflow."""
-    from neural.parser.parser import create_parser, ModelTransformer
+    from neural.parser.parser import ModelTransformer, create_parser
     from neural.shape_propagation.shape_propagator import ShapePropagator
     
     start = time.time()
@@ -138,15 +138,16 @@ def test_visualization_workflow(temp_neural_file):
 
 def test_memory_usage():
     """Test memory usage during operations."""
-    import psutil
     import gc
+
+    import psutil
     
     process = psutil.Process()
     gc.collect()
     
     initial_memory = process.memory_info().rss / 1024 / 1024  # MB
     
-    from neural.parser.parser import create_parser, ModelTransformer
+    from neural.parser.parser import ModelTransformer, create_parser
     from neural.shape_propagation.shape_propagator import ShapePropagator
     
     parser = create_parser()

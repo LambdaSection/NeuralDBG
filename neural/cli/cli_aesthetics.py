@@ -4,11 +4,10 @@ Provides ASCII art, loading animations, and other visual enhancements for the CL
 """
 
 import os
-import random
 import sys
 import threading
 import time
-from typing import Callable, List, Optional
+
 
 # Neural ASCII Logo
 NEURAL_LOGO = """
@@ -263,14 +262,14 @@ def print_help_command(ctx, commands):
     print(f"{Colors.BLUE}A Neural Network Programming Language{Colors.ENDC}\n")
 
     print(f"{Colors.CYAN}Usage:{Colors.ENDC}")
-    print(f"  neural [OPTIONS] COMMAND [ARGS]...\n")
+    print("  neural [OPTIONS] COMMAND [ARGS]...\n")
 
     print(f"{Colors.CYAN}Options:{Colors.ENDC}")
-    print(f"  -v, --verbose        Enable verbose logging")
-    print(f"  --cpu               Force CPU mode")
-    print(f"  --no-animations     Disable animations and spinners")
-    print(f"  --version           Show the version and exit")
-    print(f"  -h, --help          Show this message and exit\n")
+    print("  -v, --verbose        Enable verbose logging")
+    print("  --cpu               Force CPU mode")
+    print("  --no-animations     Disable animations and spinners")
+    print("  --version           Show the version and exit")
+    print("  -h, --help          Show this message and exit\n")
 
     print(f"{Colors.CYAN}Commands:{Colors.ENDC}")
     for cmd_name in sorted(commands.keys()):
@@ -284,7 +283,7 @@ def print_help_command(ctx, commands):
 def with_spinner(func, message="Processing", *args, **kwargs):
     if os.environ.get('NEURAL_NO_ANIMATIONS') or not sys.stdout.isatty():
         return func(*args, **kwargs)
-    with Spinner(message) as spinner:
+    with Spinner(message):
         result = func(*args, **kwargs)
     return result
 

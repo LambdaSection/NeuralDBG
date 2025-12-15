@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -190,7 +191,6 @@ class ArchitectureEvaluator:
     
     def _train_epoch_pytorch(self, model, optimizer, train_data) -> Dict[str, float]:
         """PyTorch training epoch."""
-        import torch
         import torch.nn as nn
         
         from neural.execution_optimization.execution import get_device

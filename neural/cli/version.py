@@ -5,7 +5,6 @@ Version information for Neural CLI.
 import importlib.metadata
 import logging
 
-from .cli_aesthetics import print_warning
 
 logger = logging.getLogger(__name__)
 

@@ -4,9 +4,11 @@ Displays a welcome message the first time the CLI is run.
 """
 
 import os
-import sys
 from pathlib import Path
-from .cli_aesthetics import Colors, print_neural_logo, animate_neural_network, print_error
+import sys
+
+from .cli_aesthetics import Colors, animate_neural_network, print_error, print_neural_logo
+
 
 WELCOME_MESSAGE = f"""
 {Colors.CYAN}Welcome to Neural CLI!{Colors.ENDC}

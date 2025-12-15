@@ -57,7 +57,6 @@ def create_animated_network(layer_data, show_progress=True):
         return go.Figure()
 
     # Initialize progress tracking
-    progress_steps = 4
     progress_data = {
         "steps": ["Building graph", "Creating connections", "Calculating layout", "Rendering visualization"],
         "current_step": 0,

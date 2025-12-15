@@ -3,11 +3,12 @@ Unit tests for the Neural Cloud Interactive Shell.
 """
 
 import os
-import sys
-import unittest
-from unittest.mock import patch, MagicMock, mock_open
-import tempfile
 from pathlib import Path
+import sys
+import tempfile
+import unittest
+from unittest.mock import MagicMock, patch
+
 
 # Add the parent directory to the path so we can import the module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -76,7 +77,7 @@ class TestInteractiveShell(unittest.TestCase):
         self.mock_remote.execute_on_sagemaker.reset_mock()
 
         # Run the command
-        with patch('builtins.print') as mock_print:
+        with patch('builtins.print'):
             self.shell.do_run(f'{test_file} --backend tensorflow --dataset MNIST --epochs 5')
 
         # Verify execute_on_sagemaker was called
@@ -101,7 +102,7 @@ class TestInteractiveShell(unittest.TestCase):
         self.mock_remote.execute_on_sagemaker.reset_mock()
 
         # Run the command
-        with patch('builtins.print') as mock_print:
+        with patch('builtins.print'):
             self.shell.do_visualize(f'{test_file} --format png')
 
         # Verify execute_on_sagemaker was called
@@ -124,7 +125,7 @@ class TestInteractiveShell(unittest.TestCase):
         self.mock_remote.execute_on_sagemaker.reset_mock()
 
         # Run the command
-        with patch('builtins.print') as mock_print:
+        with patch('builtins.print'):
             self.shell.do_debug(f'{test_file} --backend tensorflow --no-tunnel')
 
         # Verify execute_on_sagemaker was called
@@ -143,7 +144,7 @@ class TestInteractiveShell(unittest.TestCase):
         self.mock_remote.execute_on_sagemaker.reset_mock()
 
         # Run the command
-        with patch('builtins.print') as mock_print:
+        with patch('builtins.print'):
             self.shell.do_shell('ls -la')
 
         # Verify execute_on_sagemaker was called
@@ -160,7 +161,7 @@ class TestInteractiveShell(unittest.TestCase):
         self.mock_remote.execute_on_sagemaker.reset_mock()
 
         # Run the command
-        with patch('builtins.print') as mock_print:
+        with patch('builtins.print'):
             self.shell.do_python('print("Hello, world!")')
 
         # Verify execute_on_sagemaker was called
@@ -192,7 +193,7 @@ class TestInteractiveShell(unittest.TestCase):
     def test_exit_command(self):
         """Test the exit command."""
         # Run the command
-        with patch('builtins.print') as mock_print:
+        with patch('builtins.print'):
             result = self.shell.do_exit('')
 
         # Verify the result
@@ -207,7 +208,7 @@ class TestInteractiveShell(unittest.TestCase):
     def test_quit_command(self):
         """Test the quit command."""
         # Run the command
-        with patch('builtins.print') as mock_print:
+        with patch('builtins.print'):
             result = self.shell.do_quit('')
 
         # Verify the result

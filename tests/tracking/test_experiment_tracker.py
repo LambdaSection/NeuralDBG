@@ -3,17 +3,13 @@ Tests for experiment tracking functionality.
 """
 
 import os
-import tempfile
 import shutil
-import pytest
-import numpy as np
+import tempfile
+
 import matplotlib.pyplot as plt
-from neural.tracking import (
-    ExperimentTracker,
-    ExperimentManager,
-    ArtifactVersion,
-    MetricVisualizer
-)
+import pytest
+
+from neural.tracking import ExperimentManager, ExperimentTracker, MetricVisualizer
 
 
 @pytest.fixture

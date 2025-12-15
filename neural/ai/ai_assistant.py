@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import logging
 from typing import Any, Dict, Optional
-from .natural_language_processor import NaturalLanguageProcessor, IntentType, DSLGenerator
+
+from .natural_language_processor import DSLGenerator, IntentType, NaturalLanguageProcessor
+
 
 logger = logging.getLogger(__name__)
 

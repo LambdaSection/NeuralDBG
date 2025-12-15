@@ -4,15 +4,16 @@ Remote Connection Module for Neural DSL
 This module provides functions to connect to cloud environments from a local terminal.
 """
 
-import os
-import sys
 import json
-import time
 import logging
-import tempfile
-import subprocess
+import os
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
+import subprocess
+import sys
+import tempfile
+import time
+from typing import Any, Dict, Optional
+
 
 # Configure logging - redirect to file to avoid cluttering the console
 log_file = os.path.join(tempfile.gettempdir(), "neural_cloud.log")
@@ -54,7 +55,7 @@ class RemoteConnection:
                 }
 
             # Test the connection
-            result = subprocess.run(["kaggle", "kernels", "list"], check=True, capture_output=True, text=True)
+            subprocess.run(["kaggle", "kernels", "list"], check=True, capture_output=True, text=True)
 
             # Store the connection
             self.connections['kaggle'] = {

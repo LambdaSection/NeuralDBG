@@ -5,11 +5,12 @@ Provides building blocks for neural architecture search.
 """
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+import logging
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

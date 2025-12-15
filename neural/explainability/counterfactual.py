@@ -2,9 +2,11 @@
 Counterfactual explanation generation for neural networks.
 """
 
-from typing import Any, Dict, List, Optional
-import numpy as np
 import logging
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

@@ -29,17 +29,19 @@ Examples
 >>> executor.train_model(code_path, epochs=10, batch_size=32)
 """
 
+# Import SageMaker integration if running in SageMaker environment
+import os
+
 from .cloud_execution import (
-    CloudExecutor,
-    CloudExecutionError,
-    CloudConnectionError,
     CloudCompilationError,
-    CloudRuntimeError
+    CloudConnectionError,
+    CloudExecutionError,
+    CloudExecutor,
+    CloudRuntimeError,
 )
 from .remote_connection import RemoteConnection
 
-# Import SageMaker integration if running in SageMaker environment
-import os
+
 if 'SM_MODEL_DIR' in os.environ:
     from .sagemaker_integration import SageMakerHandler, sagemaker_entry_point
 

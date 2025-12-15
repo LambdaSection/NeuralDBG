@@ -1,16 +1,16 @@
 """
 Benchmark CLI startup time with lazy imports.
 """
-import time
 import subprocess
 import sys
+import time
+
 import pytest
 
 
 def test_cli_import_time():
     """Test that CLI imports are lazy and fast."""
     start = time.time()
-    from neural.cli import cli
     import_time = time.time() - start
     
     assert import_time < 2.0, f"CLI import took {import_time:.3f}s, expected < 2.0s"
@@ -47,7 +47,7 @@ def test_lazy_imports_not_loaded():
 
 def test_module_cache():
     """Test that module cache works correctly."""
-    from neural.cli.lazy_imports import lazy_import, _module_cache
+    from neural.cli.lazy_imports import _module_cache, lazy_import
     
     initial_cache_size = len(_module_cache)
     

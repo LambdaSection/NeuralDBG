@@ -1,12 +1,12 @@
 """
 Profiling utilities for Neural performance analysis.
 """
-import time
-import functools
-import cProfile
-import pstats
-import io
 from contextlib import contextmanager
+import cProfile
+import functools
+import io
+import pstats
+import time
 
 
 @contextmanager

@@ -3,12 +3,12 @@ Unit tests for the Neural Cloud Notebook Interface.
 """
 
 import os
-import sys
-import unittest
-from unittest.mock import patch, MagicMock, mock_open
-import tempfile
 from pathlib import Path
-import json
+import sys
+import tempfile
+import unittest
+from unittest.mock import MagicMock, mock_open, patch
+
 
 # Add the parent directory to the path so we can import the module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -50,7 +50,7 @@ class TestNotebookInterface(unittest.TestCase):
         # Create a notebook with mocks
         with patch('neural.cloud.notebook_interface.tempfile.mkdtemp') as mock_mkdtemp:
             mock_mkdtemp.return_value = self.temp_dir.name
-            with patch('builtins.open', mock_open()) as mock_file:
+            with patch('builtins.open', mock_open()):
                 self.notebook = NeuralNotebook('kaggle', self.mock_remote, port=8888)
                 self.notebook.temp_dir = Path(self.temp_dir.name)
 
@@ -105,7 +105,7 @@ class TestNotebookInterface(unittest.TestCase):
         self.mock_subprocess.Popen.return_value = MagicMock()
 
         # Mock the time.sleep method
-        with patch('neural.cloud.notebook_interface.time.sleep') as mock_sleep:
+        with patch('neural.cloud.notebook_interface.time.sleep'):
             # Mock the setup_cell_execution_proxy method
             with patch.object(self.notebook, '_setup_cell_execution_proxy') as mock_setup:
                 # Start the notebook server

@@ -8,8 +8,9 @@ This script checks:
 3. Basic benchmark functionality works
 """
 
-import sys
 from pathlib import Path
+import sys
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -28,7 +29,7 @@ def check_imports():
         return False
     
     try:
-        from neural.parser.parser import create_parser, ModelTransformer
+        from neural.parser.parser import ModelTransformer, create_parser
         print("  ✓ Neural parser imported")
     except ImportError as e:
         print(f"  ✗ Neural parser import error: {e}")
@@ -105,7 +106,8 @@ def check_dsl_parsing():
     
     try:
         from tests.benchmarks import get_benchmark_models
-        from neural.parser.parser import create_parser, ModelTransformer
+
+        from neural.parser.parser import ModelTransformer, create_parser
         
         models = get_benchmark_models()
         parser = create_parser('network')
@@ -113,7 +115,7 @@ def check_dsl_parsing():
         for model_name, model_def in models.items():
             try:
                 tree = parser.parse(model_def['neural_dsl'])
-                model_data = ModelTransformer().transform(tree)
+                ModelTransformer().transform(tree)
                 print(f"  ✓ {model_name} DSL parsed successfully")
             except Exception as e:
                 print(f"  ✗ {model_name} DSL parsing failed: {e}")
@@ -132,8 +134,9 @@ def check_code_generation():
     
     try:
         from tests.benchmarks import get_benchmark_models
-        from neural.parser.parser import create_parser, ModelTransformer
+
         from neural.code_generation.code_generator import generate_code
+        from neural.parser.parser import ModelTransformer, create_parser
         
         models = get_benchmark_models()
         parser = create_parser('network')
@@ -169,7 +172,7 @@ def check_benchmark_runner():
         from tests.benchmarks import BenchmarkRunner
         
         runner = BenchmarkRunner()
-        print(f"  ✓ BenchmarkRunner created")
+        print("  ✓ BenchmarkRunner created")
         print(f"  ✓ Output directory: {runner.output_dir}")
         
         return True
@@ -187,7 +190,7 @@ def check_benchmark_suite():
         from tests.benchmarks import BenchmarkSuite
         
         suite = BenchmarkSuite()
-        print(f"  ✓ BenchmarkSuite created")
+        print("  ✓ BenchmarkSuite created")
         print(f"  ✓ Output directory: {suite.runner.output_dir}")
         print(f"  ✓ Models available: {len(suite.models)}")
         

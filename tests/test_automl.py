@@ -2,37 +2,32 @@
 Tests for Neural AutoML module.
 """
 import pytest
-import numpy as np
 
 from neural.automl import (
-    AutoMLEngine,
     ArchitectureSpace,
-    LayerChoice,
-    ArchitectureBuilder,
-    GridSearchStrategy,
-    RandomSearchStrategy,
-    BayesianSearchStrategy,
-    EvolutionarySearchStrategy,
-    MedianPruner,
-    HyperbandPruner,
     ASHAPruner,
-    ThresholdPruner,
-    SequentialExecutor,
+    AutoMLEngine,
+    EvolutionarySearchStrategy,
+    GridSearchStrategy,
+    MedianPruner,
     MetricTracker,
     PerformancePredictor,
+    RandomSearchStrategy,
+    SequentialExecutor,
+    ThresholdPruner,
 )
 from neural.automl.nas_operations import (
-    get_nas_primitives,
+    compute_flops,
     create_nas_cell,
     estimate_model_size,
-    compute_flops,
+    get_nas_primitives,
 )
 from neural.automl.utils import (
-    hash_architecture,
-    compare_architectures,
-    validate_architecture,
     ArchitectureRegistry,
+    compare_architectures,
     create_architecture_summary,
+    hash_architecture,
+    validate_architecture,
 )
 
 

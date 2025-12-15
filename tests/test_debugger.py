@@ -2,9 +2,11 @@
 Tests for the debugger backend functionality.
 """
 
-import pytest
-import time
 import threading
+import time
+
+import pytest
+
 from neural.dashboard.debugger_backend import DebuggerBackend
 
 
@@ -223,8 +225,8 @@ class TestDebuggerWithSocketIO:
     def setup_method(self):
         """Set up test fixtures."""
         try:
-            from flask_socketio import SocketIO
             from flask import Flask
+            from flask_socketio import SocketIO
             
             app = Flask(__name__)
             self.socketio = SocketIO(app)

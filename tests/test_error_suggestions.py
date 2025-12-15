@@ -3,7 +3,8 @@ Test suite for error suggestion and formatting functionality.
 """
 
 import pytest
-from neural.error_suggestions import ErrorSuggestion, ErrorFormatter
+
+from neural.error_suggestions import ErrorFormatter, ErrorSuggestion
 
 
 class TestErrorSuggestion:

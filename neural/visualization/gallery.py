@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Any
 import json
-import os
+from typing import Any, Dict, List, Optional
 
-from neural.visualization.static_visualizer.visualizer import NeuralVisualizer
 from neural.shape_propagation.shape_propagator import ShapePropagator
+from neural.visualization.static_visualizer.visualizer import NeuralVisualizer
 
 
 class VisualizationGallery:
@@ -124,9 +123,9 @@ class ArchitectureVisualizer:
         self.model_data = model_data
         
     def generate(self) -> Dict[str, Any]:
-        import matplotlib.pyplot as plt
-        from matplotlib.patches import Rectangle, FancyBboxPatch
         from graphviz import Digraph
+        from matplotlib.patches import FancyBboxPatch
+        import matplotlib.pyplot as plt
         
         d3_data = self.visualizer.model_to_d3_json()
         nodes = d3_data['nodes']
@@ -228,9 +227,9 @@ class ShapePropagationVisualizer:
         self.shape_propagator = shape_propagator
         
     def generate(self) -> Dict[str, Any]:
+        import numpy as np
         import plotly.graph_objects as go
         from plotly.subplots import make_subplots
-        import numpy as np
         
         shape_history = self.shape_propagator.shape_history
         
@@ -344,9 +343,9 @@ class FlopsMemoryVisualizer:
         self.shape_propagator = shape_propagator
         
     def generate(self) -> Dict[str, Any]:
+        import numpy as np
         import plotly.graph_objects as go
         from plotly.subplots import make_subplots
-        import numpy as np
         
         trace_data = self.shape_propagator.execution_trace
         
@@ -468,10 +467,10 @@ class TimelineVisualizer:
         self.shape_propagator = shape_propagator
         
     def generate(self) -> Dict[str, Any]:
+        from datetime import datetime, timedelta
+
         import plotly.figure_factory as ff
         import plotly.graph_objects as go
-        import pandas as pd
-        from datetime import datetime, timedelta
         
         trace_data = self.shape_propagator.execution_trace
         

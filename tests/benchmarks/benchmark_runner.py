@@ -3,13 +3,14 @@ Benchmark runner that executes and measures performance metrics.
 """
 from __future__ import annotations
 
-import time
-import psutil
-import os
-import tempfile
 import json
-from typing import Dict, Any, Optional, List
+import os
 from pathlib import Path
+import tempfile
+import time
+from typing import Any, Dict, Optional
+
+import psutil
 
 
 class BenchmarkRunner:
@@ -29,8 +30,8 @@ class BenchmarkRunner:
         epochs: int = 5
     ) -> Dict[str, Any]:
         """Benchmark Neural DSL model compilation and training."""
-        from neural.parser.parser import create_parser, ModelTransformer
         from neural.code_generation.code_generator import generate_code
+        from neural.parser.parser import ModelTransformer, create_parser
         
         metrics = {
             'model_name': model_name,
@@ -137,7 +138,6 @@ class BenchmarkRunner:
         is_native: bool
     ) -> Dict[str, Any]:
         """Train TensorFlow model and collect metrics."""
-        import tensorflow as tf
         import numpy as np
         
         namespace = {}
@@ -163,7 +163,7 @@ class BenchmarkRunner:
             x_test = np.expand_dims(x_test, -1)
         
         start = time.time()
-        history = model.fit(
+        model.fit(
             x_train, y_train,
             epochs=epochs,
             batch_size=128,
@@ -192,7 +192,6 @@ class BenchmarkRunner:
         import torch
         import torch.nn as nn
         from torch.utils.data import DataLoader, TensorDataset
-        import numpy as np
         
         namespace = {}
         with open(code_file, 'r') as f:

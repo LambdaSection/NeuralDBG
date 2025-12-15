@@ -24,8 +24,7 @@ See docs/troubleshooting.md for complete documentation and examples.
 
 from __future__ import annotations
 
-from typing import Optional, Dict, List, Any
-import re
+from typing import Any, Dict, Optional
 
 
 class ErrorSuggestion:

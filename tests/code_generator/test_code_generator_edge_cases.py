@@ -1,13 +1,18 @@
-import pytest
-import os
 import warnings
+
+import pytest
+
 from neural.code_generation.code_generator import (
-    generate_code, save_file, load_file, export_onnx, to_number,
-    generate_tensorflow_layer, generate_pytorch_layer,
-    _policy_ensure_2d_before_dense_tf, _policy_ensure_2d_before_dense_pt,
-    generate_optimized_dsl
+    _policy_ensure_2d_before_dense_pt,
+    _policy_ensure_2d_before_dense_tf,
+    generate_code,
+    generate_optimized_dsl,
+    generate_pytorch_layer,
+    generate_tensorflow_layer,
+    load_file,
+    save_file,
+    to_number,
 )
-from neural.parser.parser import create_parser, ModelTransformer
 from neural.shape_propagation.shape_propagator import ShapePropagator
 
 
@@ -386,7 +391,7 @@ class TestPolicyHelpers:
         propagator = ShapePropagator()
         current_shape = (None, 64, 7, 7)
         forward_code_body = []
-        output_shape = _policy_ensure_2d_before_dense_pt(
+        _policy_ensure_2d_before_dense_pt(
             3, True, forward_code_body, propagator, current_shape
         )
         assert len(forward_code_body) == 1

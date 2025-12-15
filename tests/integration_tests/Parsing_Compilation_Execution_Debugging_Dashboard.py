@@ -1,8 +1,11 @@
-import pytest
 import json
-from parser import create_parser, ModelTransformer
-from dashboard import app
+
+import pytest
 from tensor_flow import create_animated_network
+
+from dashboard import app
+from parser import ModelTransformer, create_parser
+
 
 # Sample Neural Network Definition
 SAMPLE_NETWORK = """

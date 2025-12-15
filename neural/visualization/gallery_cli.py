@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import click
 import os
-import json
-from pathlib import Path
+
+import click
 
 from neural.visualization.aquarium_integration import AquariumVisualizationManager
 from neural.visualization.aquarium_server import start_server
@@ -32,7 +31,7 @@ def generate(model_file: str, input_shape: str, output_dir: str, format: str):
     else:
         input_shape_tuple = None
     
-    click.echo(f"🎨 Creating visualization gallery...")
+    click.echo("🎨 Creating visualization gallery...")
     gallery = manager.create_gallery(input_shape_tuple)
     
     os.makedirs(output_dir, exist_ok=True)
@@ -45,7 +44,7 @@ def generate(model_file: str, input_shape: str, output_dir: str, format: str):
         click.echo(f"  - {viz_type}: {path}")
     
     metadata = gallery.get_gallery_metadata()
-    click.echo(f"\n📈 Model Statistics:")
+    click.echo("\n📈 Model Statistics:")
     click.echo(f"  Total Layers: {metadata['total_layers']}")
     click.echo(f"  Total Parameters: {metadata['total_parameters']:,}")
     click.echo(f"  Total FLOPs: {metadata['total_flops']:,}")
@@ -86,7 +85,7 @@ def serve(model_file: str, port: int, host: str, debug: bool):
 @click.option('--host', '-h', default='0.0.0.0', help='Server host')
 @click.option('--debug', is_flag=True, help='Enable debug mode')
 def server(port: int, host: str, debug: bool):
-    click.echo(f"🚀 Starting Neural Visualization Gallery server...")
+    click.echo("🚀 Starting Neural Visualization Gallery server...")
     click.echo(f"   Open http://localhost:{port} in your browser")
     start_server(host=host, port=port, debug=debug)
 
@@ -127,16 +126,16 @@ def info(model_file: str):
     click.echo("="*60)
     
     click.echo(f"\n📊 Model: {metadata['model_name']}")
-    click.echo(f"🏗️  Architecture:")
+    click.echo("🏗️  Architecture:")
     click.echo(f"   - Total Layers: {metadata['total_layers']}")
     click.echo(f"   - Input Shape: {metadata['input_shape']}")
     click.echo(f"   - Output Shape: {metadata['output_shape']}")
     
-    click.echo(f"\n🧠 Computational Complexity:")
+    click.echo("\n🧠 Computational Complexity:")
     click.echo(f"   - Total Parameters: {metadata['total_parameters']:,}")
     click.echo(f"   - Total FLOPs: {metadata['total_flops']:,}")
     
-    click.echo(f"\n📈 Available Visualizations:")
+    click.echo("\n📈 Available Visualizations:")
     for viz_name in metadata['visualizations_available']:
         click.echo(f"   - {viz_name.replace('_', ' ').title()}")
     

@@ -2,11 +2,10 @@
 """
 Comprehensive benchmark runner for Neural performance tests.
 """
-import time
-import sys
-import json
 from pathlib import Path
 import subprocess
+import sys
+import time
 
 
 class BenchmarkRunner:

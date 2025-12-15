@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Dict, Any, Optional, List
+from dataclasses import asdict, dataclass
 import json
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

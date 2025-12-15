@@ -2,12 +2,11 @@
 """
 Profile CLI startup and command execution.
 """
+import cProfile
+import io
+import pstats
 import sys
 import time
-import cProfile
-import pstats
-import io
-from pathlib import Path
 
 
 def profile_cli_import():
@@ -17,7 +16,6 @@ def profile_cli_import():
     print("Profiling CLI import...")
     profiler.enable()
     
-    from neural.cli import cli
     
     profiler.disable()
     
@@ -39,7 +37,7 @@ def profile_parser_creation():
     profiler.enable()
     
     from neural.parser.parser import create_parser
-    parser = create_parser()
+    create_parser()
     
     profiler.disable()
     
@@ -97,7 +95,7 @@ def profile_parse_and_transform():
     
     print("\nProfiling parse and transform...")
     
-    from neural.parser.parser import create_parser, ModelTransformer
+    from neural.parser.parser import ModelTransformer, create_parser
     
     test_network = """
 network TestNet {
@@ -119,7 +117,7 @@ network TestNet {
     
     tree = parser.parse(test_network)
     transformer = ModelTransformer()
-    model_data = transformer.transform(tree)
+    transformer.transform(tree)
     
     profiler.disable()
     
@@ -146,7 +144,7 @@ def measure_startup_time():
         start = time.time()
         # Use subprocess to get clean import time
         import subprocess
-        result = subprocess.run(
+        subprocess.run(
             [sys.executable, '-c', 'from neural.cli import cli'],
             capture_output=True,
             timeout=10

@@ -3,6 +3,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
+from graphviz import Digraph
 import numpy as np
 import psutil
 

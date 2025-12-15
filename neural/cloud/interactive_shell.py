@@ -6,18 +6,19 @@ This module provides an interactive shell for executing Neural DSL commands on c
 
 from __future__ import annotations
 
-import os
-import sys
 import cmd
-import time
 import json
-import tempfile
 import logging
-import readline
-import shlex
+import os
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
+import shlex
+import sys
+import tempfile
+import time
+from typing import Any, Dict, List, Optional
+
 from neural.cloud.cloud_execution import RemoteConnection
+
 
 # Configure logging - redirect to file to avoid cluttering the console
 log_file = os.path.join(tempfile.gettempdir(), "neural_cloud_shell.log")
@@ -710,11 +711,11 @@ dashboard_info = debug_model(dsl_code, backend='{backend}', setup_tunnel={setup_
         # This provides a better user experience since the Kaggle API has limitations
         if self.platform.lower() == 'kaggle':
             try:
-                print(f"Executing Python code locally...")
+                print("Executing Python code locally...")
 
                 # Execute the code locally
-                import sys
                 from io import StringIO
+                import sys
 
                 # Capture stdout
                 old_stdout = sys.stdout

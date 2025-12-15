@@ -21,6 +21,7 @@ from neural.security.middleware import (
     apply_security_middleware,
 )
 
+
 __all__ = [
     'Authentication',
     'HTTPBasicAuthMiddleware',

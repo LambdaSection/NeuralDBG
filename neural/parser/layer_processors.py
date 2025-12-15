@@ -3,7 +3,7 @@
 This module contains helper functions for processing and validating layer parameters.
 """
 
-from typing import Dict, List, Any, Tuple, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 
 def extract_ordered_and_named_params(param_values: Any) -> Tuple[List[Any], Dict[str, Any]]:

@@ -5,12 +5,13 @@ Implements various search strategies including Grid, Random, Bayesian, and Evolu
 """
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 import logging
 import random
-from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

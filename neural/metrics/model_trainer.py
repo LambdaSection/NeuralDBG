@@ -4,11 +4,10 @@ Model Trainer for Neural models.
 This module provides functionality to train models and collect metrics during training.
 """
 
-import os
-import sys
-import tempfile
 import logging
-from typing import Dict, List, Any, Optional, Union, Tuple
+import tempfile
+from typing import Any, Dict, List, Tuple
+
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -40,8 +39,7 @@ class ModelTrainer:
             Tuple of (model, x_train, y_train)
         """
         try:
-            import tensorflow as tf
-            from tensorflow.keras.datasets import mnist, cifar10
+            from tensorflow.keras.datasets import cifar10, mnist
             from tensorflow.keras.utils import to_categorical
 
             # Load dataset
@@ -85,7 +83,6 @@ class ModelTrainer:
             Tuple of (model, data_loader, criterion, optimizer)
         """
         try:
-            import torch
             import torch.nn as nn
             import torch.optim as optim
             from torch.utils.data import DataLoader
@@ -146,6 +143,7 @@ class ModelTrainer:
         """Create a TensorFlow model from the model data."""
         try:
             import tensorflow as tf
+
             from neural.code_generation.code_generator import generate_code
 
             # Generate TensorFlow code
@@ -192,7 +190,6 @@ class ModelTrainer:
     def _create_pytorch_model(self) -> Any:
         """Create a PyTorch model from the model data."""
         try:
-            import torch
             from neural.code_generation.code_generator import generate_code
 
             # Generate PyTorch code

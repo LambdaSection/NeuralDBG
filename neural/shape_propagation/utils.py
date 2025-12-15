@@ -22,6 +22,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
+
 def extract_param(params: Dict[str, Any],
                  key: str,
                  default: Any = None,
@@ -214,7 +215,7 @@ def format_error_message(error_type: str, details: Dict[str, Any]) -> str:
             'message': f"Kernel size {details.get('kernel_size')} is too large for input dimensions {details.get('input_dims')}.",
             'suggestions': [
                 f"Reduce kernel_size to fit within {details.get('input_dims')}",
-                f"Try kernel_size=(3, 3) or smaller",
+                "Try kernel_size=(3, 3) or smaller",
                 "Or increase input dimensions before this layer",
                 "Add padding to accommodate larger kernels"
             ]
@@ -239,7 +240,7 @@ def format_error_message(error_type: str, details: Dict[str, Any]) -> str:
         'negative_stride': {
             'message': f"Stride must be positive, got {details.get('stride')} for {details.get('layer_type')} layer.",
             'suggestions': [
-                f"Change stride to a positive integer (typically 1 or 2)",
+                "Change stride to a positive integer (typically 1 or 2)",
                 "stride=1 means no downsampling",
                 "stride=2 means 2x downsampling"
             ]
@@ -361,7 +362,7 @@ def suggest_layer_fix(layer_type: str, error_context: Dict[str, Any]) -> List[st
         if input_shape and len(input_shape) > 2:
             suggestions.append(f"Dense expects 2D input (batch, features), got {len(input_shape)}D")
             suggestions.append("Add Flatten() or GlobalAveragePooling2D before Dense layer")
-            suggestions.append(f"Example: ...Conv2D(...) -> Flatten() -> Dense(...)")
+            suggestions.append("Example: ...Conv2D(...) -> Flatten() -> Dense(...)")
     
     elif layer_type == 'MaxPooling2D':
         pool_size = params.get('pool_size')

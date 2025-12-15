@@ -4,19 +4,16 @@ Jupyter-like Notebook Interface for Neural Cloud Integration
 This module provides a web-based notebook interface for executing Neural DSL code on cloud platforms.
 """
 
-import os
-import sys
 import json
-import time
-import tempfile
 import logging
-import threading
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
-from neural.exceptions import (
-    CloudException, CloudConnectionError, CloudExecutionError,
-    InvalidParameterError
-)
+import sys
+import tempfile
+import time
+from typing import Any, Dict
+
+from neural.exceptions import CloudExecutionError, InvalidParameterError
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

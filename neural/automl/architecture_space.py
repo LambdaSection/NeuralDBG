@@ -7,9 +7,10 @@ from __future__ import annotations
 
 import copy
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

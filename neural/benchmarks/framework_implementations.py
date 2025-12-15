@@ -2,12 +2,11 @@
 Framework-specific implementations for benchmarking.
 """
 
+from abc import ABC, abstractmethod
 import os
 import tempfile
 import time
-from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import numpy as np
 
@@ -117,8 +116,8 @@ class NeuralDSLImplementation(FrameworkImplementation):
 
     def build_model(self):
         try:
-            from neural.parser.parser import create_parser, ModelTransformer
             from neural.code_generation.code_generator import generate_code
+            from neural.parser.parser import ModelTransformer, create_parser
         except ImportError as e:
             raise DependencyError(
                 dependency="neural.parser",
@@ -341,10 +340,10 @@ trainer = pl.Trainer(max_epochs=5)"""
 
     def build_model(self):
         try:
+            import pytorch_lightning as pl
             import torch
             import torch.nn as nn
             import torch.nn.functional as F
-            import pytorch_lightning as pl
         except ImportError as e:
             raise DependencyError(
                 dependency="torch and pytorch_lightning",
@@ -391,8 +390,8 @@ trainer = pl.Trainer(max_epochs=5)"""
 
     def train(self, dataset: str, epochs: int, batch_size: int) -> Dict[str, Any]:
         try:
-            import torch
             import pytorch_lightning as pl
+            import torch
             from torch.utils.data import DataLoader, TensorDataset
         except ImportError as e:
             raise DependencyError(
@@ -506,8 +505,8 @@ learn = Learner(dls, create_cnn_model(), loss_func=CrossEntropyLossFlat(), metri
 
     def build_model(self):
         try:
-            from fastai.vision.all import Learner
             from fastai.data.all import DataLoaders
+            from fastai.vision.all import Learner
             import torch.nn as nn
         except ImportError as e:
             raise DependencyError(
@@ -532,8 +531,8 @@ learn = Learner(dls, create_cnn_model(), loss_func=CrossEntropyLossFlat(), metri
 
     def train(self, dataset: str, epochs: int, batch_size: int) -> Dict[str, Any]:
         try:
-            from fastai.vision.all import Learner, CrossEntropyLossFlat, accuracy
             from fastai.data.all import DataLoaders
+            from fastai.vision.all import CrossEntropyLossFlat, Learner, accuracy
             import torch
             from torch.utils.data import DataLoader, TensorDataset
         except ImportError as e:
@@ -713,7 +712,7 @@ model.train(dataset=train_df)"""
                 "peak_memory_mb": 0,
                 "error_rate": 1.0 - accuracy,
             }
-        except Exception as e:
+        except Exception:
             return {
                 "training_time": 0,
                 "accuracy": 0,
@@ -726,8 +725,8 @@ model.train(dataset=train_df)"""
 
     def predict_single(self):
         try:
-            import pandas as pd
             import numpy as np
+            import pandas as pd
         except ImportError as e:
             raise DependencyError(
                 dependency="pandas and numpy",

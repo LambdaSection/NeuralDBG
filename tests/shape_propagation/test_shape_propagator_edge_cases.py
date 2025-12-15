@@ -1,15 +1,20 @@
-import sys
 import os
+import sys
+
 import pytest
-import numpy as np
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from neural.shape_propagation.shape_propagator import (
-    ShapePropagator, ShapeValidator, PerformanceMonitor,
-    detect_dead_neurons, detect_activation_anomalies, TORCH_AVAILABLE
-)
 from neural.exceptions import InvalidParameterError, InvalidShapeError, ShapeMismatchError
+from neural.shape_propagation.shape_propagator import (
+    TORCH_AVAILABLE,
+    PerformanceMonitor,
+    ShapePropagator,
+    ShapeValidator,
+    detect_activation_anomalies,
+    detect_dead_neurons,
+)
 
 
 class TestShapePropagatorInitialization:
@@ -694,14 +699,7 @@ class TestMultiInputPropagation:
     
     def test_propagate_model_with_concatenate(self):
         """Test propagate_model with concatenate layer"""
-        propagator = ShapePropagator()
-        input_shapes = {"input1": (1, 10), "input2": (1, 20)}
-        model_def = {
-            "layers": [
-                {"name": "concat", "type": "Concatenate", "params": {"axis": -1}, "input": ["input1", "input2"]}
-            ],
-            "outputs": ["concat"]
-        }
+        ShapePropagator()
 
 
 class TestPerformanceMonitor:

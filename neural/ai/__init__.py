@@ -7,7 +7,8 @@ This module provides AI-powered features for Neural:
 """
 
 from .ai_assistant import NeuralAIAssistant
-from .natural_language_processor import NaturalLanguageProcessor, IntentType, DSLGenerator
+from .natural_language_processor import DSLGenerator, IntentType, NaturalLanguageProcessor
+
 
 __version__ = "0.2.0"
 

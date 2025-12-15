@@ -1,9 +1,16 @@
-import pytest
-import os
+
 import onnx
 from onnx import checker
-from neural.code_generation.code_generator import generate_code, save_file, load_file, export_onnx, to_number
-from neural.parser.parser import create_parser, ModelTransformer
+import pytest
+
+from neural.code_generation.code_generator import (
+    export_onnx,
+    generate_code,
+    load_file,
+    save_file,
+    to_number,
+)
+
 
 # Setup for temporary file handling
 @pytest.fixture

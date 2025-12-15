@@ -2,9 +2,11 @@
 Attention visualization for transformer models with Neural DSL integration.
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
 import logging
+from typing import Any, Dict, List, Optional
+
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -331,13 +333,12 @@ class AttentionVisualizer:
             Dictionary with attention weights and visualizations
         """
         import os
-        from pathlib import Path
         
         os.makedirs(output_dir, exist_ok=True)
         
         try:
-            from neural.parser.parser import create_parser, ModelTransformer
             from neural.code_generation import generate_code
+            from neural.parser.parser import ModelTransformer, create_parser
             
             parser = create_parser(start_rule='network')
             with open(dsl_file, 'r') as f:
@@ -357,7 +358,6 @@ class AttentionVisualizer:
             logger.info(f"Generated {backend} code for model")
             
             if backend == 'tensorflow':
-                import tensorflow as tf
                 import importlib.util
                 
                 spec = importlib.util.spec_from_file_location("compiled_model", model_path)
@@ -368,8 +368,8 @@ class AttentionVisualizer:
                 logger.info("Loaded compiled TensorFlow model")
                 
             elif backend == 'pytorch':
-                import torch
                 import importlib.util
+
                 
                 spec = importlib.util.spec_from_file_location("compiled_model", model_path)
                 compiled_module = importlib.util.module_from_spec(spec)

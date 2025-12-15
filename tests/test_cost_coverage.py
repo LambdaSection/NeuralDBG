@@ -2,12 +2,14 @@
 Comprehensive test suite for Cost Optimization module to increase coverage.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from neural.cost.estimator import CostEstimator
+
 from neural.cost.budget_manager import BudgetManager
-from neural.cost.resource_optimizer import ResourceOptimizer
 from neural.cost.carbon_tracker import CarbonTracker
+from neural.cost.estimator import CostEstimator
+from neural.cost.resource_optimizer import ResourceOptimizer
 
 
 class TestCostEstimator:

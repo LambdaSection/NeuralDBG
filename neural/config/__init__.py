@@ -25,11 +25,12 @@ from neural.config.settings.no_code import NoCodeSettings
 from neural.config.settings.storage import StorageSettings
 from neural.config.settings.teams import TeamsSettings
 
+
 # Import validation, health checking, and migration tools if they exist
 try:
-    from neural.config.validator import ConfigValidator, ValidationResult
     from neural.config.health import HealthChecker, HealthStatus, ServiceHealth
     from neural.config.migrator import ConfigMigrator
+    from neural.config.validator import ConfigValidator, ValidationResult
     
     __all__ = [
         "ConfigManager",

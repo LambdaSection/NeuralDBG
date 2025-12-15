@@ -27,4 +27,5 @@ Examples
 
 from .shape_propagator import ShapePropagator
 
+
 __all__ = ['ShapePropagator']

@@ -1,8 +1,9 @@
 import os
 import sys
-import json
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 
 # Add the project root to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -16,8 +17,8 @@ except ModuleNotFoundError:
         from neural.visualization.static_visualizer.visualizer import NeuralVisualizer
     except ModuleNotFoundError:
         # If that fails too, try to find the module in the project
-        import importlib.util
         import glob
+        import importlib.util
         # Search for the visualizer module
         visualizer_files = glob.glob(os.path.join(os.path.dirname(__file__), "../../**/*visualizer*.py"), recursive=True)
         if visualizer_files:

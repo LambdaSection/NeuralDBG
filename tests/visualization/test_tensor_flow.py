@@ -1,9 +1,11 @@
 import os
 import sys
-import pytest
-from unittest.mock import patch, MagicMock
-import plotly.graph_objects as go
+from unittest.mock import MagicMock, patch
+
 import networkx as nx
+import plotly.graph_objects as go
+import pytest
+
 
 # Add the project root to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -135,7 +137,7 @@ class TestTensorFlow:
 
         # Create a real graph to inspect node attributes
         with patch.object(nx, 'DiGraph', wraps=nx.DiGraph) as wrapped_digraph:
-            result = create_animated_network(sample_layer_data)
+            create_animated_network(sample_layer_data)
             graph = wrapped_digraph.call_args[0][0] if wrapped_digraph.call_args else wrapped_digraph.return_value
 
             # Check that each node has the correct output_shape attribute

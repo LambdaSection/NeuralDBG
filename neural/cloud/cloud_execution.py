@@ -20,30 +20,33 @@ CloudExecutor
 
 from __future__ import annotations
 
-import importlib
+import logging
 import os
+from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
 import traceback
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
-import logging
+from typing import Any, Dict, List, Optional
+
 
 logger = logging.getLogger(__name__)
 
 try:
     from neural.cli.cli_aesthetics import print_error, print_info, print_success, print_warning
     from neural.code_generation.code_generator import generate_code
+    from neural.exceptions import (
+        CloudConnectionError,
+        CloudException,
+        CloudExecutionError,
+        DependencyError,
+        FileOperationError,
+    )
     from neural.parser.parser import ModelTransformer, create_parser
     from neural.shape_propagation.shape_propagator import ShapePropagator
     from neural.visualization.visualizer import visualize_model
-    from neural.exceptions import (
-        CloudException, CloudConnectionError, CloudExecutionError,
-        DependencyError, FileOperationError
-    )
     NEURAL_IMPORTED = True
 except ImportError:
     NEURAL_IMPORTED = False
@@ -683,7 +686,6 @@ class RemoteConnection:
         if not self.connected:
             raise CloudConnectionError("Not connected to remote host")
         
-        timeout_val = timeout or self.timeout
         
         try:
             return {

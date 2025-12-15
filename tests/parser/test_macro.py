@@ -1,13 +1,15 @@
 import os
 import sys
-import pytest
-from lark import exceptions
+
 from lark.exceptions import VisitError
+import pytest
+
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from neural.parser.parser import ModelTransformer, create_parser, DSLValidationError
+from neural.parser.parser import DSLValidationError, ModelTransformer, create_parser
+
 
 class TestMacroParsing:
     @pytest.fixture

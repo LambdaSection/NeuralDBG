@@ -14,8 +14,9 @@ Options:
     --json                  Save results as JSON
 """
 import argparse
-import sys
 from pathlib import Path
+import sys
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -94,7 +95,7 @@ def main():
     suite = BenchmarkSuite(output_dir=args.output)
     
     print("Running benchmarks...")
-    results = suite.run_all_benchmarks(
+    suite.run_all_benchmarks(
         backends=backends,
         models=models,
         epochs=epochs

@@ -4,9 +4,18 @@ Provides strict type checking and conversion for layer parameters.
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+import json
+import os
+from typing import Any, Dict, Optional, TypeVar, Union
 
-import numpy as np
+
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+    yaml = None  # type: ignore
+
 
 class ParamType(Enum):
     """Enumeration of parameter types supported in Neural DSL."""

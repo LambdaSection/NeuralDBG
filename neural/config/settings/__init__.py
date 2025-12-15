@@ -15,6 +15,7 @@ from neural.config.settings.no_code import NoCodeSettings
 from neural.config.settings.storage import StorageSettings
 from neural.config.settings.teams import TeamsSettings
 
+
 __all__ = [
     "APISettings",
     "AutoMLSettings",

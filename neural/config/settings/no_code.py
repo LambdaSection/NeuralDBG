@@ -4,7 +4,7 @@ No-code interface configuration settings.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from pydantic import Field
 

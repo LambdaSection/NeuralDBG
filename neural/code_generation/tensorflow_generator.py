@@ -1,8 +1,13 @@
 import logging
-import warnings
 from typing import Any, Dict
+import warnings
+
 from neural.code_generation.base_generator import BaseCodeGenerator
-from neural.code_generation.shape_policy_helpers import ensure_2d_before_dense_tf, get_rank_non_batch
+from neural.code_generation.shape_policy_helpers import (
+    ensure_2d_before_dense_tf,
+    get_rank_non_batch,
+)
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -143,7 +148,7 @@ class TensorFlowGenerator(BaseCodeGenerator):
             
             for layer_idx in range(num_layers):
                 code.append(f"# Encoder Layer {layer_idx + 1}")
-                code.append(f"x = layers.LayerNormalization(epsilon=1e-6)(x)")
+                code.append("x = layers.LayerNormalization(epsilon=1e-6)(x)")
                 
                 # Use d_model if provided, otherwise use ff_dim for key_dim
                 key_dim = d_model if d_model else ff_dim
@@ -154,12 +159,12 @@ class TensorFlowGenerator(BaseCodeGenerator):
                     code.append(f"attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={key_dim})(x, x)")
                 
                 code.append(f"attn_output = layers.Dropout({dropout})(attn_output)")
-                code.append(f"x = layers.Add()([x, attn_output])")
-                code.append(f"x = layers.LayerNormalization(epsilon=1e-6)(x)")
+                code.append("x = layers.Add()([x, attn_output])")
+                code.append("x = layers.LayerNormalization(epsilon=1e-6)(x)")
                 code.append(f"ffn_output = layers.Dense({ff_dim}, activation='{activation}')(x)")
                 code.append(f"ffn_output = layers.Dense({key_dim})(ffn_output)")
                 code.append(f"ffn_output = layers.Dropout({dropout})(ffn_output)")
-                code.append(f"x = layers.Add()([x, ffn_output])")
+                code.append("x = layers.Add()([x, ffn_output])")
             
             return "\n".join(code)
         elif layer_type == "TransformerDecoder":
@@ -170,22 +175,22 @@ class TensorFlowGenerator(BaseCodeGenerator):
             use_causal_mask = params.get("use_causal_mask", True)
             code = [
                 "# TransformerDecoder block with cross-attention",
-                f"# Self-attention with causal masking",
-                f"decoder_norm1 = layers.LayerNormalization(epsilon=1e-6)(x)",
+                "# Self-attention with causal masking",
+                "decoder_norm1 = layers.LayerNormalization(epsilon=1e-6)(x)",
             ]
             if use_causal_mask:
-                code.append(f"# Apply causal mask for autoregressive decoding")
+                code.append("# Apply causal mask for autoregressive decoding")
                 code.append(f"self_attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={d_model}, use_causal_mask=True)(decoder_norm1, decoder_norm1)")
             else:
                 code.append(f"self_attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={d_model})(decoder_norm1, decoder_norm1)")
             code.extend([
                 f"x = layers.Add()([x, layers.Dropout({dropout})(self_attn_output)])",
-                f"# Cross-attention with encoder output (assume encoder_output available)",
-                f"decoder_norm2 = layers.LayerNormalization(epsilon=1e-6)(x)",
+                "# Cross-attention with encoder output (assume encoder_output available)",
+                "decoder_norm2 = layers.LayerNormalization(epsilon=1e-6)(x)",
                 f"cross_attn_output = layers.MultiHeadAttention(num_heads={num_heads}, key_dim={d_model})(decoder_norm2, encoder_output, encoder_output)",
                 f"x = layers.Add()([x, layers.Dropout({dropout})(cross_attn_output)])",
-                f"# Feed-forward network",
-                f"decoder_norm3 = layers.LayerNormalization(epsilon=1e-6)(x)",
+                "# Feed-forward network",
+                "decoder_norm3 = layers.LayerNormalization(epsilon=1e-6)(x)",
                 f"ff_output = layers.Dense({ff_dim}, activation='relu')(decoder_norm3)",
                 f"ff_output = layers.Dense({d_model})(ff_output)",
                 f"x = layers.Add()([x, layers.Dropout({dropout})(ff_output)])"

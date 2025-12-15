@@ -1,8 +1,11 @@
 import logging
-from flask import Flask, request, jsonify
+
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-from neural.parser.parser import create_parser, ModelTransformer
+
+from neural.parser.parser import ModelTransformer, create_parser
 from neural.visualization.static_visualizer.visualizer import NeuralVisualizer
+
 
 logger = logging.getLogger(__name__)
 

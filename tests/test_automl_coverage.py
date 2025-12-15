@@ -2,12 +2,14 @@
 Comprehensive test suite for AutoML module to increase coverage.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+
 from neural.automl.architecture_space import ArchitectureSpace
-from neural.automl.search_strategies import RandomSearch, BayesianSearch, EvolutionarySearch
 from neural.automl.early_stopping import EarlyStopping
 from neural.automl.evaluation import ModelEvaluator
+from neural.automl.search_strategies import BayesianSearch, EvolutionarySearch, RandomSearch
 
 
 class TestArchitectureSpace:

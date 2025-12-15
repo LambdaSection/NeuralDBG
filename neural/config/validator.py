@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 import os
 import re
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List, Optional
 
 
 @dataclass
@@ -356,7 +355,7 @@ class ConfigValidator:
         result = self.validate(services)
         
         if result.has_errors():
-            error_msg = [f"Configuration validation failed:\n"]
+            error_msg = ["Configuration validation failed:\n"]
             for issue in result.issues:
                 if issue.level == 'error':
                     error_msg.append(f"  - {issue.variable}: {issue.message}")

@@ -22,13 +22,15 @@ Features:
 4. Quick Reference: Includes syntax reminders in error messages
 """
 
+from dataclasses import dataclass
 import difflib
 import re
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from lark import UnexpectedCharacters, UnexpectedToken
-from neural.exceptions import ParserException, DSLSyntaxError, DSLValidationError
+
+from neural.exceptions import ParserException
+
 
 @dataclass
 class ParserError:
@@ -398,7 +400,7 @@ class ErrorHandler:
             f"{'='*70}",
             f"\n{error.message}",
             f"\n📍 Location: Line {error.line}, Column {error.column}",
-            f"\n📄 Context:",
+            "\n📄 Context:",
             error.context,
         ]
         

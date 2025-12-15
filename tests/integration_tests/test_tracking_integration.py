@@ -1,10 +1,8 @@
 import os
 import shutil
-import sys
-import pytest
-import json
-from neural.parser.parser import create_parser, ModelTransformer
+
 from neural.code_generation.code_generator import generate_code
+
 
 class TestTrackingIntegration:
     def setup_method(self):

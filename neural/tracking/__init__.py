@@ -2,7 +2,7 @@
 Experiment tracking for Neural models.
 """
 
-from .experiment_tracker import ExperimentManager, ExperimentTracker, ArtifactVersion
+from .experiment_tracker import ArtifactVersion, ExperimentManager, ExperimentTracker
 from .integrations import (
     BaseIntegration,
     MLflowIntegration,
@@ -59,8 +59,9 @@ def launch_comparison_ui(
         >>> launch_comparison_ui(port=8052)
     """
     try:
-        from .comparison_ui import main as comparison_main
         import sys
+
+        from .comparison_ui import main as comparison_main
 
         sys.argv = [
             "comparison_ui.py",

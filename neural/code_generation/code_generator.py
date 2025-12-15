@@ -1,8 +1,8 @@
 import logging
 import os
 import re
-import warnings
 from typing import Any, Dict, List, Optional, Tuple, Union
+import warnings
 
 import numpy as np
 
@@ -613,7 +613,6 @@ def generate_code(model_data: Dict[str, Any], backend: str, best_params: Optiona
 
 def save_file(filename: str, content: str) -> None:
     """Save content to a file."""
-    import os
     try:
         # Create parent directories if they don't exist
         directory = os.path.dirname(filename)

@@ -4,9 +4,9 @@ Security middleware for CORS, rate limiting, and security headers.
 
 from __future__ import annotations
 
-import time
 from collections import defaultdict
-from typing import Callable, Dict, List, Optional
+import time
+from typing import Dict, List, Optional
 
 from flask import Flask, Response, request
 

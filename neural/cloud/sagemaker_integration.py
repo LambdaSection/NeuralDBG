@@ -4,17 +4,14 @@ AWS SageMaker Integration for Neural DSL
 This module provides functions to run Neural DSL in AWS SageMaker environments.
 """
 
-import os
-import sys
 import json
 import logging
-import tempfile
+import os
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
-from neural.exceptions import (
-    CloudException, CloudConnectionError, CloudExecutionError,
-    InvalidParameterError, FileOperationError
-)
+import sys
+import tempfile
+from typing import Any, Dict
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -61,8 +58,9 @@ class SageMakerHandler:
             The DSL code as a string
         """
         try:
-            import boto3
             from urllib.parse import urlparse
+
+            import boto3
 
             # Parse the S3 URI
             parsed = urlparse(s3_uri)
@@ -94,8 +92,9 @@ class SageMakerHandler:
             True if successful, False otherwise
         """
         try:
-            import boto3
             from urllib.parse import urlparse
+
+            import boto3
 
             # Parse the S3 URI
             parsed = urlparse(s3_uri)

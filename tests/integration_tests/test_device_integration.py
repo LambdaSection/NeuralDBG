@@ -1,17 +1,18 @@
 import pytest
 import torch
 
+
 # Skip GPU tests if CUDA not available
 skip_if_no_cuda = pytest.mark.skipif(
     not torch.cuda.is_available(),
     reason="CUDA not available"
 )
 
+
 import pytest
-import os
-import tempfile
-from neural.parser import create_parser, ModelTransformer
-from neural.execution_optimization.execution import get_device, run_inference
+
+from neural.parser import ModelTransformer, create_parser
+
 
 # Sample network with device specifications
 DEVICE_NETWORK = """

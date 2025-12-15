@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from .dataset_version import DatasetVersionManager
 from .dvc_integration import DVCIntegration
@@ -19,7 +19,7 @@ def create_data_to_model_lineage(
     base_dir: Union[str, Path] = ".neural_data",
 ) -> str:
     tracker = LineageTracker(base_dir=base_dir)
-    graph = tracker.create_graph(graph_name)
+    tracker.create_graph(graph_name)
     
     model_name = model_info.get("name", "unknown_model")
     prediction_name = model_info.get("prediction", "unknown_prediction")

@@ -4,7 +4,7 @@ import numpy as np
 
 from .dataset_version import DatasetVersionManager
 from .dvc_integration import DVCIntegration
-from .feature_store import Feature, FeatureStore
+from .feature_store import FeatureStore
 from .lineage_tracker import LineageTracker
 from .preprocessing_tracker import PreprocessingTracker
 from .quality_validator import DataQualityValidator
@@ -159,7 +159,7 @@ def example_preprocessing_pipeline():
     tracker.update_pipeline(pipeline2)
     
     comparison = tracker.compare_pipelines("mnist_pipeline", "cifar_pipeline")
-    print(f"\nPipeline comparison:")
+    print("\nPipeline comparison:")
     print(f"  Same steps: {comparison['same_steps']}")
     print(f"  Differences: {len(comparison['differences'])}")
     
@@ -174,7 +174,7 @@ def example_feature_store():
     base_dir = Path(".neural_data_example")
     store = FeatureStore(base_dir=base_dir)
     
-    image_group = store.create_feature_group(
+    store.create_feature_group(
         name="image_features",
         description="Features extracted from images"
     )
@@ -201,7 +201,7 @@ def example_feature_store():
         "Density of edges in image"
     )
     
-    text_group = store.create_feature_group(
+    store.create_feature_group(
         name="text_features",
         description="Features from text data"
     )
@@ -221,13 +221,13 @@ def example_feature_store():
         {"range": [-1, 1]}
     )
     
-    print(f"\nCreated feature groups:")
+    print("\nCreated feature groups:")
     for group_name in store.list_feature_groups():
         group = store.get_feature_group(group_name)
         print(f"  - {group.name}: {len(group.features)} features")
     
     stats = store.get_feature_statistics()
-    print(f"\nFeature Store Statistics:")
+    print("\nFeature Store Statistics:")
     print(f"  Total groups: {stats['total_groups']}")
     print(f"  Total features: {stats['total_features']}")
     print(f"  Data types: {stats['dtype_distribution']}")

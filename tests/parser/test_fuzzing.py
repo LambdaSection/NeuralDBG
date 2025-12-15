@@ -3,10 +3,13 @@ Fuzz testing infrastructure for the Neural parser.
 Uses Hypothesis for property-based testing and fuzz testing.
 """
 
-from hypothesis import given, strategies as st
-from hypothesis.strategies import sampled_from, text, lists, integers
-from neural.parser.parser import NeuralParser
+from hypothesis import given
+from hypothesis import strategies as st
+from hypothesis.strategies import integers, lists, sampled_from, text
 import pytest
+
+from neural.parser.parser import NeuralParser
+
 
 # Define common Neural DSL components
 LAYER_TYPES = [

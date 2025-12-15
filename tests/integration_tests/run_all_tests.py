@@ -15,10 +15,10 @@ Options:
     --help          Show this help message
 """
 
-import sys
+import argparse
 import os
 import subprocess
-import argparse
+import sys
 
 
 def run_pytest(args_list):

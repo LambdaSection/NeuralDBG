@@ -1,10 +1,8 @@
 import pytest
 import torch
-import numpy as np
+
 from neural.execution_optimization.execution import get_device, run_inference
 
-import pytest
-import torch
 
 # Skip GPU tests if CUDA not available
 skip_if_no_cuda = pytest.mark.skipif(

@@ -2,11 +2,11 @@
 Comparison component for comparing multiple experiments side by side.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import List
 
+from dash import dash_table, dcc, html
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from dash import dash_table, dcc, html
 
 from neural.tracking.experiment_tracker import ExperimentTracker
 

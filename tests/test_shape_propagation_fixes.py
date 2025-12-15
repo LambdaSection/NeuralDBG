@@ -10,17 +10,21 @@ This test file verifies fixes for:
 6. FLOPs and memory calculations
 """
 
-import sys
 import os
+import sys
+
 import pytest
-import numpy as np
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from neural.shape_propagation.shape_propagator import ShapePropagator
 from neural.shape_propagation.layer_handlers import (
-    handle_concatenate, handle_add, handle_lstm, handle_gru
+    handle_add,
+    handle_concatenate,
+    handle_gru,
+    handle_lstm,
 )
+from neural.shape_propagation.shape_propagator import ShapePropagator
 
 
 class TestConv2DPaddingConfigurations:

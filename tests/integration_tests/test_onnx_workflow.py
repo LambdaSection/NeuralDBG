@@ -4,23 +4,23 @@ ONNX backend integration tests.
 Tests complete workflow for ONNX export: DSL parsing → shape propagation → ONNX generation.
 """
 
-import pytest
 import os
+import shutil
 import sys
 import tempfile
-import shutil
-import numpy as np
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+
+import pytest
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from neural.parser.parser import create_parser, ModelTransformer
+from neural.parser.parser import ModelTransformer, create_parser
 from neural.shape_propagation.shape_propagator import ShapePropagator
+
 
 try:
     import onnx
-    from onnx import helper, TensorProto, checker, numpy_helper
+    from onnx import TensorProto, checker, helper, numpy_helper
     ONNX_AVAILABLE = True
 except ImportError:
     onnx = None
@@ -38,7 +38,7 @@ except ImportError:
     ONNX_RUNTIME_AVAILABLE = False
 
 if ONNX_AVAILABLE:
-    from neural.code_generation.code_generator import generate_onnx, export_onnx
+    from neural.code_generation.code_generator import export_onnx, generate_onnx
 else:
     def generate_onnx(model_config):
         pytest.skip("ONNX not available")
@@ -148,7 +148,7 @@ class TestONNXWorkflowIntegration:
         try:
             checker.check_model(onnx_model)
             validation_passed = True
-        except Exception as e:
+        except Exception:
             validation_passed = False
         
         assert validation_passed or onnx_model is not None
@@ -259,9 +259,9 @@ class TestONNXWorkflowIntegration:
         onnx_model = generate_onnx(model_config)
         
         try:
-            inferred_model = onnx.shape_inference.infer_shapes(onnx_model)
+            onnx.shape_inference.infer_shapes(onnx_model)
             shape_inference_passed = True
-        except Exception as e:
+        except Exception:
             shape_inference_passed = False
         
         assert shape_inference_passed or onnx_model is not None

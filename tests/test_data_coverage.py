@@ -2,11 +2,13 @@
 Comprehensive test suite for Data module to increase coverage.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+
 from neural.data.dataset_version import DatasetVersion
-from neural.data.lineage_tracker import LineageTracker
 from neural.data.feature_store import FeatureStore
+from neural.data.lineage_tracker import LineageTracker
 from neural.data.quality_validator import QualityValidator
 
 

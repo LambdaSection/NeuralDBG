@@ -2,11 +2,11 @@
 Core benchmark runner for comparing Neural DSL against other frameworks.
 """
 
-import json
-import time
 from dataclasses import dataclass, field
 from datetime import datetime
+import json
 from pathlib import Path
+import time
 from typing import Any, Dict, List, Optional
 
 import numpy as np

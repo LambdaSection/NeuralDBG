@@ -8,6 +8,7 @@ from typing import Optional
 
 import numpy as np
 
+
 def set_global_seed(seed: Optional[int] = None) -> int:
     """
     Set deterministic seed for all supported frameworks and random number generators.

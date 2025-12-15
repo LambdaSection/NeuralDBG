@@ -4,19 +4,21 @@ Integration tests for HPO and Tracking workflows.
 Tests the complete HPO workflow with experiment tracking across all backends.
 """
 
-import pytest
+import json
 import os
+import shutil
 import sys
 import tempfile
-import shutil
-import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from neural.parser.parser import create_parser, ModelTransformer
+from neural.parser.parser import ModelTransformer, create_parser
 from neural.tracking.experiment_tracker import ExperimentTracker
+
 
 try:
     import torch
@@ -43,7 +45,7 @@ except ImportError:
 
 if TORCH_AVAILABLE:
     try:
-        from neural.hpo.hpo import optimize_and_return, create_dynamic_model, objective, train_model
+        from neural.hpo.hpo import create_dynamic_model, objective, optimize_and_return, train_model
     except ImportError:
         optimize_and_return = None
         create_dynamic_model = None
@@ -252,7 +254,7 @@ class TestHPOWorkflowIntegration:
         
         with patch('optuna.create_study') as mock_create_study:
             mock_study = MagicMock()
-            mock_trial = MockTrial()
+            MockTrial()
             mock_study.best_params = {
                 'Dense_units': 64,
                 'Dropout_rate': 0.3,
@@ -448,17 +450,6 @@ class TestTrackingWorkflowIntegration:
     @patch('neural.hpo.hpo.get_data', mock_data_loader)
     def test_hpo_with_tracking_integration(self, temp_workspace):
         """Test: HPO workflow with experiment tracking."""
-        dsl_code = """
-        network HPOTrackedNet {
-            input: (28, 28, 1)
-            layers:
-                Flatten()
-                Dense(HPO(choice(64, 128)), "relu")
-                Output(10, "softmax")
-            
-            optimizer: Adam(learning_rate=HPO(log_range(1e-4, 1e-2)))
-        }
-        """
         
         tracker = ExperimentTracker(experiment_name="hpo_tracked_test")
         

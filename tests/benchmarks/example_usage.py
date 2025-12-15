@@ -7,7 +7,7 @@ This script demonstrates how to:
 3. Generate custom reports
 """
 
-from tests.benchmarks import BenchmarkSuite, BenchmarkRunner, get_benchmark_models
+from tests.benchmarks import BenchmarkRunner, BenchmarkSuite, get_benchmark_models
 
 
 def basic_benchmark_example():
@@ -18,7 +18,7 @@ def basic_benchmark_example():
     
     suite = BenchmarkSuite(output_dir='./example_results')
     
-    results = suite.run_all_benchmarks(
+    suite.run_all_benchmarks(
         backends=['tensorflow'],
         models=['simple_mlp'],
         epochs=2
@@ -200,7 +200,7 @@ def all_models_example():
     report_path = suite.generate_markdown_report('all_models_report.md')
     json_path = suite.save_results_json('all_models_results.json')
     
-    print(f"\nReports saved:")
+    print("\nReports saved:")
     print(f"  Markdown: {report_path}")
     print(f"  JSON: {json_path}")
 

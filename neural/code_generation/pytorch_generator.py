@@ -1,9 +1,15 @@
 import logging
-import warnings
-import numpy as np
 from typing import Any, Dict, List, Optional
+import warnings
+
+import numpy as np
+
 from neural.code_generation.base_generator import BaseCodeGenerator
-from neural.code_generation.shape_policy_helpers import ensure_2d_before_dense_pt, get_rank_non_batch
+from neural.code_generation.shape_policy_helpers import (
+    ensure_2d_before_dense_pt,
+    get_rank_non_batch,
+)
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
@@ -175,7 +181,7 @@ class PyTorchGenerator(BaseCodeGenerator):
                             use_attention_mask = use_attention_mask['value']
                     
                     if use_attention_mask:
-                        forward_code_body.append(f"# Pass attention mask if available (set src_key_padding_mask for padding)")
+                        forward_code_body.append("# Pass attention mask if available (set src_key_padding_mask for padding)")
                         forward_code_body.append(f"x = self.{layer_name}(x, src_key_padding_mask=None)")
                     else:
                         forward_code_body.append(f"x = self.{layer_name}(x)")
@@ -183,12 +189,12 @@ class PyTorchGenerator(BaseCodeGenerator):
                 layer_code = self.generate_layer(layer_type, params)
                 if layer_code:
                     layers_code.append(f"self.{layer_name} = {layer_code}")
-                    forward_code_body.append(f"# TransformerDecoder requires memory from encoder")
+                    forward_code_body.append("# TransformerDecoder requires memory from encoder")
                     forward_code_body.append(f"# x = self.{layer_name}(x, memory)")
                     forward_code_body.append(f"x = self.{layer_name}(x, x)  # Self-attention only for now")
             elif layer_type == "Flatten":
                 # Flatten is handled inline, no layer needed
-                forward_code_body.append(f"x = x.view(x.size(0), -1)  # Flatten")
+                forward_code_body.append("x = x.view(x.size(0), -1)  # Flatten")
             elif layer_type == "GlobalAveragePooling1D":
                 layer_code = self.generate_layer(layer_type, params)
                 if layer_code:
@@ -235,8 +241,8 @@ class PyTorchGenerator(BaseCodeGenerator):
                     layers_code.append(f"self.{layer_name} = {layer_code}")
                     forward_code_body.append(f"x, _ = self.{layer_name}(x)")
             elif layer_type == "Residual":
-                forward_code_body.append(f"# Residual block")
-                forward_code_body.append(f"residual_input = x")
+                forward_code_body.append("# Residual block")
+                forward_code_body.append("residual_input = x")
                 for sub_layer in layer.get('sub_layers', []):
                     sub_type = sub_layer['type']
                     sub_params = sub_layer.get('params', {})
@@ -248,7 +254,7 @@ class PyTorchGenerator(BaseCodeGenerator):
                             forward_code_body.append(f"x, _ = self.{sub_layer_name}(x)")
                         else:
                             forward_code_body.append(f"x = self.{sub_layer_name}(x)")
-                forward_code_body.append(f"x = x + residual_input")
+                forward_code_body.append("x = x + residual_input")
             elif layer_type == "GlobalAveragePooling2D":
                 layer_code = self.generate_layer(layer_type, params)
                 if layer_code:

@@ -8,8 +8,8 @@ This demonstrates:
 - Exporting to multiple backends
 """
 
+
 import requests
-import json
 
 
 API_BASE = "http://localhost:8051"

@@ -1,14 +1,15 @@
-import sys
 import os
+import sys
+
 
 # Add the parent directory of 'neural' to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import pytest
-import numpy as np
+
 from neural.shape_propagation.shape_propagator import ShapePropagator
 from neural.shape_propagation.utils import calculate_memory_usage, format_memory_size
-from neural.exceptions import InvalidParameterError, InvalidShapeError, ShapeMismatchError
+
 
 #########################################
 # 1. Test layer documentation

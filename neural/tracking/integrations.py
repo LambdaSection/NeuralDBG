@@ -5,9 +5,9 @@ This module provides integrations with popular experiment tracking tools like
 MLflow, Weights & Biases, and TensorBoard.
 """
 
-import os
-import logging
 import json
+import logging
+import os
 import tempfile
 from typing import Dict, List, Any, Optional, Union, Tuple
 
@@ -327,7 +327,6 @@ class WandbIntegration(BaseIntegration):
             return
 
         try:
-            import wandb
 
             # Update config
             for key, value in hyperparameters.items():
@@ -351,7 +350,6 @@ class WandbIntegration(BaseIntegration):
             return
 
         try:
-            import wandb
 
             # Filter out non-numeric values
             numeric_metrics = {k: v for k, v in metrics.items() if isinstance(v, (int, float))}
@@ -573,7 +571,7 @@ class TensorBoardIntegration(BaseIntegration):
             except Exception as e:
                 logger.debug(f"Could not log hyperparameters using add_hparams: {str(e)}")
 
-            logger.debug(f"Logged hyperparameters to TensorBoard")
+            logger.debug("Logged hyperparameters to TensorBoard")
 
         except Exception as e:
             logger.error(f"Error logging hyperparameters to TensorBoard: {str(e)}")

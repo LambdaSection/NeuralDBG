@@ -4,6 +4,7 @@ from typing import Any, Dict, Union
 
 from neural.exceptions import DependencyError
 
+
 try:
     import tensorflow as tf
     HAS_TENSORFLOW = True
@@ -20,7 +21,6 @@ except ImportError:
     torch = None
     SummaryWriter = None
 
-from neural.code_generation.code_generator import generate_code
 
 class TensorBoardLogger:
     def __init__(self, log_dir: str = "runs/neural") -> None:

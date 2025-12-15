@@ -1,12 +1,13 @@
-import sys
 import os
+import sys
+
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import pytest
-import numpy as np
-from neural.shape_propagation.shape_propagator import ShapePropagator
+
 from neural.exceptions import InvalidParameterError, InvalidShapeError, ShapeMismatchError
+from neural.shape_propagation.shape_propagator import ShapePropagator
 
 
 def test_conv2d_kernel_too_large():

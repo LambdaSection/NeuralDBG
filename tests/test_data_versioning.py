@@ -1,6 +1,4 @@
-import json
 import shutil
-from pathlib import Path
 
 import numpy as np
 import pytest
@@ -8,7 +6,6 @@ import pytest
 from neural.data import (
     DataQualityValidator,
     DatasetVersionManager,
-    Feature,
     FeatureStore,
     LineageTracker,
     PreprocessingTracker,
@@ -58,7 +55,7 @@ def test_dataset_versioning(temp_data_dir, sample_dataset):
 def test_version_comparison(temp_data_dir, sample_dataset):
     manager = DatasetVersionManager(base_dir=temp_data_dir)
     
-    version1 = manager.create_version(
+    manager.create_version(
         dataset_path=sample_dataset,
         version="v1.0",
         metadata={"samples": 100},
@@ -67,7 +64,7 @@ def test_version_comparison(temp_data_dir, sample_dataset):
     data2 = np.random.rand(200, 10)
     np.save(sample_dataset, data2)
     
-    version2 = manager.create_version(
+    manager.create_version(
         dataset_path=sample_dataset,
         version="v2.0",
         metadata={"samples": 200},
@@ -87,13 +84,13 @@ def test_preprocessing_pipeline(temp_data_dir):
         description="Test preprocessing"
     )
     
-    step1 = pipeline.add_step(
+    pipeline.add_step(
         name="normalize",
         params={"min": 0, "max": 1},
         description="Normalize data"
     )
     
-    step2 = pipeline.add_step(
+    pipeline.add_step(
         name="scale",
         params={"factor": 2},
         description="Scale data"
@@ -113,19 +110,19 @@ def test_preprocessing_pipeline(temp_data_dir):
 def test_feature_store(temp_data_dir):
     store = FeatureStore(base_dir=temp_data_dir)
     
-    group = store.create_feature_group(
+    store.create_feature_group(
         name="test_features",
         description="Test feature group"
     )
     
-    feature1 = store.add_feature(
+    store.add_feature(
         "test_features",
         "feature_1",
         "float32",
         "First feature"
     )
     
-    feature2 = store.add_feature(
+    store.add_feature(
         "test_features",
         "feature_2",
         "int32",
@@ -196,7 +193,7 @@ def test_custom_validation_rule():
 def test_lineage_tracking(temp_data_dir):
     tracker = LineageTracker(base_dir=temp_data_dir)
     
-    graph = tracker.create_graph("test_experiment")
+    tracker.create_graph("test_experiment")
     
     data_node = tracker.add_data_node(
         "test_experiment",
@@ -219,14 +216,14 @@ def test_lineage_tracking(temp_data_dir):
         {"accuracy": 0.95}
     )
     
-    edge1 = tracker.add_edge(
+    tracker.add_edge(
         "test_experiment",
         data_node.node_id,
         model_node.node_id,
         "train"
     )
     
-    edge2 = tracker.add_edge(
+    tracker.add_edge(
         "test_experiment",
         model_node.node_id,
         pred_node.node_id,
@@ -250,9 +247,9 @@ def test_lineage_path(temp_data_dir):
     tracker = LineageTracker(base_dir=temp_data_dir)
     graph = tracker.create_graph("path_test")
     
-    node1 = tracker.add_data_node("path_test", "n1", "Node 1")
-    node2 = tracker.add_preprocessing_node("path_test", "n2", "Node 2")
-    node3 = tracker.add_model_node("path_test", "n3", "Node 3")
+    tracker.add_data_node("path_test", "n1", "Node 1")
+    tracker.add_preprocessing_node("path_test", "n2", "Node 2")
+    tracker.add_model_node("path_test", "n3", "Node 3")
     
     tracker.add_edge("path_test", "n1", "n2", "transform")
     tracker.add_edge("path_test", "n2", "n3", "train")
@@ -318,7 +315,7 @@ def test_pipeline_comparison(temp_data_dir):
 def test_feature_export_import(temp_data_dir, tmp_path):
     store = FeatureStore(base_dir=temp_data_dir)
     
-    group = store.create_feature_group("export_test")
+    store.create_feature_group("export_test")
     store.add_feature("export_test", "f1", "float32", "Feature 1")
     store.add_feature("export_test", "f2", "int32", "Feature 2")
     
@@ -339,8 +336,8 @@ def test_validation_history(temp_data_dir):
     
     data = np.random.rand(100, 10)
     
-    results1 = validator.validate_and_save(data, "test_dataset")
-    results2 = validator.validate_and_save(data, "test_dataset")
+    validator.validate_and_save(data, "test_dataset")
+    validator.validate_and_save(data, "test_dataset")
     
     history = validator.get_validation_history("test_dataset")
     assert len(history) >= 2
@@ -353,7 +350,7 @@ def test_validation_history(temp_data_dir):
 def test_lineage_export_import(temp_data_dir, tmp_path):
     tracker = LineageTracker(base_dir=temp_data_dir)
     
-    graph = tracker.create_graph("export_test")
+    tracker.create_graph("export_test")
     tracker.add_data_node("export_test", "d1", "Data 1")
     tracker.add_model_node("export_test", "m1", "Model 1")
     tracker.add_edge("export_test", "d1", "m1", "train")

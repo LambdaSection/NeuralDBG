@@ -7,9 +7,9 @@ from __future__ import annotations
 
 import json
 import logging
-import time
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Tuple
+import time
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -17,7 +17,8 @@ from .architecture_space import ArchitectureSpace
 from .early_stopping import EarlyStoppingStrategy, MedianPruner
 from .evaluation import ArchitectureEvaluator, MetricTracker, PerformancePredictor
 from .executor import BaseExecutor, create_executor
-from .search_strategies import SearchStrategy, RandomSearchStrategy
+from .search_strategies import RandomSearchStrategy, SearchStrategy
+
 
 logger = logging.getLogger(__name__)
 
@@ -238,22 +239,16 @@ class AutoMLEngine:
     def _initialize_components(self, architecture_space: ArchitectureSpace, **kwargs):
         """Initialize search components."""
         from .search_strategies import (
-            GridSearchStrategy,
-            RandomSearchStrategy,
             BayesianSearchStrategy,
-            EvolutionarySearchStrategy
+            EvolutionarySearchStrategy,
+            GridSearchStrategy,
         )
         try:
             from .search_strategies import RegularizedEvolutionStrategy
         except ImportError:
             RegularizedEvolutionStrategy = None
         
-        from .early_stopping import (
-            MedianPruner,
-            HyperbandPruner,
-            ASHAPruner,
-            ThresholdPruner
-        )
+        from .early_stopping import ASHAPruner, HyperbandPruner, ThresholdPruner
         
         if self.search_strategy_name == 'grid':
             self.search_strategy = GridSearchStrategy()

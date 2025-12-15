@@ -6,11 +6,11 @@ with proper configuration, formatters, and utilities.
 """
 from __future__ import annotations
 
-import logging
-import sys
-from pathlib import Path
-from typing import List, Optional, Union
 from enum import Enum
+import logging
+from pathlib import Path
+import sys
+from typing import List, Optional, Union
 
 
 class LogLevel(Enum):

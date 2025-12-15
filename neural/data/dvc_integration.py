@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import json
-import os
-import subprocess
 from pathlib import Path
+import subprocess
 from typing import Any, Dict, List, Optional, Union
 
 
@@ -126,7 +125,7 @@ class DVCIntegration:
         
         try:
             with open(dvc_file, "r") as f:
-                data = json.load(f) if dvc_file.suffix == ".json" else {}
+                json.load(f) if dvc_file.suffix == ".json" else {}
                 
                 import yaml
                 dvc_file_content = yaml.safe_load(open(dvc_file, "r"))

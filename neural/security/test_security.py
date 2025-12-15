@@ -5,8 +5,9 @@ Run this script to test authentication, rate limiting, and CORS.
 """
 
 import os
-import time
+
 from flask import Flask
+
 
 # Set test environment variables
 os.environ['NEURAL_AUTH_ENABLED'] = 'true'
@@ -20,11 +21,11 @@ os.environ['NEURAL_RATE_LIMIT_REQUESTS'] = '5'
 os.environ['NEURAL_RATE_LIMIT_WINDOW_SECONDS'] = '10'
 
 from neural.security import (
-    load_security_config,
+    apply_security_middleware,
     create_basic_auth,
     create_jwt_auth,
+    load_security_config,
     require_auth,
-    apply_security_middleware,
 )
 
 
@@ -34,13 +35,13 @@ def test_config_loading():
     
     config = load_security_config()
     
-    assert config.auth_enabled == True
+    assert config.auth_enabled
     assert config.auth_type == 'basic'
     assert config.basic_auth_username == 'testuser'
     assert config.basic_auth_password == 'testpass'
-    assert config.cors_enabled == True
+    assert config.cors_enabled
     assert 'http://localhost:3000' in config.cors_origins
-    assert config.rate_limit_enabled == True
+    assert config.rate_limit_enabled
     assert config.rate_limit_requests == 5
     
     print("✓ Configuration loading works!")
@@ -54,11 +55,11 @@ def test_basic_auth():
     
     # Test valid credentials
     valid_creds = {'username': 'testuser', 'password': 'testpass'}
-    assert auth.check_auth(valid_creds) == True
+    assert auth.check_auth(valid_creds)
     
     # Test invalid credentials
     invalid_creds = {'username': 'testuser', 'password': 'wrong'}
-    assert auth.check_auth(invalid_creds) == False
+    assert not auth.check_auth(invalid_creds)
     
     print("✓ Basic authentication works!")
 

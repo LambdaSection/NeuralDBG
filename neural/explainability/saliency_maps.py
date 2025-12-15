@@ -2,9 +2,11 @@
 Gradient-based saliency map generation for neural networks.
 """
 
-from typing import Any, Dict, Optional, Tuple
-import numpy as np
 import logging
+from typing import Any, Dict, Optional
+
+import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -378,8 +380,8 @@ class SaliencyMapGenerator:
             Figure object
         """
         try:
-            import matplotlib.pyplot as plt
             from matplotlib import cm
+            import matplotlib.pyplot as plt
             
             saliency_normalized = (saliency_map - saliency_map.min()) / (saliency_map.max() - saliency_map.min() + 1e-8)
             

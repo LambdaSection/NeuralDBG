@@ -5,10 +5,13 @@ Tests invariants and properties that should always hold true.
 Uses the correct Neural DSL syntax: network Name { input: ... layers: ... }
 """
 
+from typing import Any, Dict  # Type hints
+
+from hypothesis import given, settings  # Property-based testing
+from hypothesis import strategies as st
 import pytest  # Test framework for running tests
-from hypothesis import given, strategies as st, settings  # Property-based testing
-from neural.parser.parser import NeuralParser, DSLValidationError  # Parser classes
-from typing import Dict, Any  # Type hints
+
+from neural.parser.parser import DSLValidationError, NeuralParser  # Parser classes
 
 
 def verify_layer_structure(layer: Dict[str, Any]) -> bool:

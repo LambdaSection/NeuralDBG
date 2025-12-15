@@ -13,10 +13,9 @@ Or: python -m neural.server
 """
 from __future__ import annotations
 
-import os
 import logging
-from typing import Optional, Dict, Any
-from pathlib import Path
+import os
+from typing import Dict, Optional
 
 from neural.exceptions import DependencyError
 
@@ -34,6 +33,7 @@ except ImportError:
     dbc = None
     Flask = None
     DASH_AVAILABLE = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -185,10 +185,7 @@ def create_unified_app(port: int = 8050) -> dash.Dash:
 def get_debug_layout():
     """Get layout for debug dashboard (NeuralDbg)."""
     try:
-        from neural.dashboard.dashboard import (
-            trace_data, model_data,
-            create_progress_component
-        )
+        from neural.dashboard.dashboard import create_progress_component, model_data, trace_data
         
         return html.Div([
             html.H2("NeuralDbg - Real-Time Execution Monitoring"),

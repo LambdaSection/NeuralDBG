@@ -6,10 +6,10 @@ including gradient flow, dead neurons, and activation anomalies.
 """
 
 import logging
-import time
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 
 import numpy as np
+
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -110,7 +110,6 @@ class MetricsCollector:
             Updated trace_data with real metrics
         """
         try:
-            import torch
 
             # Train for a few batches
             model.train()
@@ -175,8 +174,8 @@ class MetricsCollector:
 
     def _collect_tensorflow_dead_neurons(self, model: Any, x_data: Any) -> None:
         """Collect dead neuron metrics for TensorFlow models."""
-        import tensorflow as tf
         import numpy as np
+        import tensorflow as tf
 
         # Forward pass with a batch of data
         activations = []
@@ -197,8 +196,8 @@ class MetricsCollector:
 
     def _collect_tensorflow_anomalies(self, model: Any, x_data: Any) -> None:
         """Collect anomaly metrics for TensorFlow models."""
-        import tensorflow as tf
         import numpy as np
+        import tensorflow as tf
 
         # Forward pass with a batch of data
         for layer in model.layers:
@@ -220,7 +219,6 @@ class MetricsCollector:
 
     def _collect_pytorch_gradients(self, model: Any) -> None:
         """Collect gradient flow metrics for PyTorch models."""
-        import torch
 
         # Collect gradient norms
         for i, (name, param) in enumerate(model.named_parameters()):

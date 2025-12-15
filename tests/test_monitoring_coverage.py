@@ -2,12 +2,14 @@
 Comprehensive test suite for Monitoring module to increase coverage.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from neural.monitoring.monitor import ModelMonitor
-from neural.monitoring.drift_detector import DriftDetector
-from neural.monitoring.data_quality import DataQualityChecker
+
 from neural.monitoring.alerting import AlertManager
+from neural.monitoring.data_quality import DataQualityChecker
+from neural.monitoring.drift_detector import DriftDetector
+from neural.monitoring.monitor import ModelMonitor
 
 
 class TestModelMonitor:

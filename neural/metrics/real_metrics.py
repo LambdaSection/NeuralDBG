@@ -6,10 +6,11 @@ and update the dashboard with these metrics.
 """
 
 import logging
-from typing import Dict, List, Any, Optional, Union, Tuple
+from typing import Any, Dict, List
 
 from .metrics_collector import MetricsCollector
 from .model_trainer import ModelTrainer
+
 
 # Configure logger
 logger = logging.getLogger(__name__)

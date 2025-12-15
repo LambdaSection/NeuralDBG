@@ -4,20 +4,23 @@ Edge cases and error handling integration tests.
 Tests error handling and edge cases in the complete workflow across all backends.
 """
 
-import pytest
 import os
+import shutil
 import sys
 import tempfile
-import shutil
-from unittest.mock import patch
+
+import pytest
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from neural.parser.parser import create_parser, ModelTransformer, DSLValidationError
-from neural.shape_propagation.shape_propagator import ShapePropagator
+from lark.exceptions import VisitError
+
 from neural.code_generation.code_generator import generate_code, generate_optimized_dsl
 from neural.hpo.hpo import create_dynamic_model
-from lark.exceptions import UnexpectedToken, VisitError
+from neural.parser.parser import DSLValidationError, ModelTransformer, create_parser
+from neural.shape_propagation.shape_propagator import ShapePropagator
+
 
 try:
     import torch
@@ -62,7 +65,7 @@ class TestParsingErrorHandling:
         parser = create_parser("network")
         
         with pytest.raises(Exception):
-            tree = parser.parse(invalid_dsl)
+            parser.parse(invalid_dsl)
 
     def test_missing_required_field_error(self):
         """Test: Missing required fields raises error."""
@@ -77,7 +80,7 @@ class TestParsingErrorHandling:
         parser = create_parser("network")
         
         with pytest.raises(Exception):
-            tree = parser.parse(invalid_dsl)
+            parser.parse(invalid_dsl)
 
     def test_invalid_layer_parameter_error(self):
         """Test: Invalid layer parameters raise validation error."""
@@ -95,7 +98,7 @@ class TestParsingErrorHandling:
         
         with pytest.raises((VisitError, DSLValidationError)):
             tree = parser.parse(invalid_dsl)
-            model_config = transformer.transform(tree)
+            transformer.transform(tree)
 
     def test_empty_layers_error(self):
         """Test: Empty layers list raises error."""
@@ -109,7 +112,7 @@ class TestParsingErrorHandling:
         parser = create_parser("network")
         
         with pytest.raises(Exception):
-            tree = parser.parse(invalid_dsl)
+            parser.parse(invalid_dsl)
 
     def test_invalid_input_shape_error(self):
         """Test: Invalid input shape raises error."""
@@ -127,7 +130,7 @@ class TestParsingErrorHandling:
         
         with pytest.raises((VisitError, DSLValidationError, ValueError)):
             tree = parser.parse(invalid_dsl)
-            model_config = transformer.transform(tree)
+            transformer.transform(tree)
 
 
 class TestShapePropagationErrorHandling:
@@ -251,12 +254,12 @@ class TestCodeGenerationErrorHandling:
         model_config = transformer.transform(tree)
         
         with pytest.raises((ValueError, KeyError)):
-            code = generate_code(model_config, 'invalid_backend')
+            generate_code(model_config, 'invalid_backend')
 
     def test_missing_model_data_error(self):
         """Test: Missing model data raises error."""
         with pytest.raises((ValueError, KeyError, TypeError)):
-            code = generate_code({}, 'pytorch')
+            generate_code({}, 'pytorch')
 
     def test_invalid_layer_type_error(self):
         """Test: Invalid layer type in code generation."""
@@ -302,7 +305,7 @@ class TestHPOErrorHandling:
         
         with pytest.raises(Exception):
             parser = create_parser("network")
-            tree = parser.parse(dsl_code)
+            parser.parse(dsl_code)
 
     @pytest.mark.skipif(not TORCH_AVAILABLE, reason="PyTorch not available")
     def test_missing_hpo_parameters_in_optimization(self):
@@ -392,7 +395,7 @@ class TestEdgeCases:
     @pytest.mark.skipif(not TORCH_AVAILABLE, reason="PyTorch not available")
     def test_very_deep_network(self):
         """Test: Very deep network with many layers."""
-        layers_str = "\n".join([f"                Dense(64, \"relu\")" for _ in range(50)])
+        layers_str = "\n".join(["                Dense(64, \"relu\")" for _ in range(50)])
         
         dsl_code = f"""
         network DeepNetwork {{

@@ -4,10 +4,11 @@ This module contains utility functions for error handling, parsing,
 and grammar creation that are used by the main parser.
 """
 
-import lark
 import logging
 from typing import Any, Dict, List, Optional
-from lark.exceptions import UnexpectedToken, UnexpectedCharacters
+
+import lark
+from lark.exceptions import UnexpectedCharacters, UnexpectedToken
 
 from .error_handling import ErrorHandler
 from .hpo_utils import Severity

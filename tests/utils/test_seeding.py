@@ -2,9 +2,10 @@
 Tests for seeding utilities to ensure deterministic behavior.
 """
 
-import pytest
 import numpy as np
-from neural.utils.seeding import set_global_seed, get_current_seed
+
+from neural.utils.seeding import get_current_seed, set_global_seed
+
 
 def test_set_global_seed_deterministic():
     """Test that setting the same seed produces the same random numbers."""

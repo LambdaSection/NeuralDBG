@@ -4,10 +4,10 @@ This script installs Neural DSL in cloud environments like Kaggle and Google Col
 """
 
 import os
-import sys
-import subprocess
-import platform
 from pathlib import Path
+import subprocess
+import sys
+
 
 def print_step(message):
     """Print a step message with formatting."""

@@ -1,15 +1,17 @@
 import os
+from pathlib import Path
 import sys
 import tempfile
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from click.testing import CliRunner
-from pathlib import Path
+import pytest
+
 
 # Add the project root to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from neural.cli import cli, visualize
+from neural.cli import cli
 
 
 class TestCLIVisualization:

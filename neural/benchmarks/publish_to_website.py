@@ -10,11 +10,12 @@ This script:
 """
 
 import argparse
+from datetime import datetime
 import json
+from pathlib import Path
 import shutil
 import sys
-from datetime import datetime
-from pathlib import Path
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -33,7 +34,6 @@ from neural.benchmarks.report_generator import ReportGenerator
 def generate_visualizations(results_dir: Path, website_dir: Path):
     """Generate publication-ready visualizations."""
     import matplotlib.pyplot as plt
-    import numpy as np
     import pandas as pd
 
     latest_results = sorted(results_dir.glob("benchmark_results_*.json"))[-1]
@@ -191,10 +191,10 @@ def generate_summary_table(results_dir: Path) -> str:
         avg_other_loc = other_frameworks_data['lines_of_code'].mean()
         reduction = ((avg_other_loc - neural_loc) / avg_other_loc) * 100
         
-        summary += f"**Key Insights:**\n\n"
+        summary += "**Key Insights:**\n\n"
         summary += f"- Neural DSL achieves **{reduction:.1f}% code reduction** compared to average\n"
-        summary += f"- All frameworks achieve comparable accuracy (~97%)\n"
-        summary += f"- Training time differences are minimal (<10% variance)\n"
+        summary += "- All frameworks achieve comparable accuracy (~97%)\n"
+        summary += "- Training time differences are minimal (<10% variance)\n"
     
     return summary
 
@@ -322,7 +322,7 @@ def main():
     print("\n" + "=" * 70)
     print("✓ Publishing Complete!")
     print("=" * 70)
-    print(f"\nBenchmark documentation:")
+    print("\nBenchmark documentation:")
     print(f"  - Main page: {website_dir}/docs/benchmarks.md")
     print(f"  - Summary: {summary_path}")
     if not args.skip_visualizations and 'assets_dir' in locals():

@@ -2,9 +2,8 @@
 Tests for the benchmark runner.
 """
 
-import json
-import tempfile
 from pathlib import Path
+import tempfile
 
 import pytest
 

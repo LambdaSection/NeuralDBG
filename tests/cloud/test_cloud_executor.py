@@ -3,12 +3,13 @@ Unit tests for the Neural Cloud Integration module.
 """
 
 import os
-import sys
-import unittest
-import subprocess
-from unittest.mock import patch, MagicMock, mock_open
-import tempfile
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest.mock import MagicMock, patch
+
 
 # Add the parent directory to the path so we can import the module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

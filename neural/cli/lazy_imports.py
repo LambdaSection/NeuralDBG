@@ -3,15 +3,15 @@ Lazy imports for Neural CLI.
 This module provides lazy loading for heavy dependencies.
 """
 
+from functools import lru_cache
 import importlib
 import logging
 import os
-import sys
 import time
 import warnings
-from functools import lru_cache
 
 from .cli_aesthetics import print_error
+
 
 # Configure environment to suppress specific warnings
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow messages

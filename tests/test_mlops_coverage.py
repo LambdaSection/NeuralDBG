@@ -2,11 +2,13 @@
 Test suite for simplified MLOps module.
 """
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from neural.mlops.registry import ModelRegistry
-from neural.mlops.deployment import ModelDeployment
+
 from neural.mlops.audit import AuditLogger
+from neural.mlops.deployment import ModelDeployment
+from neural.mlops.registry import ModelRegistry
 
 
 class TestModelRegistry:

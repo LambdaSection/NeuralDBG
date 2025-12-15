@@ -14,8 +14,9 @@ Usage:
     python neural/benchmarks/example_benchmark.py --frameworks neural keras pytorch-lightning
 """
 
-import sys
 from pathlib import Path
+import sys
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -228,8 +229,8 @@ def generate_report(results, include_plots=True):
         include_plots=include_plots,
     )
     
-    print(f"\n✓ Reports generated successfully!")
-    print(f"\nView results:")
+    print("\n✓ Reports generated successfully!")
+    print("\nView results:")
     print(f"  - HTML: file://{Path(report_path).absolute()}")
     print(f"  - Markdown: {Path(report_path).parent / 'README.md'}")
 

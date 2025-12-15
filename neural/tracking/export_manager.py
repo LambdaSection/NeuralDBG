@@ -5,7 +5,7 @@ Export manager for exporting experiments to external platforms.
 import logging
 from typing import Dict, List, Optional
 
-from neural.tracking.experiment_tracker import ExperimentManager, ExperimentTracker
+from neural.tracking.experiment_tracker import ExperimentManager
 from neural.tracking.integrations import (
     MLflowIntegration,
     TensorBoardIntegration,

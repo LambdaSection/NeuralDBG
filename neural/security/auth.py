@@ -7,16 +7,15 @@ Provides HTTP Basic Auth and JWT authentication with Flask integration.
 from __future__ import annotations
 
 import base64
+from datetime import datetime, timedelta
+from functools import wraps
 import hashlib
 import hmac
 import json
-import secrets
 import time
-from datetime import datetime, timedelta
-from functools import wraps
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional
 
-from flask import Flask, Response, request
+from flask import Response, request
 
 
 class Authentication:

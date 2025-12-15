@@ -6,12 +6,11 @@ This module provides a Jupyter kernel for executing Neural DSL code on cloud pla
 
 from __future__ import annotations
 
-import os
-import sys
-import json
-import logging
 import argparse
-from typing import Dict, Any, List, Union, Optional
+import logging
+import sys
+from typing import Any, Dict, Optional
+
 
 # Configure logging
 logging.basicConfig(

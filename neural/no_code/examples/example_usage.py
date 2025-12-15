@@ -5,7 +5,6 @@ This demonstrates how to interact with the no-code interface API
 to build models, validate them, and generate code.
 """
 
-import json
 import requests
 
 
@@ -165,7 +164,7 @@ def main():
     
     if validation["valid"]:
         print("   ✓ Model is valid!")
-        print(f"   Shape propagation:")
+        print("   Shape propagation:")
         for shape_info in validation["shapes"]:
             print(f"     - {shape_info['layer']}: {shape_info['shape']}")
     else:

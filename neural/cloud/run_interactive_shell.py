@@ -3,11 +3,10 @@
 Run the Neural Cloud Interactive Shell with a more aesthetic interface.
 """
 
-import os
-import sys
 import argparse
+import sys
 import time
-from pathlib import Path
+
 
 def print_ascii_art():
     """Print a more aesthetic ASCII art header."""

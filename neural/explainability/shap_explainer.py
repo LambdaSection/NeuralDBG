@@ -135,7 +135,6 @@ class SHAPExplainer:
             self._create_explainer(background_data)
         
         try:
-            import shap
             shap_values = self.explainer.shap_values(input_data)
             
             results = {
@@ -227,8 +226,8 @@ class SHAPExplainer:
             Figure object
         """
         try:
-            import shap
             import matplotlib.pyplot as plt
+            import shap
             
             if plot_type == 'bar':
                 shap.summary_plot(

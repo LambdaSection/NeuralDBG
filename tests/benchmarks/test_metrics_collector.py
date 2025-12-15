@@ -4,8 +4,6 @@ Tests for metrics collection utilities.
 
 import time
 
-import pytest
-
 from neural.benchmarks.metrics_collector import (
     MemoryProfiler,
     MetricsCollector,
@@ -134,7 +132,6 @@ class TestMemoryProfiler:
         profiler = MemoryProfiler()
         profiler.start_profiling()
         
-        initial_peak = profiler.peak_memory
         
         large_data = [i for i in range(1000000)]
         profiler.update()

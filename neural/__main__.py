@@ -8,6 +8,7 @@ It sets up the environment to suppress debug messages before importing the CLI.
 import os
 import sys
 
+
 # Set environment variables to suppress debug messages from dependencies
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow messages
 os.environ['PYTHONWARNINGS'] = 'ignore'    # Suppress Python warnings
@@ -35,6 +36,7 @@ if os.environ.get('NEURAL_SUPPRESS_STDERR') == '1':
 
 # Import the CLI after setting up the environment
 from neural.cli import cli
+
 
 if __name__ == '__main__':
     # Run the CLI

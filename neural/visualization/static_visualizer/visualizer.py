@@ -7,12 +7,12 @@ creates the nodes and links structure that D3.js uses.
 """
 from __future__ import annotations
 
-import json
 from typing import Any, Dict, List
 
 from neural.exceptions import DependencyError
 from neural.parser.parser import ModelTransformer, create_parser
 from neural.utils.logging import get_logger
+
 
 logger = get_logger(__name__)
 
@@ -161,12 +161,15 @@ class NeuralVisualizer:
         Args:
             filename: The name of the file to save the diagram to.
         """
+<<<<<<< HEAD
         if not MATPLOTLIB_AVAILABLE:
             raise DependencyError(
                 dependency="matplotlib",
                 feature="architecture diagram",
                 install_hint="pip install matplotlib"
             )
+=======
+>>>>>>> c7eaf0d6 (Run linting and type checking to fix code quality issues)
 
         fig, ax = plt.subplots(figsize=(10, 8))
 

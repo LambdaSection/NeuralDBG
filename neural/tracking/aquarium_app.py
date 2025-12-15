@@ -9,15 +9,14 @@ import argparse
 import json
 import os
 import sys
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import dash
-import dash_bootstrap_components as dbc
-import plotly.express as px
-import plotly.graph_objects as go
 from dash import Input, Output, State, callback_context, dash_table, dcc, html
 from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
+import plotly.graph_objects as go
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
@@ -753,7 +752,7 @@ class AquariumDashboard:
 
     def run(self, debug: bool = False, host: str = "127.0.0.1"):
         """Run the dashboard."""
-        print(f"\nStarting Aquarium Dashboard...")
+        print("\nStarting Aquarium Dashboard...")
         print(f"Base directory: {self.base_dir}")
         print(f"URL: http://{host}:{self.port}")
 

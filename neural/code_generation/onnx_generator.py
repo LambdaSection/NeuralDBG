@@ -3,6 +3,7 @@ from typing import Any, Dict
 
 from neural.code_generation.base_generator import BaseCodeGenerator
 
+
 logger = logging.getLogger(__name__)
 
 

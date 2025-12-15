@@ -5,11 +5,12 @@ Implements various pruning strategies to terminate unpromising trials early.
 """
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
+import logging
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

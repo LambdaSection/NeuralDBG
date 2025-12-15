@@ -7,8 +7,8 @@ Supports multiple languages through translation layer.
 
 from __future__ import annotations
 
-import re
 from enum import Enum
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -84,7 +84,7 @@ class NaturalLanguageProcessor:
             Detected language code (e.g., 'en', 'fr', 'es', 'de', 'it')
         """
         try:
-            from langdetect import detect, LangDetectException
+            from langdetect import LangDetectException, detect
             try:
                 detected = detect(text)
                 return detected
@@ -302,7 +302,7 @@ class DSLGenerator:
             dsl += "        Conv2D(32, (3, 3), \"relu\")\n"
             dsl += "        MaxPooling2D((2, 2))\n"
             dsl += "        Flatten()\n"
-            dsl += f"        Dense(128, \"relu\")\n"
+            dsl += "        Dense(128, \"relu\")\n"
             dsl += f"        Output({self.current_model['num_classes']}, \"softmax\")\n"
         
         dsl += f"    loss: \"{self.current_model['loss']}\"\n"

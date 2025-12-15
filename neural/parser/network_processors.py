@@ -4,7 +4,7 @@ This module contains functions for processing network-level configurations
 like execution settings, framework detection, and device specifications.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List
 
 
 def detect_framework(model: Dict[str, Any]) -> str:
@@ -44,7 +44,6 @@ def process_execution_config(model: Dict[str, Any]) -> Dict[str, Any]:
     # Check if this is a device specification test
     is_device_test = False
     has_tpu = False
-    has_cuda = False
     
     # Check model name
     if 'name' in model:
@@ -63,7 +62,7 @@ def process_execution_config(model: Dict[str, Any]) -> Dict[str, Any]:
                 if layer['device'].startswith('tpu'):
                     has_tpu = True
                 elif layer['device'].startswith('cuda'):
-                    has_cuda = True
+                    pass
     
     # Add execution config if needed
     if is_device_test:

@@ -1,14 +1,17 @@
-import pytest
-import sys
 import os
+import sys
+
 from lark import exceptions
 from lark.exceptions import VisitError
+import pytest
+
 
 # Add the project root to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 # Now import from the neural package
-from neural.parser.parser import layer_parser, ModelTransformer, DSLValidationError
+from neural.parser.parser import DSLValidationError, ModelTransformer, layer_parser
+
 
 class TestHPOParser:
     @pytest.fixture

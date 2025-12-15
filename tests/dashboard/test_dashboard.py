@@ -1,32 +1,39 @@
 import json
-import sys
 import os
-import time
-import pysnooper
+import sys
 import threading
+import time
+
 from dash import html
+
+
 # Add the parent directory of 'neural' to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from dash import Dash
-import pytest
-from unittest.mock import Mock
-from pytest import approx
-import socketio
-import requests
-from dash.dependencies import Input, Output
-from neural.dashboard.dashboard import app, update_trace_graph, update_flops_memory_chart, update_gradient_chart, update_dead_neurons, update_anomaly_chart, update_graph
-from neural.dashboard.tensor_flow import create_animated_network
 from unittest.mock import MagicMock, patch
-from flask_socketio import SocketIOTestClient, SocketIO
-import plotly.graph_objects as go
-import numpy as np
-import flask
+
+from dash import Dash
 from flask import Flask
+from flask_socketio import SocketIO, SocketIOTestClient
+import pytest
+from pytest import approx
+import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+
+from neural.dashboard.dashboard import (
+    app,
+    update_anomaly_chart,
+    update_dead_neurons,
+    update_flops_memory_chart,
+    update_gradient_chart,
+    update_graph,
+    update_trace_graph,
+)
+from neural.dashboard.tensor_flow import create_animated_network
+
 
 ### Dash Test Client ###
 

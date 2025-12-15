@@ -6,11 +6,11 @@ It returns a dict indicating which frameworks were successfully seeded.
 """
 from __future__ import annotations
 
-from typing import Dict
-
 # Standard libs
 import os  # for setting PYTHONHASHSEED
 import random  # for seeding Python's RNG
+from typing import Dict
+
 
 # Third-party (optional)
 try:

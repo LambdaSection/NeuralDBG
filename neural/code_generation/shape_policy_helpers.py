@@ -1,6 +1,8 @@
 import logging
+from typing import List, Tuple
+
 from neural.shape_propagation.shape_propagator import ShapePropagator
-from typing import Tuple, List
+
 
 logger = logging.getLogger(__name__)
 

@@ -1,12 +1,11 @@
-import os
-import sys
-import pytest
-from click.testing import CliRunner
-from neural.cli import cli
-from neural.parser.parser import ModelTransformer, DSLValidationError
-import shutil
 import logging
-from pathlib import Path
+import os
+
+from click.testing import CliRunner
+import pytest
+
+from neural.cli import cli
+
 
 @pytest.fixture
 def runner():

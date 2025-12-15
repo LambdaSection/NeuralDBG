@@ -4,7 +4,8 @@ This module contains functions for processing networks with HPO parameters,
 including optimizer HPO tracking and learning rate schedule processing.
 """
 
-from typing import Dict, Any, Callable
+from typing import Any, Callable, Dict
+
 from . import hpo_utils
 
 

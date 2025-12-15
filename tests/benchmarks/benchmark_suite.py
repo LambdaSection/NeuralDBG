@@ -3,10 +3,10 @@ Comprehensive benchmark suite orchestrator.
 """
 from __future__ import annotations
 
-import time
-import json
-from typing import Dict, Any, List, Optional
 from pathlib import Path
+import time
+from typing import Any, Dict, List, Optional
+
 from .benchmark_runner import BenchmarkRunner
 from .models import get_benchmark_models
 
@@ -48,7 +48,7 @@ class BenchmarkSuite:
                 
                 model_def = self.models[model_name]
                 
-                print(f"  Running Neural DSL version...")
+                print("  Running Neural DSL version...")
                 neural_results = self.runner.benchmark_neural_dsl(
                     model_name=model_name,
                     dsl_code=model_def['neural_dsl'],
@@ -98,22 +98,22 @@ class BenchmarkSuite:
     def _print_comparison(self, comparison: Dict[str, Any]):
         """Print comparison results in readable format."""
         print(f"\n  Results for {comparison['model_name']} ({comparison['backend']}):")
-        print(f"    Overhead:")
+        print("    Overhead:")
         print(f"      Parse time: {comparison['overhead']['parse_time']:.4f}s")
         print(f"      Codegen time: {comparison['overhead']['codegen_time']:.4f}s")
         print(f"      Total overhead: {comparison['overhead']['total_overhead']:.4f}s")
         
-        print(f"    Training time:")
+        print("    Training time:")
         print(f"      Neural DSL: {comparison['training_time']['neural_dsl']:.4f}s")
         print(f"      Native: {comparison['training_time']['native']:.4f}s")
         print(f"      Difference: {comparison['training_time']['difference']:.4f}s ({comparison['training_time']['percentage']:.2f}%)")
         
-        print(f"    Memory usage:")
+        print("    Memory usage:")
         print(f"      Neural DSL: {comparison['memory']['neural_dsl_mb']:.2f} MB")
         print(f"      Native: {comparison['memory']['native_mb']:.2f} MB")
         print(f"      Difference: {comparison['memory']['difference_mb']:.2f} MB ({comparison['memory']['percentage']:.2f}%)")
         
-        print(f"    Model performance:")
+        print("    Model performance:")
         print(f"      Neural DSL accuracy: {comparison['accuracy']['neural_dsl']:.4f}")
         print(f"      Native accuracy: {comparison['accuracy']['native']:.4f}")
         print(f"      Accuracy difference: {comparison['accuracy']['difference']:.4f}")

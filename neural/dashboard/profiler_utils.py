@@ -1,6 +1,6 @@
+from contextlib import contextmanager
 import functools
 import time
-from contextlib import contextmanager
 
 
 class LayerProfiler:
@@ -136,7 +136,7 @@ class BreakpointHelper:
             print(f"\n{'='*60}")
             print(f"BREAKPOINT HIT: {layer_name}")
             print(f"{'='*60}")
-            print(f"Layer Data:")
+            print("Layer Data:")
             for key, value in layer_data.items():
                 print(f"  {key}: {value}")
             print(f"{'='*60}\n")
@@ -272,7 +272,7 @@ def auto_initialize():
     Attempts to import from dashboard module.
     """
     try:
-        from neural.dashboard.dashboard import profiler, breakpoint_manager, anomaly_detector
+        from neural.dashboard.dashboard import anomaly_detector, breakpoint_manager, profiler
         initialize_helpers(profiler, breakpoint_manager, anomaly_detector)
         return True
     except ImportError:

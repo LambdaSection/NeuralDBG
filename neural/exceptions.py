@@ -54,9 +54,9 @@ Example Usage:
 
 from __future__ import annotations
 
-from typing import Optional, Any, Dict
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, Optional
 
 
 class Severity(Enum):

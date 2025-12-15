@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .audit import AuditEvent, AuditLogger, ComplianceReport
     from .ci_templates import CITemplateGenerator
-    from .deployment import DeploymentManager, Deployment, ModelDeployment
+    from .deployment import Deployment, DeploymentManager, ModelDeployment
     from .registry import ModelMetadata, ModelRegistry
 
 __all__ = [

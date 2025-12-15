@@ -1,7 +1,10 @@
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 import torch
+
 from pretrained_models.pretrained import PretrainedModelHub, fuse_conv_bn_weights
+
 
 @pytest.mark.skip(reason='hf_hub_download not implemented')
 @patch('pretrained_models.pretrained.hf_hub_download')

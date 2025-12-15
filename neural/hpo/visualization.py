@@ -4,7 +4,7 @@ Visualization tools for hyperparameter optimization results.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +12,7 @@ import pandas as pd
 import seaborn as sns
 
 from .parameter_importance import ParameterImportanceAnalyzer
+
 
 logger = logging.getLogger(__name__)
 

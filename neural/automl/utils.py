@@ -6,9 +6,10 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -77,14 +78,14 @@ def estimate_training_time(
     Returns:
         Estimated training time in seconds
     """
-    from neural.automl.nas_operations import estimate_model_size, compute_flops
+    from neural.automl.nas_operations import compute_flops, estimate_model_size
     
-    num_params = estimate_model_size(architecture)
+    estimate_model_size(architecture)
     
     input_shape = architecture.get('input', {}).get('shape', (224, 224, 3))
     flops = compute_flops(architecture, input_shape)
     
-    num_batches = (dataset_size + batch_size - 1) // batch_size
+    (dataset_size + batch_size - 1) // batch_size
     
     time_per_sample = (flops / 1e9) * 0.001
     

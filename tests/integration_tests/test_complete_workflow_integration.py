@@ -5,23 +5,28 @@ Tests the full pipeline: DSL parsing → shape propagation → code generation �
 for TensorFlow, PyTorch, and ONNX backends, including HPO and tracking features.
 """
 
-import pytest
 import os
+import shutil
 import sys
 import tempfile
-import shutil
-import json
+from unittest.mock import patch
+
 import numpy as np
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+import pytest
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from neural.parser.parser import create_parser, ModelTransformer
+from neural.code_generation.code_generator import (
+    export_onnx,
+    generate_code,
+    generate_onnx,
+    generate_optimized_dsl,
+)
+from neural.hpo.hpo import objective, optimize_and_return
+from neural.parser.parser import ModelTransformer, create_parser
 from neural.shape_propagation.shape_propagator import ShapePropagator
-from neural.code_generation.code_generator import generate_code, export_onnx, generate_onnx
-from neural.hpo.hpo import optimize_and_return, create_dynamic_model, objective
-from neural.code_generation.code_generator import generate_optimized_dsl
+
 
 try:
     import torch
@@ -40,7 +45,7 @@ except ImportError:
 
 try:
     import onnx
-    from onnx import helper, TensorProto
+    from onnx import TensorProto, helper
     ONNX_AVAILABLE = True
 except ImportError:
     onnx = None
@@ -72,7 +77,7 @@ def mock_data_loader(dataset_name, input_shape, batch_size=32, train=True, backe
         if len(input_shape) == 3:
             x = x.permute(0, 3, 1, 2)
         
-        from torch.utils.data import TensorDataset, DataLoader
+        from torch.utils.data import DataLoader, TensorDataset
         dataset = TensorDataset(x, y)
         return DataLoader(dataset, batch_size=batch_size, shuffle=train)
     
@@ -296,7 +301,7 @@ class TestCompleteWorkflowIntegration:
         """
         
         parser = create_parser("network")
-        tree = parser.parse(dsl_code)
+        parser.parse(dsl_code)
         transformer = ModelTransformer()
         model_config, hpo_params = transformer.parse_network_with_hpo(dsl_code)
         
@@ -547,7 +552,7 @@ class TestCompleteWorkflowIntegration:
         transformer = ModelTransformer()
         model_config = transformer.transform(tree)
         
-        dense_layers = [l for l in model_config['layers'] if l['type'] == 'Dense']
+        [l for l in model_config['layers'] if l['type'] == 'Dense']
         
         code = generate_code(model_config, 'pytorch')
         
@@ -615,7 +620,7 @@ class TestCompleteWorkflowIntegration:
         """
         
         parser = create_parser("network")
-        tree = parser.parse(dsl_code)
+        parser.parse(dsl_code)
         transformer = ModelTransformer()
         model_config, hpo_params = transformer.parse_network_with_hpo(dsl_code)
         

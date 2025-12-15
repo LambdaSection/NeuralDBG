@@ -649,7 +649,7 @@ def get_selected_layer_type():
 
     # Check if the trigger is from a layer type dropdown
     if trigger_id.startswith('layer-type-'):
-        category = trigger_id.replace('layer-type-', '')
+        trigger_id.replace('layer-type-', '')
         return ctx.triggered[0]['value']
 
     return None
@@ -1091,7 +1091,7 @@ def update_shape_propagation(layers, input_shape_str):
         try:
             current_shape = propagator.propagate(current_shape, layer, "tensorflow")
             shape_history.append({"layer": layer["type"], "output_shape": current_shape})
-        except Exception as e:
+        except Exception:
             # If shape propagation fails, add the layer with None shape
             shape_history.append({"layer": layer["type"], "output_shape": None})
             break

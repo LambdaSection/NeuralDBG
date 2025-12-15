@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+
 from neural.visualization.aquarium_integration import AquariumVisualizationManager
 
 
@@ -62,7 +63,7 @@ def example_export_visualizations():
     
     manager = AquariumVisualizationManager()
     manager.load_model_from_dsl(dsl_code)
-    gallery = manager.create_gallery()
+    manager.create_gallery()
     
     output_dir = "example_output"
     os.makedirs(output_dir, exist_ok=True)
@@ -173,7 +174,7 @@ def example_gallery_json():
     
     import json
     gallery_data = json.loads(gallery_json)
-    print(f"\n🔍 Gallery Contents:")
+    print("\n🔍 Gallery Contents:")
     print(f"  - Model Name: {gallery_data['metadata']['model_name']}")
     print(f"  - Visualizations: {len(gallery_data['visualizations'])}")
     for viz_type in gallery_data['visualizations'].keys():

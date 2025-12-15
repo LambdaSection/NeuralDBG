@@ -3,31 +3,32 @@ Neural DSL Parser Module
 """
 
 # Import and export the main parser functions
+# Export error handling modules
+# Export refactored utility modules
+from . import (
+    error_handling,
+    hpo_network_processor,
+    hpo_utils,
+    layer_handlers,
+    layer_processors,
+    learning_rate_schedules,
+    network_processors,
+    parser_utils,
+    validation,
+    value_extractors,
+)
 from .parser import (
-    create_parser,
     ModelTransformer,
     NeuralParser,
-    network_parser,
+    create_parser,
     layer_parser,
-    research_parser
+    network_parser,
+    research_parser,
 )
 
 # Import DSLValidationError from parser_utils (refactored location)
 from .parser_utils import DSLValidationError
 
-# Export error handling modules
-from . import error_handling
-from . import validation
-from . import learning_rate_schedules
-
-# Export refactored utility modules
-from . import layer_processors
-from . import layer_handlers
-from . import hpo_utils
-from . import hpo_network_processor
-from . import network_processors
-from . import value_extractors
-from . import parser_utils
 
 __all__ = [
     'create_parser',

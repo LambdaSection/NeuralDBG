@@ -2,7 +2,9 @@
 Benchmark parser performance with optimized grammar.
 """
 import time
+
 import pytest
+
 from neural.parser.parser import create_parser
 
 
@@ -52,7 +54,7 @@ network ComplexNet {
 def test_parser_creation_time():
     """Test parser instantiation time."""
     start = time.time()
-    parser = create_parser()
+    create_parser()
     elapsed = time.time() - start
     
     assert elapsed < 1.0, f"Parser creation took {elapsed:.3f}s, expected < 1.0s"

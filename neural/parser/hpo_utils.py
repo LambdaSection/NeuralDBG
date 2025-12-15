@@ -3,9 +3,9 @@
 This module contains helper functions for processing HPO expressions and parameters.
 """
 
-import re
-from typing import Dict, List, Any, Optional, Callable
 from enum import Enum
+import re
+from typing import Any, Callable, Dict, List, Optional
 
 
 class Severity(Enum):

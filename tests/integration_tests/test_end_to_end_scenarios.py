@@ -5,21 +5,23 @@ Tests realistic, complete scenarios that demonstrate the full capabilities of Ne
 across all backends with HPO and tracking features.
 """
 
-import pytest
 import os
+import shutil
 import sys
 import tempfile
-import shutil
-import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
+import pytest
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from neural.parser.parser import create_parser, ModelTransformer
-from neural.shape_propagation.shape_propagator import ShapePropagator
 from neural.code_generation.code_generator import generate_code, generate_optimized_dsl
-from neural.hpo.hpo import optimize_and_return, create_dynamic_model
+from neural.hpo.hpo import optimize_and_return
+from neural.parser.parser import ModelTransformer, create_parser
+from neural.shape_propagation.shape_propagator import ShapePropagator
 from neural.tracking.experiment_tracker import ExperimentTracker
+
 
 try:
     import torch
@@ -253,7 +255,7 @@ class TestEndToEndScenarios:
         parser = create_parser("network")
         tree = parser.parse(tracked_dsl)
         transformer = ModelTransformer()
-        model_config = transformer.transform(tree)
+        transformer.transform(tree)
         
         hyperparams = {
             'learning_rate': 0.001,
@@ -330,17 +332,6 @@ class TestEndToEndScenarios:
         """
         Scenario: Iterative model improvement with HPO
         Steps: Train baseline → HPO optimize → Compare results
-        """
-        baseline_dsl = """
-        network BaselineModel {
-            input: (28, 28, 1)
-            layers:
-                Flatten()
-                Dense(64, "relu")
-                Output(10, "softmax")
-            
-            optimizer: Adam(learning_rate=0.001)
-        }
         """
         
         hpo_dsl = """
@@ -534,7 +525,7 @@ class TestEndToEndScenarios:
         
         for name, dsl in architectures.items():
             tree = parser.parse(dsl)
-            model_config = transformer.transform(tree)
+            transformer.transform(tree)
             
             tracker = ExperimentTracker(experiment_name=f"arch_{name}")
             tracker.log_hyperparameters({'architecture': name})
@@ -552,15 +543,6 @@ class TestEndToEndScenarios:
         """
         Scenario: Model versioning and comparison
         Steps: Train v1 → Improve to v2 → Compare → Deploy v2
-        """
-        v1_dsl = """
-        network ModelV1 {
-            input: (28, 28, 1)
-            layers:
-                Flatten()
-                Dense(64, "relu")
-                Output(10, "softmax")
-        }
         """
         
         v2_dsl = """

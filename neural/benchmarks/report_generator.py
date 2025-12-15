@@ -2,13 +2,12 @@
 Benchmark report generation with visualizations and HTML output.
 """
 
-import json
 from datetime import datetime
+import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 
@@ -92,7 +91,7 @@ class ReportGenerator:
         comp_df_normalized = (comp_df - comp_df.min()) / (comp_df.max() - comp_df.min())
         comp_df_normalized["Accuracy"] = 1 - comp_df_normalized["Accuracy"]
         
-        ax = comp_df_normalized.plot(kind="bar", figsize=(14, 8), rot=45)
+        comp_df_normalized.plot(kind="bar", figsize=(14, 8), rot=45)
         plt.title("Framework Comparison (Normalized Metrics)", fontsize=16, fontweight="bold")
         plt.xlabel("Framework", fontsize=12)
         plt.ylabel("Normalized Score (lower is better)", fontsize=12)

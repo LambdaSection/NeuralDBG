@@ -2,9 +2,11 @@
 Main explainer interface that orchestrates various explainability methods.
 """
 
-from typing import Any, Dict, List, Optional, Union
-import numpy as np
 import logging
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

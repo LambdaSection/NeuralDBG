@@ -3,17 +3,19 @@ Enhanced NeuralDbg dashboard with integrated debugger support.
 Extends the base dashboard.py with debugger backend functionality.
 """
 
-import sys
 import os
+import sys
+
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from neural.dashboard.dashboard import app, server, socketio
 from neural.dashboard.debugger_backend import (
+    SOCKETIO_AVAILABLE,
     create_debugger_backend,
     setup_debugger_routes,
-    SOCKETIO_AVAILABLE,
 )
+
 
 debugger_backend = None
 

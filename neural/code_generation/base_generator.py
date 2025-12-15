@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
+
 from neural.shape_propagation.shape_propagator import ShapePropagator
 
 

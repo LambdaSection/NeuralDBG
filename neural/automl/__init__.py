@@ -26,41 +26,33 @@ Examples
 >>> best_arch = engine.search(space, max_trials=100)
 """
 
+from .architecture_space import ArchitectureBuilder, ArchitectureSpace, LayerChoice
+from .early_stopping import (
+    ASHAPruner,
+    EarlyStoppingStrategy,
+    HyperbandPruner,
+    MedianPruner,
+    ThresholdPruner,
+)
 from .engine import AutoMLEngine
-from .architecture_space import ArchitectureSpace, LayerChoice, ArchitectureBuilder
+from .evaluation import ArchitectureEvaluator, MetricTracker, PerformancePredictor
+from .executor import BaseExecutor, DaskExecutor, RayExecutor, SequentialExecutor
+from .nas_operations import (
+    DilatedConv,
+    FactorizedReduce,
+    NASOperation,
+    PoolBN,
+    SepConv,
+    SkipConnection,
+)
 from .search_strategies import (
-    GridSearchStrategy,
-    RandomSearchStrategy,
     BayesianSearchStrategy,
     EvolutionarySearchStrategy,
-    SearchStrategy
+    GridSearchStrategy,
+    RandomSearchStrategy,
+    SearchStrategy,
 )
-from .early_stopping import (
-    EarlyStoppingStrategy,
-    MedianPruner,
-    HyperbandPruner,
-    ASHAPruner,
-    ThresholdPruner
-)
-from .executor import (
-    BaseExecutor,
-    SequentialExecutor,
-    RayExecutor,
-    DaskExecutor
-)
-from .nas_operations import (
-    NASOperation,
-    SkipConnection,
-    FactorizedReduce,
-    SepConv,
-    DilatedConv,
-    PoolBN
-)
-from .evaluation import (
-    ArchitectureEvaluator,
-    MetricTracker,
-    PerformancePredictor
-)
+
 
 # Aliases for convenience
 RandomSearch = RandomSearchStrategy

@@ -2,7 +2,9 @@
 Benchmark shape propagation with caching.
 """
 import time
+
 import pytest
+
 from neural.shape_propagation.shape_propagator import ShapePropagator
 
 
@@ -63,7 +65,6 @@ def test_cache_effectiveness():
         'type': 'Conv2D',
         'params': {'filters': 64, 'kernel_size': (3, 3), 'padding': 0, 'stride': 1}
     }
-    input_shape = (None, 224, 224, 3)
     
     start = time.time()
     for _ in range(100):
@@ -104,7 +105,6 @@ def test_layer_handler_performance():
     """Test layer handler dispatch performance."""
     propagator = ShapePropagator(debug=False)
     
-    layer_types = ['Conv2D', 'Dense', 'MaxPooling2D', 'Flatten']
     test_configs = [
         ({'type': 'Conv2D', 'params': {'filters': 32, 'kernel_size': (3, 3), 'padding': 0}}, (None, 28, 28, 3)),
         ({'type': 'Dense', 'params': {'units': 128}}, (None, 784)),

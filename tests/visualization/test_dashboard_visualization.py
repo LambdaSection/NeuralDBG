@@ -1,12 +1,14 @@
 import os
 import sys
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 
 # Add the project root to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from neural.dashboard.dashboard import update_trace_graph, update_resource_graph
+from neural.dashboard.dashboard import update_trace_graph
 
 
 class TestDashboardVisualization:

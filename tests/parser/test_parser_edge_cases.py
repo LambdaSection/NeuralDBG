@@ -1,16 +1,21 @@
 import os
 import sys
-import pytest
-import lark
-from lark import exceptions
+
 from lark.exceptions import VisitError
+import pytest
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from neural.parser.parser import (
-    ModelTransformer, create_parser, DSLValidationError, 
-    Severity, safe_parse, custom_error_handler, log_by_severity,
-    split_params
+    DSLValidationError,
+    ModelTransformer,
+    Severity,
+    create_parser,
+    custom_error_handler,
+    log_by_severity,
+    safe_parse,
+    split_params,
 )
 
 
@@ -83,7 +88,7 @@ class TestParserEdgeCases:
     
     def test_multiple_hpo_expressions_in_single_param(self):
         """Test multiple HPO expressions in a single parameter"""
-        parser = create_parser('network')
+        create_parser('network')
         transformer = ModelTransformer()
         code = """
         network Test {

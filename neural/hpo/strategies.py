@@ -4,9 +4,10 @@ Advanced search strategies for hyperparameter optimization.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict
 
 import numpy as np
+
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -59,8 +60,8 @@ class BayesianStrategy(BaseStrategy):
 
         # After initial points, use Gaussian Process
         try:
-            import sklearn.gaussian_process as gp
             from scipy.stats import norm
+            import sklearn.gaussian_process as gp
 
             # Initialize GP if not already done
             if self.gp_model is None:

@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+
 try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
     _USE_SETTINGS_CONFIG_DICT = True

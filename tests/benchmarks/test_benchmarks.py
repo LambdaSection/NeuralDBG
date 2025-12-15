@@ -1,9 +1,10 @@
 """
 Test suite for benchmarking Neural DSL against raw TensorFlow/PyTorch.
 """
-import unittest
 import os
 from pathlib import Path
+import unittest
+
 from .benchmark_suite import BenchmarkSuite
 
 

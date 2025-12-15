@@ -787,7 +787,6 @@ class ModelTransformer(lark.Transformer):
             'RESIDUALCONNECTION': 'residual',
             'GLOBALAVERAGEPOOLING2D': 'global_average_pooling2d',
             'GLOBALAVERAGEPOOLING1D': 'global_average_pooling1d',
-            'MULTIHEADATTENTION': 'multiheadattention',
             'POSITIONALENCODING': 'positional_encoding',
             'EMBEDDING': 'embedding',
             'RESHAPE': 'reshape',
@@ -4156,9 +4155,6 @@ class ModelTransformer(lark.Transformer):
     def group_normalization(self, items):
         return {'type': 'GroupNormalization', 'params': self._extract_value(items[0])}
 
-    def positional_encoding(self, items):
-        return {'type': 'PositionalEncoding', 'params': self._extract_value(items[0])}
-
     def spatial_dropout1d(self, items):
         return {'type': 'SpatialDropout1D', 'params': self._extract_value(items[0])}
 
@@ -4860,7 +4856,6 @@ class ModelTransformer(lark.Transformer):
                 # Check if this is a device specification test
                 is_device_test = False
                 has_tpu = False
-                has_cuda = False
 
                 # Check if the model name indicates a device test
                 if 'name' in model and model['name'] in ['MultiDeviceModel', 'TPUModel']:
@@ -4877,7 +4872,7 @@ class ModelTransformer(lark.Transformer):
                             if layer['device'].startswith('tpu'):
                                 has_tpu = True
                             elif layer['device'].startswith('cuda'):
-                                has_cuda = True
+                                pass
 
                 # Only add execution config for device specification tests
                 if is_device_test and 'execution' not in model:

@@ -6,9 +6,11 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from neural.exceptions import (
-    DependencyError, HPOException, InvalidHPOConfigError, InvalidParameterError,
-    UnsupportedBackendError
+    DependencyError,
+    InvalidParameterError,
+    UnsupportedBackendError,
 )
+
 
 try:
     import tensorflow as tf
@@ -60,6 +62,72 @@ except ImportError:
 from neural.execution_optimization.execution import get_device
 from neural.parser.parser import ModelTransformer
 from neural.shape_propagation.shape_propagator import ShapePropagator
+
+
+def validate_hpo_categorical(param_name: str, values: List[Any]) -> List[Any]:
+    """
+    Validate HPO categorical parameter values.
+    
+    Args:
+        param_name: Name of the parameter
+        values: List of categorical values
+    
+    Returns:
+        Validated list of values
+    
+    Raises:
+        InvalidParameterError: If values are invalid
+    """
+    if not isinstance(values, list):
+        raise InvalidParameterError(
+            param_name=param_name,
+            expected_type="list",
+            actual_value=values
+        )
+    if len(values) == 0:
+        raise InvalidParameterError(
+            param_name=param_name,
+            expected_type="non-empty list",
+            actual_value=values
+        )
+    return values
+
+
+def validate_hpo_bounds(
+    param_name: str,
+    low: Union[int, float],
+    high: Union[int, float],
+    hpo_type: str
+) -> Tuple[Union[int, float], Union[int, float]]:
+    """
+    Validate HPO range bounds.
+    
+    Args:
+        param_name: Name of the parameter
+        low: Lower bound
+        high: Upper bound
+        hpo_type: Type of HPO ('range' or 'log_range')
+    
+    Returns:
+        Tuple of validated (low, high) bounds
+    
+    Raises:
+        InvalidParameterError: If bounds are invalid
+    """
+    if not isinstance(low, (int, float)) or not isinstance(high, (int, float)):
+        raise InvalidParameterError(
+            param_name=param_name,
+            expected_type="numeric",
+            actual_value=f"low={low}, high={high}"
+        )
+    if low >= high:
+        raise InvalidParameterError(
+            param_name=param_name,
+            expected_type="low < high",
+            actual_value=f"low={low}, high={high}"
+        )
+    return low, high
+
 
 # Data Loader
 def get_data(
@@ -335,7 +403,7 @@ class DynamicPTModel(nn.Module):
                 self.layers.append(nn.LSTM(input_size, units, num_layers=num_layers, batch_first=True))
                 in_features = units
             elif layer['type'] == 'BatchNormalization':
-                momentum = params.get('momentum', trial.suggest_float('bn_momentum', 0.8, 0.99))
+                params.get('momentum', trial.suggest_float('bn_momentum', 0.8, 0.99))
                 # Removed print statement for cleaner output
                 self.layers.append(nn.BatchNorm2d(in_channels))
             elif layer['type'] == 'Transformer':
@@ -376,7 +444,7 @@ class DynamicTFModel(tf.keras.Model):
         super().__init__()
         self.layers_list: List[Any] = []
         input_shape = model_dict['input']['shape']
-        in_features = prod(input_shape)
+        prod(input_shape)
         for layer in model_dict['layers']:
             params = layer['params'].copy()
             if layer['type'] == 'Dense':
@@ -385,7 +453,7 @@ class DynamicTFModel(tf.keras.Model):
                     units = trial.suggest_categorical('dense_units', hpo['hpo']['values'])
                     params['units'] = units
                 self.layers_list.append(tf.keras.layers.Dense(params['units'], activation='relu' if params.get('activation') == 'relu' else None))
-                in_features = params['units']
+                params['units']
             elif layer['type'] == 'Dropout':
                 if 'hpo' in params['rate']:
                     hpo = next(h for h in hpo_params if h['layer_type'] == 'Dropout' and h['param_name'] == 'rate')

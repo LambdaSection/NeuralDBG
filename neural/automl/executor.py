@@ -5,10 +5,11 @@ Supports sequential, Ray, and Dask execution backends.
 """
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+import logging
+from typing import Any, Callable, Dict, List, Optional
+
 
 logger = logging.getLogger(__name__)
 

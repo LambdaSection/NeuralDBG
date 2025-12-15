@@ -3,12 +3,16 @@ Example of using the debugger backend with a training loop.
 """
 
 import time
+
 import numpy as np
+
 from neural.dashboard.debugger_backend import create_debugger_backend
+
 
 try:
     from flask import Flask
     from flask_socketio import SocketIO
+
     from neural.dashboard.debugger_backend import setup_debugger_routes
     
     SOCKETIO_AVAILABLE = True

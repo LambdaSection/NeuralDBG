@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+from datetime import datetime
 import hashlib
 import json
-import os
-import shutil
-from datetime import datetime
 from pathlib import Path
+import shutil
 from typing import Any, Dict, List, Optional, Union
 
 
@@ -141,7 +140,7 @@ class DatasetVersionManager:
         if version not in self.versions:
             return False
         
-        dataset_version = self.versions[version]
+        self.versions[version]
         version_dir = self.base_dir / "datasets" / version
         
         if version_dir.exists():

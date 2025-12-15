@@ -4,8 +4,6 @@ Configuration manager for centralized access to all settings.
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
 from typing import Any, Dict, Optional, Type, TypeVar
 
 from neural.config.base import BaseConfig, load_env_file
@@ -19,6 +17,7 @@ from neural.config.settings.monitoring import MonitoringSettings
 from neural.config.settings.no_code import NoCodeSettings
 from neural.config.settings.storage import StorageSettings
 from neural.config.settings.teams import TeamsSettings
+
 
 T = TypeVar("T", bound=BaseConfig)
 

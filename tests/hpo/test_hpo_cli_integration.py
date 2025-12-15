@@ -1,14 +1,17 @@
 import os
 import sys
 import tempfile
-import pytest
-from unittest.mock import patch, MagicMock, ANY
+from unittest.mock import patch
+
 from click.testing import CliRunner
+import pytest
+
 
 # Add the project root to the path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from neural.cli import cli
+
 
 class TestHPOCLIIntegration:
 

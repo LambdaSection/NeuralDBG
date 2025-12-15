@@ -1,5 +1,6 @@
 from neural.visualization.static_visualizer.visualizer import NeuralVisualizer
 
+
 try:
     from neural.visualization.gallery import (
         VisualizationGallery,
@@ -11,8 +12,8 @@ try:
     )
     from neural.visualization.component_interface import (
         ComponentInterface,
-        VisualizationMetadata,
         GalleryMetadata,
+        VisualizationMetadata,
         create_component_interface,
         get_visualization_preview_html,
     )

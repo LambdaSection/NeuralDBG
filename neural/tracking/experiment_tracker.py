@@ -6,17 +6,16 @@ metrics, and artifacts.
 """
 
 import datetime
+import hashlib
 import json
 import logging
 import os
-import hashlib
 import time
-import uuid
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+import uuid
 
 import matplotlib.pyplot as plt
-import numpy as np
+
 
 # Configure logger
 logger = logging.getLogger(__name__)

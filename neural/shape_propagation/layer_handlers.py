@@ -5,11 +5,10 @@ This module provides handler functions for different layer types to calculate
 output shapes based on input shapes and layer parameters.
 """
 
-from typing import Any, Dict, List, Optional, Tuple, Union
-
-import numpy as np
+from typing import Any, Dict, List, Tuple
 
 from .utils import calculate_output_dims, extract_param
+
 
 def handle_conv1d(input_shape: Tuple[int, ...],
                  params: Dict[str, Any]) -> Tuple[int, ...]:

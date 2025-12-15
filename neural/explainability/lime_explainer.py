@@ -2,9 +2,11 @@
 LIME (Local Interpretable Model-agnostic Explanations) integration.
 """
 
-from typing import Any, Dict, List, Optional
-import numpy as np
 import logging
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +105,8 @@ class LIMEExplainer:
         """
         try:
             import lime
-            import lime.lime_tabular
             import lime.lime_image
+            import lime.lime_tabular
         except ImportError:
             raise ImportError(
                 "LIME is not installed. Install it with: pip install lime"
@@ -147,7 +149,6 @@ class LIMEExplainer:
         
         elif self.mode == 'image':
             from lime import lime_image
-            from skimage.segmentation import quickshift
             
             if self.explainer is None:
                 self.explainer = lime_image.LimeImageExplainer()

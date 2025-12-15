@@ -5,18 +5,18 @@ Tests embedding layers, encoder-only, decoder-only, and full encoder-decoder
 architectures across TensorFlow and PyTorch backends.
 """
 
-import pytest
 import os
+import shutil
 import sys
 import tempfile
-import shutil
-import numpy as np
-from pathlib import Path
+
+import pytest
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from neural.parser.parser import create_parser, ModelTransformer
-from neural.shape_propagation.shape_propagator import ShapePropagator
+from neural.parser.parser import ModelTransformer, create_parser
+
 
 try:
     import torch

@@ -83,7 +83,6 @@ class ModelExporter:
             
             code = generate_code(self.model_data, 'tensorflow')
             
-            temp_model_path = 'temp_tf_model'
             exec_globals = {}
             exec(code, exec_globals)
             model = exec_globals.get('model')

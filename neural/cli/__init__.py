@@ -4,8 +4,9 @@ This module provides the command-line interface for Neural.
 Uses lazy imports for optimal startup performance.
 """
 
-from .lazy_imports import lazy_import
 from .cli import cli, visualize
+from .lazy_imports import lazy_import
+
 
 def __getattr__(name):
     if name == 'create_parser':

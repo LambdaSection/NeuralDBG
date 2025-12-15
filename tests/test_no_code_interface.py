@@ -3,7 +3,9 @@ Tests for the No-Code Interface
 """
 
 import json
+
 import pytest
+
 from neural.no_code.app import app, config
 
 
@@ -64,7 +66,7 @@ def test_validate_empty_model(client):
     assert response.status_code == 200
     
     data = json.loads(response.data)
-    assert data['valid'] == True
+    assert data['valid']
     assert len(data['warnings']) > 0
 
 
@@ -155,7 +157,7 @@ def test_save_and_load_model(client):
     assert save_response.status_code == 200
     
     save_data = json.loads(save_response.data)
-    assert save_data['success'] == True
+    assert save_data['success']
     
     # Load model
     load_response = client.get('/api/load/test_model')
@@ -199,7 +201,7 @@ def test_validate_invalid_shapes(client):
     })
     assert response.status_code == 200
     
-    data = json.loads(response.data)
+    json.loads(response.data)
 
 
 def test_complex_model_validation(client):

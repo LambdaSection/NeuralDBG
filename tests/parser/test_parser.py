@@ -1,6 +1,6 @@
-import pytest
-from lark import Lark, exceptions
+from lark import exceptions
 from lark.exceptions import VisitError
+import pytest
 
 from neural.parser.parser import (
     DSLValidationError,
@@ -505,7 +505,7 @@ def test_macro_parsing(define_parser, layer_parser, transformer, config, expecte
 )
 def test_wrapper_parsing(layer_parser, transformer, wrapper_string, expected, test_id):
     if expected is None:
-        with pytest.raises(VisitError) as exc_info:
+        with pytest.raises(VisitError):
             tree = layer_parser.parse(wrapper_string)
             transformer.transform(tree)
     else:
@@ -564,7 +564,7 @@ def test_lambda_parsing(layer_parser, transformer, lambda_string, expected, test
 )
 def test_custom_shape_parsing(layer_parser, transformer, custom_shape_string, expected, test_id):
     if expected is None:
-        with pytest.raises(VisitError) as exc_info:
+        with pytest.raises(VisitError):
             tree = layer_parser.parse(custom_shape_string)
             transformer.transform(tree)
     else:
@@ -636,7 +636,7 @@ def test_comment_parsing(layer_parser, transformer, comment_string, expected, te
 )
 def test_severity_level_parsing(layer_parser, transformer, layer_string, expected_result, expected_warnings, raises_error, test_id):
     if raises_error:
-        with pytest.raises(VisitError) as exc_info:
+        with pytest.raises(VisitError):
             tree = layer_parser.parse(layer_string)
             transformer.transform(tree)
     else:
@@ -886,7 +886,7 @@ def test_semantic_validation(test_input, expected_error):
 
 def test_grammar_completeness():
         """Test that grammar covers all required language features."""
-        parser = create_parser()
+        create_parser()
         # Additional Layer Parsing Tests
 @pytest.mark.parametrize(
             "layer_string, expected, test_id",
@@ -981,7 +981,7 @@ def test_grammar_completeness():
 def test_extended_layer_parsing(layer_parser, transformer, layer_string, expected, test_id):
             """Test parsing of various layer configurations with extended test cases."""
             if expected is None:
-                with pytest.raises(VisitError) as exc_info:
+                with pytest.raises(VisitError):
                     tree = layer_parser.parse(layer_string)
                     transformer.transform(tree)
             else:

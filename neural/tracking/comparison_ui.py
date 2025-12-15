@@ -7,15 +7,15 @@ Usage:
 """
 
 import argparse
-import sys
 import os
+import sys
+
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 import dash
+from dash import Input, Output, dcc, html
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, dcc, html
-from dash.exceptions import PreventUpdate
 
 from neural.tracking import ExperimentManager
 from neural.tracking.comparison_component import ComparisonComponent
@@ -138,7 +138,7 @@ class ExperimentComparisonUI:
     
     def run(self, debug: bool = False, host: str = "127.0.0.1"):
         """Run the UI server."""
-        print(f"\nStarting Neural Experiment Comparison UI...")
+        print("\nStarting Neural Experiment Comparison UI...")
         print(f"URL: http://{host}:{self.port}")
         print()
         
@@ -178,7 +178,7 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    print(f"Starting Neural Experiment Comparison UI...")
+    print("Starting Neural Experiment Comparison UI...")
     print(f"Base directory: {args.base_dir}")
     print(f"URL: http://{args.host}:{args.port}")
     print()

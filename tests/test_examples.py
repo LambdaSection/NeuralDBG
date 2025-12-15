@@ -2,17 +2,17 @@
 Tests for example validation and correctness.
 """
 
-import os
-import sys
 from pathlib import Path
+import sys
 
 import pytest
+
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from neural.parser.parser import create_parser, ModelTransformer
 from neural.code_generation.code_generator import generate_code
+from neural.parser.parser import ModelTransformer, create_parser
 
 
 # Get all .neural files in use_cases

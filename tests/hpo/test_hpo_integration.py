@@ -1,18 +1,20 @@
-import pytest
-import torch
 import os
 import sys
 from unittest.mock import patch
+
 from lark.exceptions import VisitError
+import pytest
+import torch
+
 
 # Add the project root to the Python path to allow importing from the neural package
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 # Import the necessary components from the neural package
-from neural.hpo.hpo import optimize_and_return, create_dynamic_model
-from neural.hpo.hpo import train_model, objective
-from neural.parser.parser import ModelTransformer, DSLValidationError
 from neural.code_generation.code_generator import generate_optimized_dsl
+from neural.hpo.hpo import create_dynamic_model, objective, optimize_and_return, train_model
+from neural.parser.parser import DSLValidationError, ModelTransformer
+
 
 class MockTrial:
     """
@@ -100,7 +102,7 @@ def mock_data_loader(dataset_name, input_shape, batch_size=32, train=True, backe
         x = x.permute(0, 3, 1, 2)  # NHWC to NCHW format conversion
 
     # Create and return a PyTorch DataLoader
-    from torch.utils.data import TensorDataset, DataLoader
+    from torch.utils.data import DataLoader, TensorDataset
     dataset = TensorDataset(x, y)
     return DataLoader(dataset, batch_size=batch_size, shuffle=train)
 

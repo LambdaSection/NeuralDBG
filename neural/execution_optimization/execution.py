@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional, Union
 from neural.exceptions import DependencyError
 from neural.utils.logging import get_logger
 
+
 logger = get_logger(__name__)
 
 try:

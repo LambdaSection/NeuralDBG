@@ -172,7 +172,7 @@ def example_export_config():
     from neural.config import get_config
     from neural.config.utils import export_config_to_file
     
-    config = get_config()
+    get_config()
     
     # Export to YAML (safe mode)
     export_config_to_file("config_export.yaml", format="yaml", safe=True)
@@ -235,7 +235,7 @@ def example_custom_env_file():
     # Load from custom .env file
     config = get_config(env_file="/path/to/production.env")
     
-    print(f"Loaded configuration from custom file")
+    print("Loaded configuration from custom file")
     print(f"Environment: {config.get_environment()}")
 
 

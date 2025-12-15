@@ -3,7 +3,8 @@
 This module contains utilities for extracting Python values from parse tree nodes.
 """
 
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
 from lark import Token, Tree
 
 

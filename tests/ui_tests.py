@@ -1,6 +1,8 @@
+import time
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import time
+
 
 def test_dashboard_ui():
     """Automates UI testing using Selenium."""

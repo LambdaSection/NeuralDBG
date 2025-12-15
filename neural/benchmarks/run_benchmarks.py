@@ -8,8 +8,9 @@ and model performance.
 """
 
 import argparse
-import sys
 from pathlib import Path
+import sys
+
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -20,8 +21,6 @@ from neural.benchmarks.framework_implementations import (
     LudwigImplementation,
     NeuralDSLImplementation,
     PyTorchLightningImplementation,
-    RawPyTorchImplementation,
-    RawTensorFlowImplementation,
 )
 from neural.benchmarks.report_generator import ReportGenerator
 
@@ -80,7 +79,7 @@ def main():
         print("=" * 70)
         print("Neural DSL Comprehensive Benchmarking Suite")
         print("=" * 70)
-        print(f"\nConfiguration:")
+        print("\nConfiguration:")
         print(f"  Frameworks: {', '.join(args.frameworks)}")
         print(f"  Epochs: {args.epochs}")
         print(f"  Batch Size: {args.batch_size}")
@@ -165,12 +164,6 @@ def main():
         print(f"\n\n✗ Benchmarking failed: {e}")
         import traceback
         traceback.print_exc()
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
-xc()
         sys.exit(1)
 
 

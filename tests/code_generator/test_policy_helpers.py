@@ -1,8 +1,8 @@
 import pytest
 
 from neural.code_generation.shape_policy_helpers import (
-    ensure_2d_before_dense_tf,
     ensure_2d_before_dense_pt,
+    ensure_2d_before_dense_tf,
 )
 from neural.shape_propagation.shape_propagator import ShapePropagator
 

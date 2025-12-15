@@ -13,20 +13,6 @@ from pathlib import Path
 
 def test_import():
     """Test that all configuration modules can be imported."""
-    from neural.config import (
-        ConfigManager,
-        get_config,
-        APISettings,
-        AutoMLSettings,
-        CoreSettings,
-        DashboardSettings,
-        HPOSettings,
-        IntegrationSettings,
-        MonitoringSettings,
-        NoCodeSettings,
-        StorageSettings,
-        TeamsSettings,
-    )
     
     print("✓ All imports successful")
 

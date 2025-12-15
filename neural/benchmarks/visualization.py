@@ -8,7 +8,7 @@ for benchmark comparisons.
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -252,7 +252,7 @@ class BenchmarkVisualizer:
         
         for i in range(len(frameworks)):
             for j in range(len(metrics)):
-                text = ax.text(j, i, f'{data_array[i, j]:.2f}',
+                ax.text(j, i, f'{data_array[i, j]:.2f}',
                              ha="center", va="center", color="black", fontweight="bold")
         
         ax.set_title("Framework Performance Heatmap (normalized)", 

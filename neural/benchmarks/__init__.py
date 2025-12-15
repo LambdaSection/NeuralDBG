@@ -20,7 +20,7 @@ Quick Start:
     >>> results = runner.run_all_benchmarks(frameworks, tasks)
 """
 
-from .benchmark_runner import BenchmarkRunner, BenchmarkResult
+from .benchmark_runner import BenchmarkResult, BenchmarkRunner
 from .framework_implementations import (
     FastAIImplementation,
     FrameworkImplementation,
@@ -39,6 +39,7 @@ from .metrics_collector import (
     SystemInfo,
 )
 from .report_generator import ReportGenerator
+
 
 try:
     from .visualization import BenchmarkVisualizer
