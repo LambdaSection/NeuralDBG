@@ -2,11 +2,39 @@ import time
 
 import networkx as nx
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from dash import html
-from networkx.drawing.nx_agraph import graphviz_layout
-from tqdm import tqdm
+
+from neural.exceptions import DependencyError
+
+# Lazy load heavy dependencies
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    px = None
+    go = None
+    PLOTLY_AVAILABLE = False
+
+try:
+    from dash import html
+    DASH_AVAILABLE = True
+except ImportError:
+    html = None
+    DASH_AVAILABLE = False
+
+try:
+    from networkx.drawing.nx_agraph import graphviz_layout
+    GRAPHVIZ_LAYOUT_AVAILABLE = True
+except ImportError:
+    graphviz_layout = None
+    GRAPHVIZ_LAYOUT_AVAILABLE = False
+
+try:
+    from tqdm import tqdm
+    TQDM_AVAILABLE = True
+except ImportError:
+    tqdm = None
+    TQDM_AVAILABLE = False
 
 def create_animated_network(layer_data, show_progress=True):
     """Create an animated network visualization with detailed progress tracking.
@@ -18,6 +46,13 @@ def create_animated_network(layer_data, show_progress=True):
     Returns:
         Plotly Figure object with the network visualization
     """
+    if not PLOTLY_AVAILABLE:
+        raise DependencyError(
+            dependency="plotly",
+            feature="animated network visualization",
+            install_hint="pip install plotly"
+        )
+    
     if not layer_data:
         return go.Figure()
 
@@ -66,7 +101,11 @@ def create_animated_network(layer_data, show_progress=True):
         _update_progress(progress_data)
 
     # Use Graphviz tree layout to prevent overlaps
-    pos = graphviz_layout(G, prog="dot", args="-Grankdir=TB")  # Top-to-bottom hierarchy
+    if GRAPHVIZ_LAYOUT_AVAILABLE:
+        pos = graphviz_layout(G, prog="dot", args="-Grankdir=TB")  # Top-to-bottom hierarchy
+    else:
+        # Fallback to spring layout
+        pos = nx.spring_layout(G)
 
     if show_progress:
         progress_data["progress"] = 75  # 75% complete
@@ -182,6 +221,13 @@ def _update_progress(progress_data):
 
 def create_progress_component():
     """Create a Dash component for displaying progress."""
+    if not DASH_AVAILABLE:
+        raise DependencyError(
+            dependency="dash",
+            feature="progress component",
+            install_hint="pip install dash"
+        )
+    
     return html.Div([
         html.H4("Visualization Progress"),
         html.Div(id="progress-bar-container", children=[
@@ -194,6 +240,13 @@ def create_progress_component():
 
 def create_layer_computation_timeline(layer_data):
     """Create a Gantt chart showing computation time for each layer."""
+    if not PLOTLY_AVAILABLE:
+        raise DependencyError(
+            dependency="plotly",
+            feature="layer computation timeline",
+            install_hint="pip install plotly"
+        )
+    
     if not layer_data:
         return go.Figure()
 

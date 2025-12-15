@@ -8,18 +8,36 @@ creates the nodes and links structure that D3.js uses.
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
-import numpy as np
-import plotly.graph_objects as go
-from graphviz import Digraph
-from matplotlib import pyplot as plt
-
+from neural.exceptions import DependencyError
 from neural.parser.parser import ModelTransformer, create_parser
 from neural.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+
+# Lazy load heavy dependencies
+try:
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    go = None
+    PLOTLY_AVAILABLE = False
+
+try:
+    from graphviz import Digraph
+    GRAPHVIZ_AVAILABLE = True
+except ImportError:
+    Digraph = None
+    GRAPHVIZ_AVAILABLE = False
+
+try:
+    from matplotlib import pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    plt = None
+    MATPLOTLIB_AVAILABLE = False
 
 # Make tensorflow optional - allows tests to run without it
 try:
@@ -82,6 +100,13 @@ class NeuralVisualizer:
 
     def create_3d_visualization(self, shape_history):
         """Create a 3D visualization of the shape propagation through the network."""
+        if not PLOTLY_AVAILABLE:
+            raise DependencyError(
+                dependency="plotly",
+                feature="3D visualization",
+                install_hint="pip install plotly"
+            )
+        
         if not shape_history:
             fig = go.Figure()
             fig.add_annotation(
@@ -136,7 +161,12 @@ class NeuralVisualizer:
         Args:
             filename: The name of the file to save the diagram to.
         """
-        import matplotlib.pyplot as plt
+        if not MATPLOTLIB_AVAILABLE:
+            raise DependencyError(
+                dependency="matplotlib",
+                feature="architecture diagram",
+                install_hint="pip install matplotlib"
+            )
 
         fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -188,13 +218,20 @@ class NeuralVisualizer:
         plt.savefig(filename, dpi=300, bbox_inches='tight')
         plt.close(fig)
 
-    def save_shape_visualization(self, fig: go.Figure, filename: str) -> None:
+    def save_shape_visualization(self, fig, filename: str) -> None:
         """Save the shape visualization to an HTML file.
 
         Args:
             fig: The plotly figure to save.
             filename: The name of the file to save the visualization to.
         """
+        if not PLOTLY_AVAILABLE:
+            raise DependencyError(
+                dependency="plotly",
+                feature="shape visualization export",
+                install_hint="pip install plotly"
+            )
+        
         import plotly.io
         plotly.io.write_html(fig, filename)
 

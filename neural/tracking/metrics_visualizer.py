@@ -5,12 +5,28 @@ Advanced metrics visualization component.
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import matplotlib.pyplot as plt
 
 from neural.tracking.experiment_tracker import ExperimentTracker
+from neural.exceptions import DependencyError
+
+# Lazy load heavy dependencies
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    px = None
+    go = None
+    make_subplots = None
+    PLOTLY_AVAILABLE = False
+
+try:
+    import matplotlib.pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    plt = None
+    MATPLOTLIB_AVAILABLE = False
 
 
 class MetricsVisualizerComponent:
@@ -24,8 +40,17 @@ class MetricsVisualizerComponent:
             experiment: ExperimentTracker instance
         """
         self.experiment = experiment
+    
+    def _check_plotly_available(self):
+        """Check if plotly is available, raise error if not."""
+        if not PLOTLY_AVAILABLE:
+            raise DependencyError(
+                dependency="plotly",
+                feature="metrics visualization",
+                install_hint="pip install plotly"
+            )
 
-    def create_training_curves(self, metric_names: Optional[List[str]] = None) -> go.Figure:
+    def create_training_curves(self, metric_names: Optional[List[str]] = None):
         """
         Create training curves for specified metrics.
 
@@ -35,6 +60,8 @@ class MetricsVisualizerComponent:
         Returns:
             Plotly figure
         """
+        self._check_plotly_available()
+        
         if not self.experiment.metrics_history:
             fig = go.Figure()
             fig.add_annotation(
@@ -117,7 +144,7 @@ class MetricsVisualizerComponent:
 
         return fig
 
-    def create_metrics_heatmap(self, metric_names: Optional[List[str]] = None) -> go.Figure:
+    def create_metrics_heatmap(self, metric_names: Optional[List[str]] = None):
         """
         Create a heatmap of metrics over time.
 

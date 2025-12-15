@@ -1,39 +1,72 @@
 import json
 import os
 import time
-import uuid
 from typing import Any, Dict, List, Optional, Tuple
 
-import dash
-import dash_bootstrap_components as dbc
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from dash import Dash, Input, Output, State, callback_context, dash_table, dcc, html
-from dash_bootstrap_components import (
-    Button,
-    Card,
-    Col,
-    Container,
-    NavItem,
-    NavLink,
-    Navbar,
-    Row,
-    Spinner,
-    Tooltip,
-    themes,
-)
 
 from neural.code_generation.code_generator import generate_code
-from neural.parser.parser import ModelTransformer, create_parser
-from neural.shape_propagation.shape_propagator import ShapePropagator
-from neural.visualization.static_visualizer.visualizer import NeuralVisualizer
+from neural.exceptions import DependencyError
 from neural.security import (
-    load_security_config,
+    apply_security_middleware,
     create_basic_auth,
     create_jwt_auth,
-    apply_security_middleware,
+    load_security_config,
 )
+from neural.shape_propagation.shape_propagator import ShapePropagator
+from neural.visualization.static_visualizer.visualizer import NeuralVisualizer
+
+# Lazy load heavy dependencies
+try:
+    import dash
+    import dash_bootstrap_components as dbc
+    from dash import Dash, Input, Output, State, callback_context, dash_table, dcc, html
+    from dash_bootstrap_components import (
+        Button,
+        Card,
+        Col,
+        Container,
+        NavItem,
+        NavLink,
+        Navbar,
+        Row,
+        Spinner,
+        Tooltip,
+        themes,
+    )
+    DASH_AVAILABLE = True
+except ImportError:
+    dash = None
+    dbc = None
+    Dash = None
+    Input = None
+    Output = None
+    State = None
+    callback_context = None
+    dash_table = None
+    dcc = None
+    html = None
+    Button = None
+    Card = None
+    Col = None
+    Container = None
+    NavItem = None
+    NavLink = None
+    Navbar = None
+    Row = None
+    Spinner = None
+    Tooltip = None
+    themes = None
+    DASH_AVAILABLE = False
+
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    px = None
+    go = None
+    PLOTLY_AVAILABLE = False
 
 # ASCII Art for welcome message
 NEURAL_ASCII = r"""
@@ -47,6 +80,21 @@ NEURAL_ASCII = r"""
 
 # Create a directory for saving models if it doesn't exist
 os.makedirs(os.path.join(os.path.dirname(__file__), 'saved_models'), exist_ok=True)
+
+# Check dependencies
+if not DASH_AVAILABLE:
+    raise DependencyError(
+        dependency="dash",
+        feature="no-code interface",
+        install_hint="pip install dash dash-bootstrap-components"
+    )
+
+if not PLOTLY_AVAILABLE:
+    raise DependencyError(
+        dependency="plotly",
+        feature="no-code interface visualizations",
+        install_hint="pip install plotly"
+    )
 
 # Load security configuration
 security_config = load_security_config()

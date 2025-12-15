@@ -4,9 +4,7 @@ import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import plotly.graph_objects as go
 import psutil
-from graphviz import Digraph
 
 from neural.exceptions import (
     DependencyError,
@@ -45,6 +43,21 @@ from .utils import (
     suggest_optimizations,
 )
 
+
+# Lazy load heavy dependencies
+try:
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    go = None
+    PLOTLY_AVAILABLE = False
+
+try:
+    from graphviz import Digraph
+    GRAPHVIZ_AVAILABLE = True
+except ImportError:
+    Digraph = None
+    GRAPHVIZ_AVAILABLE = False
 
 # Make torch optional - allows tests to run without torch installed
 try:
@@ -120,9 +133,8 @@ class ShapePropagator:
             'BatchNormalization': {'momentum': 'decay'}
         }
 
-        # Initialize visualization
-        self.dot = Digraph(comment='Neural Network Architecture')
-        self.dot.attr('node', shape='record', style='filled', fillcolor='lightgrey')
+        # Initialize visualization (lazy)
+        self.dot = None
 
     def propagate(self, input_shape: Tuple[Optional[int], ...],
               layer: Dict[str, Any],
@@ -441,13 +453,21 @@ class ShapePropagator:
 
     def _visualize_layer(self, layer_type: str, output_shape: Tuple[Optional[int], ...]):
         """Create a node in the graph for the layer."""
+        if not GRAPHVIZ_AVAILABLE:
+            return
+        
+        if self.dot is None:
+            self.dot = Digraph(comment='Neural Network Architecture')
+            self.dot.attr('node', shape='record', style='filled', fillcolor='lightgrey')
+        
         label = f"{layer_type}\\nOutput: {output_shape}"
         self.dot.node(str(self.current_layer), label=label)
         self.current_layer += 1
 
     def _create_connection(self, from_layer: int, to_layer: int):
         """Create an edge between two layers."""
-        self.dot.edge(str(from_layer), str(to_layer))
+        if GRAPHVIZ_AVAILABLE and self.dot is not None:
+            self.dot.edge(str(from_layer), str(to_layer))
         self.layer_connections.append((from_layer, to_layer))
 
 ########################
@@ -466,6 +486,13 @@ class ShapePropagator:
 
     def generate_report(self):
         """Generate a comprehensive report including visualizations."""
+        if not PLOTLY_AVAILABLE:
+            raise DependencyError(
+                dependency="plotly",
+                feature="report generation",
+                install_hint="pip install plotly"
+            )
+        
         # Create Plotly bar chart for parameter counts
         if not self.shape_history:
             layers = ["No data"]
@@ -986,20 +1013,7 @@ class ShapePropagator:
             return 0
 
     ### Layers Shape Propagation Visualization ###
-    def _visualize_layer(self, layer_name, shape):
-        label = f"{layer_name}\n{shape}"
-        self.dot.node(str(self.current_layer), label)
-        self.shape_history.append((layer_name, shape))
-        self.current_layer += 1
-
-    def _create_connection(self, from_id, to_id):
-        self.layer_connections.append((from_id, to_id))
-        self.dot.edge(str(from_id), str(to_id))
-
-    def generate_report(self):
-        """Generate interactive visualization and shape report"""
-        # Plotly visualization
-        fig = go.Figure()
+    # NOTE: Duplicate methods removed - using earlier definitions
 
         # Add shape dimensions as bar chart
         shapes = [str(s[1]) for s in self.shape_history]
@@ -1095,7 +1109,13 @@ class ShapePropagator:
         Returns:
             Plotly figure object
         """
-        import plotly.graph_objects as go
+        if not PLOTLY_AVAILABLE:
+            raise DependencyError(
+                dependency="plotly",
+                feature="interactive visualization",
+                install_hint="pip install plotly"
+            )
+        
         from plotly.subplots import make_subplots
 
         # Create figure with subplots

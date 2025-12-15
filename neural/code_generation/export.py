@@ -3,11 +3,12 @@ Model export functionality for various deployment targets.
 Supports ONNX, TensorFlow Lite, TorchScript, and SavedModel formats.
 """
 
-import os
-import logging
 import json
-from pathlib import Path
-from typing import Dict, Any, Optional, List, Tuple
+import logging
+import os
+from typing import Any, Dict, List, Optional, Tuple
+
+from neural.exceptions import DependencyError
 
 logger = logging.getLogger(__name__)
 
@@ -116,9 +117,10 @@ class ModelExporter:
             
         except ImportError as e:
             logger.error(f"Required dependency not found: {e}")
-            raise ImportError(
-                "tf2onnx is required for TensorFlow to ONNX conversion. "
-                "Install with: pip install tf2onnx"
+            raise DependencyError(
+                dependency="tf2onnx",
+                feature="TensorFlow to ONNX conversion",
+                install_hint="pip install tf2onnx"
             )
     
     def _export_pytorch_to_onnx(

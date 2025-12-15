@@ -4,15 +4,44 @@ import json
 import threading
 from typing import Any, Dict, List, Optional, Tuple
 
-import dash
-from dash import Dash, Input, Output, State, dcc, html
-from dash.exceptions import PreventUpdate
-from dash_bootstrap_components import themes
-from flask import Flask
 import numpy as np
-import plotly.graph_objects as go
-import requests
 
+from neural.exceptions import DependencyError
+
+# Lazy load dash dependencies
+try:
+    import dash
+    from dash import Dash, Input, Output, State, dcc, html
+    from dash.exceptions import PreventUpdate
+    from dash_bootstrap_components import themes
+    from flask import Flask
+    DASH_AVAILABLE = True
+except ImportError:
+    dash = None
+    Dash = None
+    Input = None
+    Output = None
+    State = None
+    dcc = None
+    html = None
+    PreventUpdate = None
+    themes = None
+    Flask = None
+    DASH_AVAILABLE = False
+
+try:
+    import plotly.graph_objects as go
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    go = None
+    PLOTLY_AVAILABLE = False
+
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    requests = None
+    REQUESTS_AVAILABLE = False
 
 # Optional debugging dependency
 try:
@@ -66,6 +95,14 @@ except ImportError:
     SOCKETIO_AVAILABLE = False
 
 
+
+# Check if dash is available before initializing
+if not DASH_AVAILABLE:
+    raise DependencyError(
+        dependency="dash",
+        feature="dashboard",
+        install_hint="pip install dash dash-bootstrap-components"
+    )
 
 # Load security configuration
 security_config = load_security_config()

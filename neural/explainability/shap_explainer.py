@@ -2,11 +2,23 @@
 SHAP (SHapley Additive exPlanations) integration for model interpretability.
 """
 
-from typing import Any, Dict, List, Optional
-import numpy as np
 import logging
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+
+from neural.exceptions import DependencyError
 
 logger = logging.getLogger(__name__)
+
+
+# Lazy load SHAP
+try:
+    import shap
+    SHAP_AVAILABLE = True
+except ImportError:
+    shap = None
+    SHAP_AVAILABLE = False
 
 
 class SHAPExplainer:
@@ -43,11 +55,11 @@ class SHAPExplainer:
     
     def _create_explainer(self, background_data: Optional[np.ndarray] = None):
         """Create the appropriate SHAP explainer."""
-        try:
-            import shap
-        except ImportError:
-            raise ImportError(
-                "SHAP is not installed. Install it with: pip install shap"
+        if not SHAP_AVAILABLE:
+            raise DependencyError(
+                dependency="shap",
+                feature="SHAP explainer",
+                install_hint="pip install shap"
             )
         
         if self.explainer_type == 'auto':

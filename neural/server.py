@@ -18,10 +18,22 @@ import logging
 from typing import Optional, Dict, Any
 from pathlib import Path
 
-import dash
-from dash import dcc, html
-import dash_bootstrap_components as dbc
-from flask import Flask
+from neural.exceptions import DependencyError
+
+# Lazy load dash dependencies
+try:
+    import dash
+    from dash import dcc, html
+    import dash_bootstrap_components as dbc
+    from flask import Flask
+    DASH_AVAILABLE = True
+except ImportError:
+    dash = None
+    dcc = None
+    html = None
+    dbc = None
+    Flask = None
+    DASH_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +94,13 @@ def create_unified_app(port: int = 8050) -> dash.Dash:
     dash.Dash
         Unified Dash application
     """
+    if not DASH_AVAILABLE:
+        raise DependencyError(
+            dependency="dash",
+            feature="unified server",
+            install_hint="pip install dash dash-bootstrap-components"
+        )
+    
     server = Flask(__name__)
     
     app = dash.Dash(

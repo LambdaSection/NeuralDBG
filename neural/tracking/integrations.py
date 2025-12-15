@@ -10,7 +10,7 @@ import logging
 import json
 import tempfile
 from typing import Dict, List, Any, Optional, Union, Tuple
-import matplotlib.pyplot as plt
+
 from neural.exceptions import (
     TrackingException, MetricLoggingError, DependencyError,
     ConfigurationError
@@ -18,6 +18,14 @@ from neural.exceptions import (
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
+# Lazy load matplotlib
+try:
+    import matplotlib.pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    plt = None
+    MATPLOTLIB_AVAILABLE = False
 
 class BaseIntegration:
     """Base class for external tracking tool integrations."""
@@ -70,7 +78,7 @@ class BaseIntegration:
         """
         raise NotImplementedError("Subclasses must implement log_model")
 
-    def log_figure(self, figure: plt.Figure, figure_name: str):
+    def log_figure(self, figure, figure_name: str):
         """
         Log a matplotlib figure.
 
@@ -78,6 +86,13 @@ class BaseIntegration:
             figure: Matplotlib figure
             figure_name: Name for the figure
         """
+        if not MATPLOTLIB_AVAILABLE:
+            raise DependencyError(
+                dependency="matplotlib",
+                feature="figure logging",
+                install_hint="pip install matplotlib"
+            )
+        
         # Default implementation: save figure to a temporary file and log as artifact
         with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
             figure_path = tmp.name
