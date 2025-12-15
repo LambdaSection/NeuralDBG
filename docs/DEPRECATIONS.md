@@ -10,19 +10,22 @@ Features marked as deprecated will:
 ## Currently Deprecated Features
 
 ### 1. Aquarium IDE (`neural/aquarium/`)
-**Status**: Extraction planned  
+**Status**: ✅ REMOVED in v0.3.0  
 **Reason**: Full IDE development is out of scope for core DSL project  
-**Timeline**: Extract to separate `Neural-Aquarium` repository by v0.4.0  
+**Removed**: Complete Electron-based IDE implementation removed  
 **Migration**: Use VS Code/PyCharm with Neural language server instead  
-**Warning**: `DeprecationWarning` when importing `neural.aquarium`
+**Note**: Experiment tracking dashboard (`neural aquarium` CLI) remains as core feature
 
 ```python
-# Deprecated
-from neural.aquarium import AquariumIDE
+# Removed - no longer available
+# from neural.aquarium import AquariumIDE
 
 # Recommended
 # Use VS Code with .neural file support
 # Or use neural CLI: neural compile model.neural
+
+# Experiment tracking still available
+# neural aquarium --port 8053
 ```
 
 ### 2. Neural Chat (`neural/neural_chat/`)

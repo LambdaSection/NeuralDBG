@@ -72,8 +72,6 @@ TEST_RESULTS_SUMMARY.md
 test_imports.py
 
 # Playwright/E2E tests
-tests/aquarium_e2e/screenshots/
-tests/aquarium_e2e/.pytest_cache/
 playwright-report/
 test-results/
 *.prof
@@ -238,72 +236,6 @@ website/yarn-error.log*
 
 # Next.js
 .next/
-
-# Aquarium Backend
-neural/aquarium/backend/.env
-neural/aquarium/backend/temp/
-
-# Neural Aquarium (React/Node.js frontend)
-neural/aquarium/node_modules/
-neural/aquarium/dist/
-neural/aquarium/.vite/
-neural/aquarium/package-lock.json
-neural/aquarium/yarn.lock
-neural/aquarium/pnpm-lock.yaml
-neural/aquarium/.env*
-neural/aquarium/npm-debug.log*
-neural/aquarium/yarn-debug.log*
-neural/aquarium/yarn-error.log*
-neural/aquarium/coverage/
-
-# Electron Builder / Aquarium packaging
-neural/aquarium/build/dist/
-neural/aquarium/build/*.dmg
-neural/aquarium/build/*.pkg
-neural/aquarium/build/*.app
-neural/aquarium/build/*.exe
-neural/aquarium/build/*.msi
-neural/aquarium/build/*.deb
-neural/aquarium/build/*.rpm
-neural/aquarium/build/*.AppImage
-neural/aquarium/build/*.snap
-neural/aquarium/build/*.zip
-neural/aquarium/build/*.tar.gz
-neural/aquarium/build/icon.iconset/
-neural/aquarium/build/placeholder.png
-neural/aquarium/build/*.pfx
-neural/aquarium/build/*.p12
-neural/aquarium/build/*.cer
-neural/aquarium/build/*.pem
-neural/aquarium/build/certificate.*
-neural/aquarium/electron/node_modules/
-
-# Aquarium IDE configuration and user data
-.aquarium/
-neural/aquarium/src/components/settings/__pycache__/
-neural/aquarium/__pycache__/
-
-# Aquarium Electron IDE
-neural/aquarium/electron/node_modules/
-neural/aquarium/electron/dist/
-neural/aquarium/electron/out/
-neural/aquarium/electron/build/
-neural/aquarium/electron/.electron/
-neural/aquarium/electron/*.asar
-neural/aquarium/electron/config.json
-neural/aquarium/electron/*.log
-neural/aquarium/electron/package-lock.json
-neural/aquarium/electron/yarn.lock
-neural/aquarium/electron/pnpm-lock.json
-neural/aquarium/electron/tmp/
-neural/aquarium/electron/temp/
-neural/aquarium/electron/*.tmp
-
-# Plugin system user directories and caches
-.neural_aquarium/
-neural/aquarium/src/plugins/examples/npm_plugin_example/node_modules/
-neural/aquarium/src/plugins/examples/npm_plugin_example/dist/
-neural/aquarium/src/plugins/__pycache__/
 
 # Release automation artifacts
 release_notes*.md

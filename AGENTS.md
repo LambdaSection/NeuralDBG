@@ -86,9 +86,9 @@ Focus areas for development:
 
 Peripheral features (lower priority):
 - AutoML, HPO, Integrations
-- Aquarium IDE (consider separate repository)
 - Marketing automation, blog generation
 
+Note: Aquarium IDE has been removed (v0.3.0) as it was out of scope. The experiment tracking dashboard remains as a core feature (neural aquarium CLI).
 Note: Teams module (multi-tenancy, RBAC, billing, analytics) has been removed as it was not actively used by core features.
 
 ## Cleanup

@@ -105,9 +105,9 @@
 │              ├─ Production Monitoring                         │
 │              └─ Drift detection                               │
 │                                                                 │
-│  Port 8000:  neural/aquarium/backend/server.py                │
-│              ├─ Aquarium API                                  │
-│              └─ IDE backend                                   │
+│  Port 8053:  neural/tracking/aquarium_app.py                  │
+│              ├─ Experiment Tracking Dashboard                 │
+│              └─ Experiment comparison and export              │
 │                                                                 │
 │  Port 5001:  Internal WebSocket (dashboard)                   │
 │                                                                 │
@@ -145,7 +145,6 @@
 │  │  • No-Code Builder (Visual editor)                      │  │
 │  │  • Monitoring (Production monitoring)                   │  │
 │  │  • Marketplace (Model sharing)                          │  │
-│  │  • Aquarium (Full IDE) [To be extracted]               │  │
 │  │  • Federated (Distributed learning)                     │  │
 │  └──────────────────────────────────────────────────────────┘  │
 │                                                                 │
@@ -354,8 +353,9 @@ neural compile model.neural --backend tensorflow
         ▼                       ▼                       ▼
 ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
 │ neural-dsl   │      │ neural-      │      │ neural-      │
-│ (unified     │      │ aquarium     │      │ marketplace  │
-│  server)     │      │ (IDE)        │      │ (sharing)    │
+│ (core +      │      │ marketplace  │      │ federated    │
+│  unified     │      │ (sharing)    │      │ (distributed)│
+│  server)     │      │              │      │              │
 └──────────────┘      └──────────────┘      └──────────────┘
 
         Modular architecture with separate packages

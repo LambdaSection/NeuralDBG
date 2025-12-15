@@ -9,9 +9,6 @@ try:
         TimelineVisualizer,
         ExportHandler,
     )
-    from neural.visualization.aquarium_integration import AquariumVisualizationManager
-    from neural.visualization.aquarium_web_components import AquariumWebComponentRenderer
-    from neural.visualization.aquarium_server import AquariumVisualizationServer, start_server
     from neural.visualization.component_interface import (
         ComponentInterface,
         VisualizationMetadata,
@@ -35,10 +32,6 @@ if GALLERY_AVAILABLE:
         'FlopsMemoryVisualizer',
         'TimelineVisualizer',
         'ExportHandler',
-        'AquariumVisualizationManager',
-        'AquariumWebComponentRenderer',
-        'AquariumVisualizationServer',
-        'start_server',
         'ComponentInterface',
         'VisualizationMetadata',
         'GalleryMetadata',

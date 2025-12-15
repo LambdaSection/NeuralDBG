@@ -1,3 +1,0 @@
-"""
-Neural Aquarium UI Components
-"""
