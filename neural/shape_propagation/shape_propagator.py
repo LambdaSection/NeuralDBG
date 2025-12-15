@@ -1370,8 +1370,8 @@ def detect_activation_anomalies(layer, input, output):
         }
     mean_activation = output.detach().abs().mean().item()
     # torch is guaranteed to be available here due to the check above
-    has_nan = torch.isnan(output).sum().item() > 0 if torch is not None else False
-    is_exploding = mean_activation > 1000  # Arbitrary threshold for huge activations
+    has_nan = torch.isnan(output).sum().item() > 0
+    is_exploding = mean_activation > 100  # Threshold for detecting abnormally high activations
 
     return {
         "layer": layer.__class__.__name__,
