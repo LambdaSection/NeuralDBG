@@ -1,21 +1,21 @@
 import json
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+import plotly.graph_objects as go
 import psutil
+from graphviz import Digraph
 
 from neural.exceptions import (
     DependencyError,
     InvalidParameterError,
     InvalidShapeError,
+    ShapeException,
     ShapeMismatchError,
 )
-
-
-if TYPE_CHECKING:
-    pass
+from neural.parser.parser import ModelTransformer
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +37,11 @@ from .layer_handlers import (
 )
 from .utils import (
     calculate_memory_usage,
+    calculate_output_dims,
     detect_shape_issues,
     extract_param,
+    format_error_message,
+    format_memory_size,
     suggest_optimizations,
 )
 
@@ -117,19 +120,9 @@ class ShapePropagator:
             'BatchNormalization': {'momentum': 'decay'}
         }
 
-        # Initialize visualization (lazy loaded)
-        self.dot = None
-        self._init_graphviz()
-
-    def _init_graphviz(self):
-        """Lazy initialize graphviz visualization."""
-        if self.dot is None:
-            try:
-                from graphviz import Digraph
-                self.dot = Digraph(comment='Neural Network Architecture')
-                self.dot.attr('node', shape='record', style='filled', fillcolor='lightgrey')
-            except ImportError:
-                pass
+        # Initialize visualization
+        self.dot = Digraph(comment='Neural Network Architecture')
+        self.dot.attr('node', shape='record', style='filled', fillcolor='lightgrey')
 
     def propagate(self, input_shape: Tuple[Optional[int], ...],
               layer: Dict[str, Any],
@@ -198,7 +191,7 @@ class ShapePropagator:
                     kernel_size = (kernel_size['value'], kernel_size['value'])
                 # Otherwise, use a default value
                 else:
-                    logger.debug("ShapePropagator.propagate - kernel_size dict without 'value' key, using default")
+                    logger.debug(f"ShapePropagator.propagate - kernel_size dict without 'value' key, using default")
                     kernel_size = (3, 3)  # Default value
             params["kernel_size"] = kernel_size  # Ensure tuple in params
 
@@ -448,17 +441,13 @@ class ShapePropagator:
 
     def _visualize_layer(self, layer_type: str, output_shape: Tuple[Optional[int], ...]):
         """Create a node in the graph for the layer."""
-        self._init_graphviz()
-        if self.dot:
-            label = f"{layer_type}\\nOutput: {output_shape}"
-            self.dot.node(str(self.current_layer), label=label)
+        label = f"{layer_type}\\nOutput: {output_shape}"
+        self.dot.node(str(self.current_layer), label=label)
         self.current_layer += 1
 
     def _create_connection(self, from_layer: int, to_layer: int):
         """Create an edge between two layers."""
-        self._init_graphviz()
-        if self.dot:
-            self.dot.edge(str(from_layer), str(to_layer))
+        self.dot.edge(str(from_layer), str(to_layer))
         self.layer_connections.append((from_layer, to_layer))
 
 ########################
@@ -477,15 +466,6 @@ class ShapePropagator:
 
     def generate_report(self):
         """Generate a comprehensive report including visualizations."""
-        # Ensure graphviz is initialized
-        self._init_graphviz()
-        
-        # Lazy import plotly
-        try:
-            import plotly.graph_objects as go
-        except ImportError:
-            raise DependencyError("plotly is required for visualization. Install with: pip install plotly")
-        
         # Create Plotly bar chart for parameter counts
         if not self.shape_history:
             layers = ["No data"]
@@ -504,14 +484,42 @@ class ShapePropagator:
         
         # Generate optimization suggestions
         self.optimizations = suggest_optimizations(self.shape_history)
-        
-        return {
-            'dot_graph': self.dot,
-            'plotly_chart': fig,
-            'shape_history': self.shape_history,
-            'issues': self.issues,
-            'optimizations': self.optimizations
-        }
+
+        # Then check for internal handlers
+        handler_name = f"_handle_{layer_type.lower()}"
+        if hasattr(self, handler_name):
+            output_shape = getattr(self, handler_name)(input_shape, params)
+        else:
+            # Try to use imported handlers
+            if layer_type == 'Conv1D':
+                output_shape = handle_conv1d(input_shape, params)
+            elif layer_type == 'Conv3D':
+                output_shape = handle_conv3d(input_shape, params)
+            elif layer_type == 'LSTM':
+                output_shape = handle_lstm(input_shape, params)
+            elif layer_type == 'GRU':
+                output_shape = self._handle_gru(input_shape, params)
+            elif layer_type == 'Dropout':
+                output_shape = handle_dropout(input_shape, params)
+            elif layer_type == 'BatchNormalization':
+                output_shape = handle_batch_normalization(input_shape, params)
+            elif layer_type == 'Reshape':
+                output_shape = handle_reshape(input_shape, params)
+            elif layer_type == 'Permute':
+                output_shape = handle_permute(input_shape, params)
+            elif layer_type == 'ZeroPadding2D':
+                output_shape = handle_zero_padding2d(input_shape, params)
+            elif layer_type == 'Cropping2D':
+                output_shape = handle_cropping2d(input_shape, params)
+            elif layer_type == 'GlobalAveragePooling1D':
+                output_shape = handle_global_average_pooling1d(input_shape, params)
+            elif layer_type == 'MultiHeadAttention':
+                output_shape = self._handle_multiheadattention(input_shape, params)
+            elif layer_type == 'PositionalEncoding':
+                output_shape = handle_positional_encoding(input_shape, params)
+            else:
+                # Fall back to default handler
+                output_shape = self._handle_default(input_shape, params)
 
 ##################################
 ### Parameter Validation Logic ###
@@ -706,6 +714,8 @@ class ShapePropagator:
                 stride_h = stride_w = pool_size[0]  # Default value
         elif isinstance(stride, int):
             stride_h = stride_w = stride
+        elif isinstance(stride, (list, tuple)):
+            stride_h, stride_w = stride[0], stride[1]
 
         print(f"DEBUG: _handle_maxpooling2d - pool_size: {pool_size}, stride_h: {stride_h}, stride_w: {stride_w}")
 
@@ -859,9 +869,6 @@ class ShapePropagator:
 
         print(f"DEBUG: _handle_upsampling2d - size after processing: {size}")
 
-        # Get data format
-        data_format = params.get('data_format', 'channels_last')
-        
         # Calculate new spatial dimensions, handling None
         if data_format == 'channels_last':
             # TensorFlow: input_shape = (batch, height, width, channels)
@@ -980,30 +987,17 @@ class ShapePropagator:
 
     ### Layers Shape Propagation Visualization ###
     def _visualize_layer(self, layer_name, shape):
-        self._init_graphviz()
-        if self.dot:
-            label = f"{layer_name}\n{shape}"
-            self.dot.node(str(self.current_layer), label)
+        label = f"{layer_name}\n{shape}"
+        self.dot.node(str(self.current_layer), label)
         self.shape_history.append((layer_name, shape))
         self.current_layer += 1
 
     def _create_connection(self, from_id, to_id):
         self.layer_connections.append((from_id, to_id))
-        self._init_graphviz()
-        if self.dot:
-            self.dot.edge(str(from_id), str(to_id))
+        self.dot.edge(str(from_id), str(to_id))
 
     def generate_report(self):
         """Generate interactive visualization and shape report"""
-        # Ensure graphviz is initialized
-        self._init_graphviz()
-        
-        # Lazy import plotly
-        try:
-            import plotly.graph_objects as go
-        except ImportError:
-            raise DependencyError("plotly is required for visualization. Install with: pip install plotly")
-        
         # Plotly visualization
         fig = go.Figure()
 
@@ -1049,6 +1043,7 @@ class ShapePropagator:
 
     def get_shape_data(self):
         """Returns shape history as JSON."""
+        import json
         return json.dumps([
             {"layer": layer[0], "output_shape": layer[1]}
             for layer in self.shape_history

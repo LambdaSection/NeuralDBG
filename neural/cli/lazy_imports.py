@@ -112,3 +112,19 @@ def get_module(lazy_loader):
                 raise
         return lazy_loader.module
     return lazy_loader
+
+# Lazy loaders for heavy dependencies
+tensorflow = lazy_import('tensorflow')
+torch = lazy_import('torch')
+jax = lazy_import('jax')
+matplotlib = lazy_import('matplotlib')
+plotly = lazy_import('plotly')
+dash = lazy_import('dash')
+optuna = lazy_import('optuna')
+
+# Lazy loaders for Neural modules
+shape_propagator = lazy_import('neural.shape_propagation.shape_propagator')
+tensor_flow = lazy_import('neural.dashboard.tensor_flow')
+hpo = lazy_import('neural.hpo.hpo')
+code_generator = lazy_import('neural.code_generation.code_generator')
+experiment_tracker = lazy_import('neural.tracking.experiment_tracker')
