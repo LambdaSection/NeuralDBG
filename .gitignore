@@ -319,6 +319,7 @@ profile_*.json
 
 # MLOps artifacts
 models/
+pretrained_models/
 ab_tests/
 deployments/
 audit_logs/
