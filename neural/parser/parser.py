@@ -749,13 +749,10 @@ class ModelTransformer(lark.Transformer):
             'RESIDUALCONNECTION': 'residual',
             'GLOBALAVERAGEPOOLING2D': 'global_average_pooling2d',
             'GLOBALAVERAGEPOOLING1D': 'global_average_pooling1d',
-<<<<<<< Updated upstream
             'MULTIHEADATTENTION': 'multiheadattention',
             'POSITIONALENCODING': 'positional_encoding',
-=======
             'INCEPTION': 'inception',
             'SQUEEZEEXCITATION': 'squeeze_excitation',
->>>>>>> Stashed changes
         }
         self.hpo_params: List[Dict[str, Any]] = []
 
@@ -1069,12 +1066,7 @@ class ModelTransformer(lark.Transformer):
             self.raise_validation_error(f"Unsupported layer type: {layer_type}", layer_type_node)
             return {'type': layer_type, 'params': raw_params, 'sublayers': sublayers}
 
-<<<<<<< Updated upstream
-
     def branch_spec(self, items: List[Any]) -> Dict[str, Any]:
-=======
-    def branch_spec(self, items):
->>>>>>> Stashed changes
         # NAME ':' '{' (layer_or_repeated)* '}'
         name_token = items[0]
         name = name_token.value if hasattr(name_token, 'value') else str(name_token)
@@ -2625,10 +2617,7 @@ class ModelTransformer(lark.Transformer):
         """
         return {"type": "LSTMDropoutWrapper", 'params': self._extract_value(items[0])}
 
-<<<<<<< Updated upstream
-    def research(self, items: List[Any]) -> Dict[str, Any]:
-=======
-    def gru(self, items):
+    def gru(self, items: List[Any]) -> Dict[str, Any]:
         # Support both alias rule call (items[0] is Token) and basic_layer call
         items = self._shift_if_token(items)
         params = {}
@@ -2664,8 +2653,7 @@ class ModelTransformer(lark.Transformer):
 
         return {'type': 'GRU', 'params': params, 'sublayers': []}
 
-    def research(self, items):
->>>>>>> Stashed changes
+    def research(self, items: List[Any]) -> Dict[str, Any]:
         """
         Process a Research block.
 
