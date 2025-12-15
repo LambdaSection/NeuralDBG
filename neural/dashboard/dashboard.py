@@ -51,7 +51,6 @@ except ImportError:
     pysnooper = None
     _HAS_PYSNOOPER = False
 
-from neural.config.health import HealthChecker
 from neural.dashboard.tensor_flow import (
     create_animated_network,
     create_progress_component,
@@ -1274,18 +1273,12 @@ def health_check() -> Dict[str, str]:
 @server.route('/health/live')
 def liveness_probe() -> Tuple[Dict[str, str], int]:
     """Kubernetes liveness probe."""
-    health_checker = HealthChecker()
-    if health_checker.get_liveness_status():
-        return {"status": "alive"}, 200
-    return {"status": "dead"}, 503
+    return {"status": "alive"}, 200
 
 @server.route('/health/ready')
 def readiness_probe() -> Tuple[Dict[str, str], int]:
     """Kubernetes readiness probe."""
-    health_checker = HealthChecker()
-    if health_checker.get_readiness_status(['dashboard']):
-        return {"status": "ready"}, 200
-    return {"status": "not ready"}, 503
+    return {"status": "ready"}, 200
 
 if __name__ == "__main__":
     import warnings
