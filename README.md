@@ -190,7 +190,6 @@ neural visualize <file>     # Generate architecture diagrams
 neural debug <file>         # Start debugging dashboard
 neural export <file>        # Export for deployment
 neural track <command>      # Manage experiments
-neural --no_code            # Launch no-code GUI
 ```
 
 ## What It's Good At (and What It's Not)
@@ -273,7 +272,6 @@ Neural DSL compiles to native TensorFlow/PyTorch code, so there's no runtime pen
 - **Error messages**: Sometimes cryptic. I'm working on improving this, but for now you might need to look at generated code to debug
 - **Performance overhead**: Generated code is ~0-20% slower than hand-written equivalents due to extra abstraction. Usually negligible, but matters for production serving at scale
 - **Backend coverage**: Not all DSL features work on all backends. For example, some custom layers only compile to TensorFlow right now
-- **No distributed training**: Multi-GPU and distributed setups aren't supported yet (planned for future versions)
 - **Windows quirks**: NeuralDbg dashboard sometimes has issues on Windows. Works best on Linux/macOS
 
 If you hit a limitation, please open an issue. I'm actively developing this and prioritize based on user feedback.
@@ -369,7 +367,6 @@ See the Development Workflow section at the end of this README for full details.
 Current focus areas:
 - Improve error messages (especially for shape mismatches)
 - Expand DSL syntax for more layer types (custom attention, graph convolutions, etc.)
-- Add distributed training support (multi-GPU)
 - Better Windows support for NeuralDbg
 - More deployment targets (CoreML, TensorRT)
 
@@ -407,9 +404,8 @@ neural/
 ├── shape_propagation/  # Shape validation logic
 ├── dashboard/          # NeuralDbg debugger
 ├── hpo/                # Hyperparameter optimization
-├── cloud/              # Cloud platform integrations
 ├── tracking/           # Experiment tracking
-└── no_code/            # No-code web interface
+└── visualization/      # Model visualization
 
 examples/               # Example .neural files
 docs/                   # Documentation
