@@ -45,14 +45,19 @@ from neural.federated.scenarios import (
 )
 from neural.federated.orchestrator import FederatedOrchestrator
 
+FederatedAveraging = FedAvg
+SecureAggregation = SecureAggregator
+
 __all__ = [
     'FederatedClient',
     'FederatedServer',
     'FedAvg',
+    'FederatedAveraging',
     'FedProx',
     'FedAdam',
     'FedYogi',
     'SecureAggregator',
+    'SecureAggregation',
     'DifferentialPrivacy',
     'GaussianDP',
     'LaplacianDP',

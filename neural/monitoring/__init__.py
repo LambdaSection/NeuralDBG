@@ -18,10 +18,13 @@ from neural.monitoring.prometheus_exporter import PrometheusExporter, MetricsReg
 from neural.monitoring.slo_tracker import SLOTracker, SLO, SLAReport
 from neural.monitoring.monitor import ModelMonitor
 
+DataQualityChecker = DataQualityMonitor
+
 __all__ = [
     'DriftDetector',
     'DriftMetrics',
     'DataQualityMonitor',
+    'DataQualityChecker',
     'QualityReport',
     'PredictionLogger',
     'PredictionAnalyzer',

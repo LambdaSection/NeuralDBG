@@ -30,6 +30,9 @@ env/
 ENV/
 .venv*/
 venv*/
+.venv312/
+_SETUP_STATUS.md
+install_deps.ps1
 
 # Environment and secrets (never commit)
 .env
