@@ -1,2 +1,17 @@
 
 PLAN.md
+
+# Test cache files
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Coverage reports
+.coverage
+htmlcov/
+.coverage.*
+
+# Virtual environment
+venv/
