@@ -1,4 +1,4 @@
-NeuralDbg MVP
+NeuralDBG MVP
 
 Conceptually:
 
