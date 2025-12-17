@@ -1,28 +1,29 @@
 # NeuralDBG
 
-A minimal debugger for deep learning training that provides **causal introspection** into neural network training dynamics. Understand *why* your model failed during training, not just *that* it failed.
+A causal inference engine for deep learning training that provides **structured explanations** of neural network training failures. Understand *why* your model failed during training through semantic analysis and abductive reasoning, not raw tensor inspection.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
 ## Overview
 
-NeuralDBG treats training as an **execution trace** rather than a black box. It captures the complete temporal evolution of your model's internal state, enabling researchers to:
+NeuralDBG treats training as a **semantic trace of learning dynamics** rather than a black box. It extracts meaningful events and provides causal hypotheses about training failures, enabling researchers to:
 
-- **Trace gradient flow** through network layers
-- **Detect training instabilities** (vanishing/exploding gradients)
-- **Inspect tensor transformations** over time
-- **Query historical states** for causal analysis
+- **Identify gradient health transitions** (stable → vanishing/saturated)
+- **Detect activation regime shifts** (normal → saturated/dead)
+- **Track propagation of instabilities** through network layers
+- **Generate ranked causal explanations** for training failures
 
-Unlike traditional monitoring tools (TensorBoard, Weights & Biases), NeuralDBG focuses on **debugging training failures** rather than tracking experiments.
+Unlike traditional monitoring tools (TensorBoard, Weights & Biases), NeuralDBG focuses on **causal inference** rather than metric tracking.
 
 ## Key Features
 
-- **Event Tracing**: Captures forward/backward passes with tensor snapshots
-- **Gradient Breakpoints**: Automatic detection of vanishing/exploding gradients
-- **Temporal Inspection**: Query tensor states across training steps
+- **Semantic Event Extraction**: Detects meaningful transitions in training dynamics
+- **Causal Compression**: Identifies first occurrences and propagation patterns
+- **Post-Mortem Reasoning**: Provides ranked hypotheses about failure causes
+- **Compiler-Aware**: Operates at module boundaries to survive torch.compile
 - **Non-Invasive**: Wraps existing PyTorch training loops without code changes
-- **Minimal API**: Focused on causal understanding, not visualization
+- **Minimal API**: Focused on explanations, not raw data dumps
 
 ## Quick Start
 
@@ -54,67 +55,63 @@ with NeuralDbg(model) as dbg:
         loss.backward()
         optimizer.step()
 
-        # Capture state after each training step
-        dbg.capture_step(step)
+        # Events are extracted automatically
 
-        # Check for gradient issues
-        if dbg.has_vanishing_gradients():
-            print(f"Vanishing gradients detected at step {step}")
-            # Inspect the problematic layer
-            gradient_info = dbg.inspect_layer('linear1')
-            break
+# After training failure, query for explanations
+explanations = dbg.explain_failure()
+print(explanations[0])  # "Gradient vanishing originated in layer 'linear1' at step 234, likely due to LR × activation mismatch (confidence: 0.87)"
 ```
 
-### Inspection API
+### Inference API
 
 ```python
-# Query tensor state at specific step
-tensor_state = dbg.inspect(layer_name='conv1', step=42)
+# Get ranked causal hypotheses for the failure
+hypotheses = dbg.get_causal_hypotheses()
 
-# Get gradient history for a layer
-gradients = dbg.get_gradient_history('fc1')
+# Query specific causal chains
+chain = dbg.trace_causal_chain('vanishing_gradients')
 
-# Check gradient health
-health_report = dbg.analyze_gradient_health()
+# Check for coupled failures
+couplings = dbg.detect_coupled_failures()
 ```
 
 ## Architecture
 
 ### Core Components
 
-- **Event System**: Records each computation step with input/output tensors and gradients
-- **Tensor Versioning**: Maintains historical snapshots for temporal analysis
-- **Breakpoint Engine**: Monitors for pathological training conditions
-- **Query Interface**: Provides programmatic access to captured state
+- **Semantic Event Extractor**: Detects meaningful transitions in learning dynamics
+- **Causal Compressor**: Identifies patterns and propagation in training failures
+- **Post-Mortem Reasoner**: Generates ranked hypotheses about failure causes
+- **Compiler-Aware Monitor**: Operates at safe boundaries for optimization compatibility
 
 ### Event Structure
 
-Each captured event contains:
-- Step index in training sequence
+Each semantic event represents:
+- Transition type (gradient_health, activation_regime, optimizer_stability)
 - Layer/parameter identifier
-- Input tensor snapshot (detached clone)
-- Output tensor snapshot (detached clone)
-- Gradient snapshot (when available)
+- Step range of occurrence
+- Confidence score
+- Causal metadata (propagation patterns, coupled failures)
 
 ## Target Users
 
-- **ML Researchers** investigating training failures
-- **PhD Students** debugging novel architectures
-- **Research Engineers** optimizing training pipelines
+- **ML Researchers** seeking causal explanations for training failures
+- **PhD Students** analyzing learning dynamics in novel architectures
+- **Research Engineers** understanding optimization instabilities
 
-*Not intended for production monitoring or no-code users.*
+*Not intended for production monitoring, metric tracking, or no-code users.*
 
 ## Limitations (MVP Scope)
 
 - PyTorch only
-- Single model architecture per session
-- Focus on gradient-based failures
+- Single causal question: "Why did gradients vanish here?"
+- Focus on semantic events, not tensor inspection
 - Command-line interface only
-- Memory-intensive for large models
+- Compiler-aware (torch.compile compatible)
 
 ## Contributing
 
-This is an MVP focused on proving the concept of causal training debugging. Contributions should align with the core mission of understanding training failures.
+This is an MVP focused on proving the concept of causal inference for training dynamics. Contributions should align with the core mission of providing structured explanations for training failures.
 
 1. Fork the repository
 2. Create a feature branch
@@ -137,7 +134,7 @@ If you use NeuralDBG in your research, please cite:
 
 ```bibtex
 @misc{neuraldbg2025,
-  title={NeuralDBG: A Minimal Debugger for Deep Learning Training},
+  title={NeuralDBG: A Causal Inference Engine for Deep Learning Training Dynamics},
   author={SENOUVO Jacques-Charles Gad},
   year={2025},
   url={https://github.com/Lemniscate-world/Neural}
