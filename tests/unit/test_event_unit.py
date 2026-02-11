@@ -86,7 +86,7 @@ class TestNeuralDbgCore:
 
         assert stats['min'] == -1.0
         assert stats['max'] == 3.0
-        assert stats['sparsity'] == 1/6  # 1 zero out of 6 elements
+        assert stats['sparsity'] == pytest.approx(2/6)  # 2 zeros out of 6 elements
 
     def test_gradient_transition_detection(self):
         """Test detection of gradient health transitions."""
@@ -235,5 +235,5 @@ class TestIntegrationBasics:
 
         with dbg:
             # Should have hooks on each module (forward + backward)
-            expected_hooks = 3 * 2  # 3 modules × 2 hooks each
+            expected_hooks = 4 * 2  # 3 sub-modules + 1 root × 2 hooks each
             assert len(dbg.hooks) == expected_hooks

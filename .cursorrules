@@ -1,0 +1,83 @@
+# NeuralDBG Project Rules (.cursorrules)
+
+You are working on **NeuralDBG**, a causal inference engine for deep learning training dynamics.
+Your goal is to provide clear, testable, and reviewer-friendly code that produces structured explanations
+of training failures and high-quality artifacts (visualizations, tests, docs).
+
+## 🧠 Core Philosophy
+1.  **Switzerland Positioning**: DO NOT prefer one downstream framework or library over others in the core logic. Keep core algorithms and representations framework-agnostic.
+2.  **Beauty is a Feature**: Outputs and visualizations should be clear and useful. Prefer readable, reviewer-friendly artifacts rather than noisy debug dumps.
+3.  **Zero-Config UX**: The library should be easy to import and use with minimal wiring. Follow the README for usage examples and default behaviors.
+
+## 🏗️ Architecture constraints
+- **Graph Source of Truth**: Data flow: Instrumentation/trace -> Parser -> `SemanticEvent`/graph model -> Exporter/analysis. NEVER skip the intermediate structured model.
+- **No Heavy Upstream Imports in Core**: Core monitoring and reasoning must not depend on heavy framework internals. Parse their outputs or use light integration adapters.
+- **Self-Contained Artifacts**: Generated artifacts (reports, HTML, images) should be viewable offline where possible.
+
+## 📐 Design Principles
+- **SRP**: Each class/module does one thing (e.g., `NeuralDbg` monitors, `analysis` computes hypotheses, `export` renders outputs).
+- **DRY**: Extract common logic into utilities.
+- **KISS**: Prefer simple implementations over complex abstractions.
+- **YAGNI**: Implement what is needed today; avoid speculative features.
+- **SOLID**: Follow OOP principles where appropriate; prefer composition to inheritance for flexibility.
+- **Duck Typing**: Favor Pythonic interfaces and avoid brittle `isinstance` checks unless necessary.
+- **Clean Code**: Readable names, small functions, no side effects in helpers.
+
+## 🧠 Critical Thinking — "Devil's Advocate" Mode
+You are a co-engineer, not a typist. Always ask whether a change improves user outcomes and identify risks early.
+
+**Before coding:**
+- "Does this actually help users?"
+- "Is there a simpler way?"
+- "What breaks?" — identify edge cases and security risks.
+
+**During implementation:**
+- Flag code smells; call out duplicated logic and unclear names.
+- Question scope creep and propose splitting tasks when needed.
+
+**After implementation:**
+- Review your diffs. Suggest improvements and document technical debt.
+
+## 🛠️ Tooling & Hooks
+- **Pre-Commit**: Mandatory. Run `ruff`, `mypy`, and `pylint` before commits.
+- **Diagrams**: When architecture changes, regenerate diagrams and update `README.md` or `logic_graph.md` as appropriate.
+- **Linters**: `ruff`, `mypy`, `pylint`, and optional `CodeQL` for security scans.
+
+## 📝 Coding & Testing Standards
+- **Type Hints**: Add type hints to public APIs where practical.
+- **Testing**: Unit and integration tests required for new features.
+    - **Coverage**: Aim for at least 60% overall; CI should fail on significant regressions.
+- **Automated Tests**: Ensure tests are CI-ready.
+- **Fuzzy Tests**: Add robustness tests for malformed traces.
+
+## 🚫 Forbidden
+- Hardcoding user paths.
+- Leaving `print()`s in production code (use logging).
+- Creating files outside project-relevant locations without explicit approval. Prefer `tests/`, `examples/`, `docs/`, or project-root artifacts.
+
+## 🔄 Common Workflows
+- **New Monitor/Parser**: Add a parser under `tests/` + `examples/` and tests demonstrating round-trip parsing -> analysis.
+- **Update Exporter/Visualizer**: Keep artifacts self-contained and add verification tests under `tests/integration/`.
+
+## 📋 Traceability — "Always Leave a Trail"
+Every session MUST produce a structured summary and commit discipline.
+
+**Commit discipline:**
+- Conventional commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`.
+- Atomic commits and clear scope tags where applicable.
+
+**Session summary (MANDATORY at end of every session):**
+```
+## Session Summary — [DATE]
+**What was done:** (bullet list)
+**Files changed:** (list)
+**Tests:** X passing, Y% coverage
+**Next steps:** (what remains)
+**Blockers:** (if any)
+```
+
+## 🧪 QA & Testing
+- UI/visual artifacts (if any) should have verification steps in `tests/integration/`.
+- Performance-sensitive changes must include simple benchmarks or profiling notes.
+
+Keep this file small and actionable — it's a living artifact describing how AI assistants and contributors should behave when working on `NeuralDBG`.

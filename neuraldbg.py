@@ -127,14 +127,15 @@ class NeuralDbg:
 
                 self.previous_activation_stats[layer_name] = activation_stats
 
-        def backward_hook(module: nn.Module, grad_input: Tuple[torch.Tensor], grad_output: Tuple[torch.Tensor]):
-            """Extract semantic events from backward pass."""
+        def full_backward_hook(module: nn.Module, grad_input: Tuple[torch.Tensor], grad_output: Tuple[torch.Tensor]):
+            """Extract semantic events from backward pass using full_backward_hook."""
             if not self.is_monitoring:
                 return
 
             layer_name = self._get_layer_name(module)
 
             # Extract gradient health information
+            # In full_backward_hook, grad_output is a tuple of gradients w.r.t. outputs
             if grad_output and len(grad_output) > 0 and grad_output[0] is not None:
                 grad_norm = grad_output[0].norm().item()
 
@@ -163,7 +164,12 @@ class NeuralDbg:
         # Install hooks on all modules (including root for full coverage)
         for name, module in self.model.named_modules():
             self.hooks.append(module.register_forward_hook(forward_hook))
-            self.hooks.append(module.register_backward_hook(backward_hook))
+            # Use register_full_backward_hook if available (PyTorch 1.9+)
+            if hasattr(module, "register_full_backward_hook"):
+                self.hooks.append(module.register_full_backward_hook(full_backward_hook))
+            else:
+                # Fallback for older versions (though we expect >=1.9)
+                self.hooks.append(module.register_backward_hook(full_backward_hook))
 
     def _remove_hooks(self):
         """Remove all installed hooks."""
@@ -180,13 +186,28 @@ class NeuralDbg:
 
     def _compute_activation_stats(self, tensor: torch.Tensor) -> Dict[str, float]:
         """Compute statistical summary of activation tensor."""
+        # Ensure we are working with float32 for stats to avoid precision issues
+        t_float = tensor.detach().float()
+        
+        # Calculate sparsity (fraction of zeros)
+        # Using a small epsilon for float comparison
+        sparsity = (t_float.abs() < 1e-9).float().mean().item()
+        
+        # Calculate dead neurons (per-neuron sparsity over batch)
+        # Assuming batch is dim 0
+        if t_float.dim() > 1:
+            dead_ratio = (t_float.abs().sum(dim=0) < 1e-9).float().mean().item()
+        else:
+            dead_ratio = sparsity
+
         return {
-            'mean': tensor.mean().item(),
-            'std': tensor.std().item(),
-            'min': tensor.min().item(),
-            'max': tensor.max().item(),
-            'sparsity': (tensor == 0).float().mean().item(),
-            'norm': tensor.norm().item()
+            'mean': t_float.mean().item(),
+            'std': t_float.std().item(),
+            'min': t_float.min().item(),
+            'max': t_float.max().item(),
+            'sparsity': sparsity,
+            'dead_ratio': dead_ratio,
+            'norm': t_float.norm().item()
         }
 
     def _detect_activation_shift(self, prev_stats: Dict[str, float], current_stats: Dict[str, float]) -> Optional[Dict[str, Any]]:
@@ -249,9 +270,60 @@ class NeuralDbg:
 
         if failure_type == "vanishing_gradients":
             hypotheses = self._explain_vanishing_gradients()
+        elif failure_type == "exploding_gradients":
+            hypotheses = self._explain_exploding_gradients()
+        elif failure_type == "dead_neurons":
+            hypotheses = self._explain_dead_neurons()
 
         # Sort by confidence
         hypotheses.sort(key=lambda h: h.confidence, reverse=True)
+        return hypotheses
+
+    def _explain_exploding_gradients(self) -> List[CausalHypothesis]:
+        """Generate hypotheses for exploding gradient failures."""
+        hypotheses = []
+
+        # Find first exploding gradient event
+        exploding_events = [e for e in self.events
+                          if e.event_type == EventType.GRADIENT_HEALTH_TRANSITION
+                          and e.to_state == GradientHealth.EXPLODING]
+
+        if not exploding_events:
+            return hypotheses
+
+        first_exploding = min(exploding_events, key=lambda e: e.step)
+
+        # Hypothesis 1: Originated in this layer
+        hypotheses.append(CausalHypothesis(
+            description=f"Gradient explosion originated in layer '{first_exploding.layer_name}' at step {first_exploding.step}",
+            confidence=first_exploding.confidence,
+            evidence=[first_exploding],
+            causal_chain=[f"Explosion detected in {first_exploding.layer_name}"]
+        ))
+
+        return hypotheses
+
+    def _explain_dead_neurons(self) -> List[CausalHypothesis]:
+        """Generate hypotheses for dead neuron failures."""
+        hypotheses = []
+
+        # Use ACTIVATION_REGIME_SHIFT to detect high sparsity/dead_ratio
+        dead_events = [e for e in self.events
+                      if e.event_type == EventType.ACTIVATION_REGIME_SHIFT
+                      and e.to_state.get('dead_ratio', 0) > 0.9]
+
+        if not dead_events:
+            return hypotheses
+
+        first_dead = min(dead_events, key=lambda e: e.step)
+
+        hypotheses.append(CausalHypothesis(
+            description=f"Neuron death detected in layer '{first_dead.layer_name}' at step {first_dead.step}",
+            confidence=first_dead.confidence,
+            evidence=[first_dead],
+            causal_chain=[f"High dead_ratio ({first_dead.to_state['dead_ratio']:.2f}) in {first_dead.layer_name}"]
+        ))
+
         return hypotheses
 
     def _explain_vanishing_gradients(self) -> List[CausalHypothesis]:
@@ -321,3 +393,46 @@ class NeuralDbg:
                     })
 
         return couplings
+
+    def export_mermaid_causal_graph(self) -> str:
+        """
+        Export the captured semantic events as a Mermaid causal graph.
+        
+        Returns:
+            Mermaid-compatible string for visualization
+        """
+        lines = ["graph TD"]
+        
+        # Create nodes for all events
+        for i, event in enumerate(self.events):
+            # Format: EventID["Event Type in Layer (Step X)"]
+            label = f"{event.event_type.value} in {event.layer_name} (Step {event.step})"
+            lines.append(f'    E{i}["{label}"]')
+            
+        # Create edges for coupled failures
+        couplings = self.detect_coupled_failures()
+        for coupling in couplings:
+            # Find indices of events (this is simple matching)
+            idx1 = -1
+            idx2 = -1
+            for i, event in enumerate(self.events):
+                if f"{event.event_type.value} in {event.layer_name}" == coupling['event1']:
+                    idx1 = i
+                if f"{event.event_type.value} in {event.layer_name}" == coupling['event2']:
+                    idx2 = i
+            
+            if idx1 != -1 and idx2 != -1:
+                lines.append(f"    E{idx1} <-->|coupled| E{idx2}")
+                
+        # Create edges for temporal flow in the same layer
+        layer_events: Dict[str, List[int]] = {}
+        for i, event in enumerate(self.events):
+            if event.layer_name not in layer_events:
+                layer_events[event.layer_name] = []
+            layer_events[event.layer_name].append(i)
+            
+        for layer, indices in layer_events.items():
+            for j in range(len(indices) - 1):
+                lines.append(f"    E{indices[j]} -->|temporal| E{indices[j+1]}")
+                
+        return "\n".join(lines)

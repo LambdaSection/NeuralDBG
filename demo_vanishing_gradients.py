@@ -16,17 +16,22 @@ def create_failing_model():
     """Create a model prone to vanishing gradients."""
     return nn.Sequential(
         nn.Linear(10, 50),
-        nn.Tanh(),  # Tanh saturates easily
+        nn.Tanh(),
+        nn.Linear(50, 50),
+        nn.Tanh(),
+        nn.Linear(50, 50),
+        nn.Tanh(),
         nn.Linear(50, 20),
-        nn.Tanh(),  # Another saturation point
+        nn.Tanh(),
         nn.Linear(20, 1)
     )
 
 def create_problematic_data():
     """Create data that exacerbates vanishing gradients."""
     # Small learning rate with saturating activations
-    X = torch.randn(1000, 10) * 0.1  # Small input scale
-    y = torch.randn(1000, 1) * 0.01  # Small target scale
+    X = torch.randn(1000, 10) * 0.1
+    X.requires_grad_(True)  # Ensure hooks fire properly
+    y = torch.randn(1000, 1) * 0.01
     dataset = TensorDataset(X, y)
     return DataLoader(dataset, batch_size=32, shuffle=True)
 
@@ -36,7 +41,7 @@ def train_with_monitoring(model, dataloader, num_steps=100):
 
     This demonstrates the causal inference approach.
     """
-    optimizer = optim.SGD(model.parameters(), lr=0.001)  # Very small LR
+    optimizer = optim.SGD(model.parameters(), lr=0.0001)  # Even smaller LR
     criterion = nn.MSELoss()
 
     print("🔍 Training with NeuralDBG monitoring...")
@@ -44,7 +49,7 @@ def train_with_monitoring(model, dataloader, num_steps=100):
     print("   Expected: Vanishing gradients due to saturation + small LR")
     print()
 
-    with NeuralDbg(model) as dbg:
+    with NeuralDbg(model, threshold_vanishing=1e-3) as dbg:  # More sensitive threshold for demo
         for step in range(num_steps):
             for batch_x, batch_y in dataloader:
                 optimizer.zero_grad()
@@ -98,6 +103,12 @@ def train_with_monitoring(model, dataloader, num_steps=100):
 
     for event_type, count in event_counts.items():
         print(f"   • {event_type}: {count} events")
+
+    # Show Mermaid graph
+    print("\n🗺️ Causal Graph (Mermaid):")
+    print("-" * 50)
+    print(dbg.export_mermaid_causal_graph())
+    print("-" * 50)
 
     return hypotheses
 
