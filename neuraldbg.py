@@ -200,6 +200,10 @@ class NeuralDbg:
         else:
             dead_ratio = sparsity
 
+        # Calculate saturation ratio (for Sigmoid or Tanh typically)
+        # We consider a value saturated if it's very close to 1.0 or -1.0
+        saturation_ratio = (t_float.abs() > 0.95).float().mean().item()
+
         return {
             'mean': t_float.mean().item(),
             'std': t_float.std().item(),
@@ -207,21 +211,28 @@ class NeuralDbg:
             'max': t_float.max().item(),
             'sparsity': sparsity,
             'dead_ratio': dead_ratio,
-            'norm': t_float.norm().item()
+            'norm': t_float.norm().item(),
+            'saturation_ratio': saturation_ratio
         }
 
     def _detect_activation_shift(self, prev_stats: Dict[str, float], current_stats: Dict[str, float]) -> Optional[Dict[str, Any]]:
         """Detect significant shifts in activation patterns."""
         # Simple heuristic: large change in sparsity or norm indicates regime shift
-        sparsity_change = abs(current_stats['sparsity'] - prev_stats['sparsity'])
-        norm_change = abs(current_stats['norm'] - prev_stats['norm']) / max(prev_stats['norm'], 1e-6)
+        sparsity_change = abs(current_stats.get('sparsity', 0) - prev_stats.get('sparsity', 0))
+        norm_change = abs(current_stats.get('norm', 0) - prev_stats.get('norm', 0)) / max(prev_stats.get('norm', 0), 1e-6)
+        saturation_change = abs(current_stats.get('saturation_ratio', 0) - prev_stats.get('saturation_ratio', 0))
 
-        if sparsity_change > 0.1 or norm_change > 0.5:  # Thresholds for detection
-            confidence = min(sparsity_change * 10, norm_change * 2, 1.0)
+        if sparsity_change > 0.1 or norm_change > 0.5 or saturation_change > 0.1:  # Thresholds for detection
+            confidence = max(
+                min(sparsity_change * 10, 1.0),
+                min(norm_change * 2, 1.0),
+                min(saturation_change * 10, 1.0)
+            )
             return {
                 'confidence': confidence,
                 'sparsity_change': sparsity_change,
-                'norm_change': norm_change
+                'norm_change': norm_change,
+                'saturation_change': saturation_change
             }
         return None
 
@@ -274,6 +285,8 @@ class NeuralDbg:
             hypotheses = self._explain_exploding_gradients()
         elif failure_type == "dead_neurons":
             hypotheses = self._explain_dead_neurons()
+        elif failure_type == "saturated_activations":
+            hypotheses = self._explain_saturated_activations()
 
         # Sort by confidence
         hypotheses.sort(key=lambda h: h.confidence, reverse=True)
@@ -322,6 +335,28 @@ class NeuralDbg:
             confidence=first_dead.confidence,
             evidence=[first_dead],
             causal_chain=[f"High dead_ratio ({first_dead.to_state['dead_ratio']:.2f}) in {first_dead.layer_name}"]
+        ))
+
+        return hypotheses
+    def _explain_saturated_activations(self) -> List[CausalHypothesis]:
+        """Generate hypotheses for saturated activation failures."""
+        hypotheses = []
+
+        # Find events with high saturation
+        sat_events = [e for e in self.events
+                     if e.event_type == EventType.ACTIVATION_REGIME_SHIFT
+                     and e.to_state.get('saturation_ratio', 0) > 0.7]
+
+        if not sat_events:
+            return hypotheses
+
+        first_sat = min(sat_events, key=lambda e: e.step)
+
+        hypotheses.append(CausalHypothesis(
+            description=f"Activation saturation detected in layer '{first_sat.layer_name}' at step {first_sat.step}",
+            confidence=first_sat.confidence,
+            evidence=[first_sat],
+            causal_chain=[f"High saturation_ratio ({first_sat.to_state['saturation_ratio']:.2f}) in {first_sat.layer_name}"]
         ))
 
         return hypotheses
