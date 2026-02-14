@@ -24,8 +24,5 @@
 
 ## 5. One Project at a Time
 - Work on **one project at a time**. No parallel development.
-- Finish project A or B before switching to the other.
+- Roadmap : `PROJECTS.md` (racine)
 
----
-
-> Roadmap des projets A & B : `.antigravity/PROJECTS.md`

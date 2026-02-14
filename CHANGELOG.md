@@ -12,6 +12,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Strategic section "Tools for the AI Era" explaining why structured tools matter when AI agents can code
 - `.github/workflows/codeql.yml` — CodeQL security analysis (Python)
 - `.github/workflows/codacy.yml` — Codacy static analysis (auto-detects Python)
-- `.antigravity/RULES.md` — Copie des règles pour AntiGravity (README/Changelog, Zero Friction, etc.)
-- `.antigravity/PROJECTS.md` — Roadmap Projets A & B (développés ici)
-- `.cursor/rules/antigravity-projects.mdc` — Cursor rule: one project at a time
+- `.antigravity/RULES.md` — Copie des règles pour l’IDE AntiGravity uniquement
+- `PROJECTS.md` — Roadmap Projets A & B (racine, aucun lien avec AntiGravity)

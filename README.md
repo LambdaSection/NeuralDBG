@@ -125,6 +125,7 @@ MIT License - see [LICENSE.md](LICENSE.md) for details.
 
 ## Documentation
 
+- [PROJECTS.md](PROJECTS.md) - Roadmap Projets A & B
 - [CHANGELOG.md](CHANGELOG.md) - Version history and notable changes
 - [logic_graph.md](logic_graph.md) - System architecture and data flow
 

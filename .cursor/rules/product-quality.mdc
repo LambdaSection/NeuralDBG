@@ -24,3 +24,7 @@ These rules apply to every feature, fix, or refactor.
 ## 4. Security & Quality Tooling
 - CI must include **CodeQL**, **SonarQube**, and **Codacy** (or equivalent).
 - No shortcuts on static analysis. Fail builds on critical issues.
+
+## 5. One Project at a Time
+- Work on one project at a time. No parallel development.
+- Roadmap : `PROJECTS.md`
