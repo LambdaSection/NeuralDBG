@@ -14,3 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.github/workflows/codacy.yml` — Codacy static analysis (auto-detects Python)
 - `.antigravity/RULES.md` — Copie des règles pour l’IDE AntiGravity uniquement
 - `PROJECTS.md` — Roadmap Projets A & B (racine, aucun lien avec AntiGravity)
+- `artifacts/` — Artifacts générés (déplacés depuis .antigravity/artifacts)
+
+### Changed
+- Projet A : repo dédié sous Quant-Search, NeuralDBG utilisé pour debug itératif
+
+### Added
+- `skeleton-quant-search/` — squelette prêt à copier pour le repo Quant-Search

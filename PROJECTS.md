@@ -1,10 +1,14 @@
 # Roadmap — Projets A & B
 
-> Un seul projet à la fois. Développés ici.
+> Un seul projet à la fois.
 
 ---
 
 ## Projet A — Transformer Probabiliste pour Séries Temporelles
+
+**Repo**: [Quant-Search](https://github.com/Quant-Search) (organisation) — repo dédié  
+**Debug**: NeuralDBG (ce repo) — utilisé pour déboguer l'entraînement au fur et à mesure  
+**Workflow**: Développer A dans Quant-Search, améliorer NeuralDBG et le projet A itérativement
 
 **Orientation**: OpenQuant
 
@@ -27,9 +31,18 @@ NLL Gaussian : \( L = \frac{1}{2}\log(\sigma^2) + \frac{(y-\mu)^2}{2\sigma^2} \)
 ### Extensions futures
 - Multi-head temporal attention, multi-horizon, calibration (ECE), backtesting
 
+### Setup repo Quant-Search
+1. Créer un nouveau repo sous l'organisation Quant-Search (ex: `probabilistic-time-series`)
+2. Copier le squelette : `skeleton-quant-search/` → contenu du nouveau repo
+3. Dépendances : `pip install -e .` ; NeuralDBG en local : `pip install -e /path/to/NeuralDBG`
+4. Lancer : `python -m src.train`
+5. Itérer : améliorer le modèle dans Quant-Search, améliorer NeuralDBG selon les besoins de debug
+
 ---
 
 ## Projet B — Adaptive Gradient Architecture
+
+**Repo**: NeuralDBG (ce repo)
 
 **Orientation**: Neural / NeuralDBG
 
