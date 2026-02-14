@@ -1,85 +1,31 @@
-# AntiGravity Rules — NeuralDBG / OpenQuant Roadmap
+# Rules for AI (AntiGravity / Cursor / Copilot)
 
-> **Workflow**: On travaille sur **un seul projet à la fois**. Finir A avant de passer à B, ou vice versa. Pas de développement en parallèle.
-
----
-
-## 🔷 Projet A — Transformer Probabiliste pour Séries Temporelles
-
-**Orientation**: OpenQuant
-
-### Objectif
-Modéliser une **distribution conditionnelle** :  
-\( P(Y_{t+1} \mid X_{1:t}) \)  
-
-Pas une valeur. Une **incertitude exploitable**.
-
-### Architecture V1 (minimaliste mais sérieuse)
-- Input embedding (features + time encoding)
-- Positional encoding
-- Transformer Encoder
-- Head probabiliste :
-  - μ (mean)
-  - σ (std)
-  - Optionnel : mixture logits
-
-### Dataset
-- **Commencer synthétique** (sinusoïde bruitée)
-- Si ça ne marche pas sur du propre, ça ne marchera pas sur du marché
-- Plus tard : Crypto OHLCV, Forex
-
-### Loss
-Negative Log Likelihood (Gaussian) :
-```
-L = (1/2) log(σ²) + (y − μ)² / (2σ²)
-```
-Ça force le modèle à calibrer son incertitude.
-
-### Extensions futures
-- Multi-head temporal attention
-- Multi-horizon forecasting
-- Calibration testing (Expected Calibration Error)
-- Backtesting avec gestion du risque
+> Copie des règles du projet — à appliquer par tout assistant IA (AntiGravity, Cursor, etc.)
 
 ---
 
-## 🔶 Projet B — Adaptive Gradient Architecture
+## 1. Always Update README & Changelog
+- Every feature or fix must update `README.md` (usage, examples, API if changed).
+- Update `CHANGELOG.md` (create if missing) with conventional commit-style entries.
 
-**Orientation**: Neural / NeuralDBG
+## 2. Zero Friction for Users
+- Tools must work out of the box. Minimal config, clear defaults.
+- Provide copy-paste examples that run without extra setup.
+- No hidden requirements; document any prerequisite explicitly.
 
-### Objectif
-On ne prédit rien. On **observe et corrige** la dynamique interne.
+## 3. Solve Real Pain Points
+- Before building: *"Does this fix a real user pain?"*
+- No speculative features; validate need first.
+- Prefer solving existing problems over adding new capabilities.
 
-Créer une couche qui :
-- Mesure la norme des gradients layer-wise
-- Détecte une décroissance anormale
-- Applique une correction adaptative
+## 4. Security & Quality Tooling
+- CI must include **CodeQL**, **SonarQube**, and **Codacy** (or equivalent).
+- No shortcuts on static analysis. Fail builds on critical issues.
 
-### Concept V1 (simple et puissant)
-À chaque backward pass :
-1. Calculer ‖∇W‖
-2. Maintenir une moyenne mobile (EMA)
-3. Si gradient < seuil dynamique → rescale
-
-### Structure cible
-```python
-class AdaptiveGradientWrapper(nn.Module):
-    def __init__(self, module):
-        super().__init__()
-        self.module = module
-        self.grad_ema = None
-```
-On encapsule n'importe quelle couche.
-
-### Mécanisme
-Si ‖∇W‖ < α · EMA  
-Alors ∇W ← β · ∇W  (avec β > 1)
-
-### Expériences à mener
-- Tester sur : Deep MLP 50 couches, RNN long sequence, Transformer profond
-- Comparer : convergence speed, stabilité, distribution des gradients
+## 5. One Project at a Time
+- Work on **one project at a time**. No parallel development.
+- Finish project A or B before switching to the other.
 
 ---
 
-## Artifacts
-Maintenir les artefacts générés sous `./.antigravity/artifacts/` (reports, plots, checkpoints, etc.).
+> Roadmap des projets A & B : `.antigravity/PROJECTS.md`

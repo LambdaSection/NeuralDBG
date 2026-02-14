@@ -77,6 +77,7 @@ Every session should produce a structured session summary and follow conventiona
 ### Protocol
 - **Step-by-Step**: Follow the plan and verify phase completion before proceeding.
 - **Context Persistence**: Maintain artifacts under `./.antigravity/artifacts/` when applicable.
+- **AntiGravity**: Rules copy in `.antigravity/RULES.md` (same as Cursor product-quality). Roadmap in `.antigravity/PROJECTS.md`.
 
 ### Updating Visuals & Demos
 1.  Edit visualization/export code under `neuraldbg` or `demo_vanishing_gradients.py` as needed.
