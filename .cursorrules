@@ -38,10 +38,22 @@ You are a co-engineer, not a typist. Always ask whether a change improves user o
 **After implementation:**
 - Review your diffs. Suggest improvements and document technical debt.
 
+## 🌐 Tools for the AI Era — Strategic Positioning
+When AI agents (Cursor, Copilot, etc.) can write and debug code, specialized tools still matter:
+- **Structured Observability**: Tools produce *machine-readable* data (e.g., `SemanticEvent`, causal chains). AI agents consume this to reason; humans get explanations. Both need the same source of truth.
+- **Bidirectional Tooling**: Build tools that feed AI assistants *and* present to humans. The value is the *structured bridge*, not raw dumps.
+- **Reduced Cognitive Load**: Even with AI help, users need to know *what to ask*. Semantic events give the vocabulary. AI can then act on that vocabulary.
+
+## 📜 Mandatory Product & Quality Rules (Always Apply)
+- **Always Update README & Changelog**: Every feature or fix must update `README.md` and `CHANGELOG.md` (create if missing).
+- **Zero Friction for Users**: Our tools must work out of the box. Minimal config, clear defaults, copy-paste examples that run.
+- **Solve Real Pain Points**: Before building, ask: "Does this fix a real user pain?" No speculative features; validate need first.
+- **Security & Quality Tooling**: CI must include **CodeQL**, **SonarQube**, and **Codacy** (or equivalent). No shortcuts on static analysis.
+
 ## 🛠️ Tooling & Hooks
 - **Pre-Commit**: Mandatory. Run `ruff`, `mypy`, and `pylint` before commits.
 - **Diagrams**: When architecture changes, regenerate diagrams and update `README.md` or `logic_graph.md` as appropriate.
-- **Linters**: `ruff`, `mypy`, `pylint`, and optional `CodeQL` for security scans.
+- **Linters**: `ruff`, `mypy`, `pylint`. **Required**: CodeQL, SonarQube, Codacy in CI.
 
 ## 📝 Coding & Testing Standards
 - **Type Hints**: Add type hints to public APIs where practical.

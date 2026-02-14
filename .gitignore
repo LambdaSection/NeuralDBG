@@ -15,3 +15,7 @@ htmlcov/
 
 # Virtual environment
 venv/
+
+# AntiGravity artifacts (generated; RULES.md is tracked)
+.antigravity/artifacts/*
+!.antigravity/artifacts/.gitkeep

@@ -3,6 +3,12 @@
 
 You are an AI programming assistant working on **NeuralDBG**, a causal inference engine for deep learning training dynamics.
 
+## 📜 Mandatory Product & Quality Rules (Always Apply)
+- **Always Update README & Changelog**: Every feature or fix must update `README.md` and `CHANGELOG.md` (create if missing).
+- **Zero Friction for Users**: Tools must work out of the box. Minimal config, clear defaults, copy-paste examples that run.
+- **Solve Real Pain Points**: Before building, ask: "Does this fix a real user pain?" No speculative features; validate need first.
+- **Security & Quality Tooling**: CI must include **CodeQL**, **SonarQube**, and **Codacy** (or equivalent). No shortcuts on static analysis.
+
 ## 🧠 Core Philosophy
 1.  **Switzerland Positioning**: Keep core logic framework-agnostic and avoid preferring one upstream framework over another.
 2.  **Clarity Over Noise**: Outputs and visualizations should be clear, well-tested, and reviewer-friendly.

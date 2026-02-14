@@ -7,6 +7,20 @@ If you are using an AI coding assistant (Cursor, Windsurf, Copilot, etc.), ensur
 - **Cursor/Windsurf**: `.cursorrules` (in root)
 - **GitHub Copilot**: `.github/copilot-instructions.md`
 
+## Mandatory Product & Quality Rules (Always Apply)
+- **Always Update README & Changelog**: Every feature or fix must update `README.md` and `CHANGELOG.md` (create if missing).
+- **Zero Friction for Users**: Tools must work out of the box. Minimal config, clear defaults, copy-paste examples that run.
+- **Solve Real Pain Points**: Before building, ask: "Does this fix a real user pain?" No speculative features; validate need first.
+- **Security & Quality Tooling**: CI must include **CodeQL**, **SonarQube**, and **Codacy** (or equivalent). No shortcuts on static analysis.
+
+## Tools for the AI Era
+When AI agents can write and debug code, specialized tools still matter:
+- **Structured Observability**: Tools produce machine-readable data (`SemanticEvent`, causal chains). AI consumes it; humans get explanations.
+- **Bidirectional Tooling**: Build tools that feed AI assistants *and* present to humans. The value is the structured bridge.
+- **Reduced Cognitive Load**: Semantic events give users the vocabulary to ask the right questions; AI can then act on it.
+
+---
+
 ## Core Principles
 
 ### 1. Framework Neutrality ("Switzerland")

@@ -1,0 +1,21 @@
+# Codacy code quality analysis — runs on push/PR to main
+# Optional: Add CODACY_PROJECT_TOKEN to repo secrets to upload results to Codacy UI
+# See: https://github.com/codacy/codacy-analysis-cli-action
+
+name: Codacy
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  codacy:
+    name: Codacy Analysis CLI
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Codacy Analysis CLI
+        uses: codacy/codacy-analysis-cli-action@master
