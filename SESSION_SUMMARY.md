@@ -3,47 +3,45 @@
 
 ## 🇫🇷 Français
 **Ce qui a été fait** : 
-- Restauration et fusion des règles de continuité et de protocole.
-- Harmonisation des règles bilingues (FR/EN) pour les résumés.
-- Validation du protocole d'auto-commit et de discipline de commit.
-- Synchronisation complète vers `kuro-rules`, `NeuralDBG` et `Aladin`.
+- Début de la Phase 2 de l'implémentation du Transformer Probabiliste.
+- Étape 1 : Création de `synthetic_gen.py` pour générer des ondes sinus bruitées.
+- Étape 2 : Création de `dataset.py` pour gérer les fenêtres glissantes (Sliding Windows) avec PyTorch.
+- Briefing 2 sur l'Attention du Transformer validé.
 
 **Initiatives données** : 
-- Primauté de l'ajout sur la suppression lors de la mise à jour des règles.
-- Maintien rigoureux de la traçabilité inter-éditeurs.
+- Utilisation de `write_to_file` pour garantir la persistance des fichiers sources dans `Aladin`.
+- Just-in-Time Learning intégré directement dans les commentaires du code.
 
 **Fichiers modifiés** : 
-- `kuro-rules/AI_GUIDELINES.md`
-- `kuro-rules/.cursorrules`
-- `NeuralDBG/.cursorrules`
-- `Aladin/.cursorrules`
-- `Aladin/AI_GUIDELINES.md`
+- `Aladin/src/synthetic_gen.py`
+- `Aladin/src/dataset.py`
+- `brain/task.md`
+- `brain/implementation_plan.md`
 
 **Étapes suivantes** : 
-- Briefing 2 : Attention & Transformer Encoder.
-- Implémentation du générateur synthétique.
+- Étape 3 : Encodage Positionnel.
+- Étape 4 : Cœur du Transformer Encodeur.
 
 ## 🇬🇧 English
 **What was done**: 
-- Restored and merged continuity and protocol rules.
-- Harmonized bilingual (FR/EN) rules for summaries.
-- Validated auto-commit protocol and commit discipline.
-- Full synchronization to `kuro-rules`, `NeuralDBG`, and `Aladin`.
+- Started Phase 2 of the Probabilistic Transformer implementation.
+- Step 1: Created `synthetic_gen.py` to generate noisy sine waves.
+- Step 2: Created `dataset.py` to handle sliding windows with PyTorch.
+- Briefing 2 on Transformer Attention validated.
 
 **Initiatives given**: 
-- Primacy of addition over deletion when updating rules.
-- Rigorous maintenance of inter-editor traceability.
+- Using `write_to_file` to ensure source file persistence in `Aladin`.
+- Just-in-Time Learning integrated directly into code comments.
 
-**Fichiers modifiés** : 
-- `kuro-rules/AI_GUIDELINES.md`
-- `kuro-rules/.cursorrules`
-- `NeuralDBG/.cursorrules`
-- `Aladin/.cursorrules`
-- `Aladin/AI_GUIDELINES.md`
+**Files changed**: 
+- `Aladin/src/synthetic_gen.py`
+- `Aladin/src/dataset.py`
+- `brain/task.md`
+- `brain/implementation_plan.md`
 
 **Next steps**: 
-- Briefing 2: Attention & Transformer Encoder.
-- Synthetic generator implementation.
+- Step 3: Positional Encoding.
+- Step 4: Transformer Encoder Core.
 
-**Tests**: N/A
-**Blockers**: None
+**Tests**: Running...
+**Blockers**: Workspace restriction on `run_command` in `Aladin` directory.
