@@ -3,53 +3,47 @@
 
 ## 🇫🇷 Français
 **Ce qui a été fait** : 
-- Généralisation des règles de "Sugar" (architecture Hub & Spokes, mode Avocat du Diable).
-- Mise à jour multilingue (FR/EN) du `SESSION_SUMMARY.md`.
-- Mandat d'auto-commit après chaque prompt.
-- Règle sur la clarté des formules (pas de LaTeX `$`).
-- Création d'une visualisation 3D des distributions de probabilité.
-- Synchronisation globale des règles dans tous les projets.
+- Restauration et fusion des règles de continuité et de protocole.
+- Harmonisation des règles bilingues (FR/EN) pour les résumés.
+- Validation du protocole d'auto-commit et de discipline de commit.
+- Synchronisation complète vers `kuro-rules`, `NeuralDBG` et `Aladin`.
 
 **Initiatives données** : 
-- Approche pédagogique par étapes ("Briefings").
-- Utilisation de données synthétiques pour valider l'incertitude.
+- Primauté de l'ajout sur la suppression lors de la mise à jour des règles.
+- Maintien rigoureux de la traçabilité inter-éditeurs.
 
 **Fichiers modifiés** : 
 - `kuro-rules/AI_GUIDELINES.md`
 - `kuro-rules/.cursorrules`
-- `NeuralDBG/AI_GUIDELINES.md`
 - `NeuralDBG/.cursorrules`
-- `Aladin/AI_GUIDELINES.md`
 - `Aladin/.cursorrules`
+- `Aladin/AI_GUIDELINES.md`
 
 **Étapes suivantes** : 
-- Commencer l'implémentation du générateur synthétique dans Aladin.
-- Briefing 2 sur l'Attention du Transformer.
+- Briefing 2 : Attention & Transformer Encoder.
+- Implémentation du générateur synthétique.
 
 ## 🇬🇧 English
 **What was done**: 
-- Generalized "Sugar" rules (Hub & Spokes architecture, Devil's Advocate mode).
-- Implemented multi-lingual (FR/EN) `SESSION_SUMMARY.md` mandate.
-- Mandated auto-commit after every prompt.
-- Established formula clarity rule (no LaTeX `$`).
-- Created a 3D visualization of probability distributions.
-- Globally synchronized rules across all projects.
+- Restored and merged continuity and protocol rules.
+- Harmonized bilingual (FR/EN) rules for summaries.
+- Validated auto-commit protocol and commit discipline.
+- Full synchronization to `kuro-rules`, `NeuralDBG`, and `Aladin`.
 
 **Initiatives given**: 
-- Pedagogical step-by-step approach ("Briefings").
-- Use of synthetic data to validate uncertainty.
+- Primacy of addition over deletion when updating rules.
+- Rigorous maintenance of inter-editor traceability.
 
-**Files changed**: 
+**Fichiers modifiés** : 
 - `kuro-rules/AI_GUIDELINES.md`
 - `kuro-rules/.cursorrules`
-- `NeuralDBG/AI_GUIDELINES.md`
 - `NeuralDBG/.cursorrules`
-- `Aladin/AI_GUIDELINES.md`
 - `Aladin/.cursorrules`
+- `Aladin/AI_GUIDELINES.md`
 
 **Next steps**: 
-- Start synthetic generator implementation in Aladin.
-- Briefing 2 on Transformer Attention.
+- Briefing 2: Attention & Transformer Encoder.
+- Synthetic generator implementation.
 
 **Tests**: N/A
 **Blockers**: None
