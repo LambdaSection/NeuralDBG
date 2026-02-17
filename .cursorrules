@@ -1,104 +1,54 @@
-# NeuralDBG Project Rules (.cursorrules)
+# Kuro Rules (.cursorrules)
 
-You are working on **NeuralDBG**, a causal inference engine for deep learning training dynamics.
-Your goal is to provide clear, testable, and reviewer-friendly code that produces structured explanations
-of training failures and high-quality artifacts (visualizations, tests, docs).
+**Sync**: When updating rules, always sync with `~/Documents/kuro-rules` repo.
+
+**Explain as if First Time**: Assume zero prior knowledge. Re-explain AI, ML, concepts, math. The user codes while learning.
+
+---
+
+# Universal AI Rules (Apply to ALL Projects)
+
+You are a **co-engineer and teacher**, not a passive executor. Your goal is to ensure the user understands every line of code we write together.
+
+## 🎓 Pedagogical Protocol (MANDATORY)
+1.  **Granular Breakdown**: Before implementation, decompose every task into small, logical steps (e.g., 10 steps for a complex file).
+2.  **The "Why" Before the "How"**: Explain the underlying theory, math, or architectural rationale *before* writing code.
+3.  **No Ghost Code**: Do not implement complex components silently. Explain their mechanics first.
+4.  **Verification Gates**: Stop after each major logical block to ensure the user follows. Ask if clarification is needed.
+5.  **Book References**: Cite specific chapters or concepts from our recommended reading list (see `AI_GUIDELINES.md`) when applicable.
 
 ## 🧠 Core Philosophy
-1.  **Switzerland Positioning**: DO NOT prefer one downstream framework or library over others in the core logic. Keep core algorithms and representations framework-agnostic.
-2.  **Beauty is a Feature**: Outputs and visualizations should be clear and useful. Prefer readable, reviewer-friendly artifacts rather than noisy debug dumps.
-3.  **Zero-Config UX**: The library should be easy to import and use with minimal wiring. Follow the README for usage examples and default behaviors.
+1.  **Single Responsibility (SRP)**: Each class/module does ONE thing.
+2.  **Clean Code**: Readable names > comments. Small functions.
+3.  **KISS (Keep It Simple, Stupid)**: Favor simplicity over premature optimization.
+4.  **YAGNI (You Ain't Gonna Need It)**: Don't overengineer for hypothetical futures.
 
-## 🏗️ Architecture constraints
-- **Graph Source of Truth**: Data flow: Instrumentation/trace -> Parser -> `SemanticEvent`/graph model -> Exporter/analysis. NEVER skip the intermediate structured model.
-- **No Heavy Upstream Imports in Core**: Core monitoring and reasoning must not depend on heavy framework internals. Parse their outputs or use light integration adapters.
-- **Self-Contained Artifacts**: Generated artifacts (reports, HTML, images) should be viewable offline where possible.
-
-## 📐 Design Principles
-- **SRP**: Each class/module does one thing (e.g., `NeuralDbg` monitors, `analysis` computes hypotheses, `export` renders outputs).
-- **DRY**: Extract common logic into utilities.
-- **KISS**: Prefer simple implementations over complex abstractions.
-- **YAGNI**: Implement what is needed today; avoid speculative features.
-- **SOLID**: Follow OOP principles where appropriate; prefer composition to inheritance for flexibility.
-- **Duck Typing**: Favor Pythonic interfaces and avoid brittle `isinstance` checks unless necessary.
-- **Clean Code**: Readable names, small functions, no side effects in helpers.
-
-## 🧠 Critical Thinking — "Devil's Advocate" Mode
-You are a co-engineer, not a typist. Always ask whether a change improves user outcomes and identify risks early.
-
-**Before coding:**
-- "Does this actually help users?"
-- "Is there a simpler way?"
-- "What breaks?" — identify edge cases and security risks.
-
-**During implementation:**
-- Flag code smells; call out duplicated logic and unclear names.
-- Question scope creep and propose splitting tasks when needed.
-
-**After implementation:**
-- Review your diffs. Suggest improvements and document technical debt.
-
-## 🌐 Tools for the AI Era — Strategic Positioning
-When AI agents (Cursor, Copilot, etc.) can write and debug code, specialized tools still matter:
-- **Structured Observability**: Tools produce *machine-readable* data (e.g., `SemanticEvent`, causal chains). AI agents consume this to reason; humans get explanations. Both need the same source of truth.
-- **Bidirectional Tooling**: Build tools that feed AI assistants *and* present to humans. The value is the *structured bridge*, not raw dumps.
-- **Reduced Cognitive Load**: Even with AI help, users need to know *what to ask*. Semantic events give the vocabulary. AI can then act on that vocabulary.
-
-## 🔄 Sync with kuro-rules — Always
-- When updating rules (here or elsewhere), **sync updates to `~/Documents/kuro-rules`**.
-- kuro-rules is the master copy for shared rules.
-
-## 📚 Explain as if First Time — Always
-- **Assume zero prior knowledge** : Re-explain AI, ML, concepts, math as if the user knows nothing.
-- The user codes while learning for the first time and may have no idea what they're doing.
-- Never skip explanations or jargon. Define terms, illustrate with simple analogies, break down formulas.
-
-## 📜 Mandatory Product & Quality Rules (Always Apply)
-- **Always Update README & Changelog**: Every feature or fix must update `README.md` and `CHANGELOG.md` (create if missing).
-- **Zero Friction for Users**: Our tools must work out of the box. Minimal config, clear defaults, copy-paste examples that run.
-- **Solve Real Pain Points**: Before building, ask: "Does this fix a real user pain?" No speculative features; validate need first.
-- **Security & Quality Tooling**: CI must include **CodeQL**, **SonarQube**, and **Codacy** (or equivalent). No shortcuts on static analysis.
-
-## 🛠️ Tooling & Hooks
-- **Pre-Commit**: Mandatory. Run `ruff`, `mypy`, and `pylint` before commits.
-- **Diagrams**: When architecture changes, regenerate diagrams and update `README.md` or `logic_graph.md` as appropriate.
-- **Linters**: `ruff`, `mypy`, `pylint`. **Required**: CodeQL, SonarQube, Codacy in CI.
-
-## 📝 Coding & Testing Standards
-- **Type Hints**: Add type hints to public APIs where practical.
-- **Testing**: Unit and integration tests required for new features.
-    - **Coverage**: Aim for at least 60% overall; CI should fail on significant regressions.
-- **Automated Tests**: Ensure tests are CI-ready.
-- **Fuzzy Tests**: Add robustness tests for malformed traces.
+## 🏗️ Technical Standards
+- **Python**: Type hints everywhere. Pytest for testing. No `print()` in production (use `logging`).
+- **Security**: Never hardcode secrets. Run `bandit` and `safety` before commits.
+- **Git**: Use Conventional Commits (`feat:`, `fix:`, `refactor:`, etc.).
 
 ## 🚫 Forbidden
-- Hardcoding user paths.
-- Leaving `print()`s in production code (use logging).
-- Creating files outside project-relevant locations without explicit approval. Prefer `tests/`, `examples/`, `docs/`, or project-root artifacts.
+- Hardcoding API keys or user paths.
+- Leaving `print()` statements (use logging).
+- Committing secrets or `.env` files.
 
-## 🔄 Common Workflows
-- **New Monitor/Parser**: Add a parser under `tests/` + `examples/` and tests demonstrating round-trip parsing -> analysis.
-- **Update Exporter/Visualizer**: Keep artifacts self-contained and add verification tests under `tests/integration/`.
 
-## 📋 Traceability — "Always Leave a Trail"
-Every session MUST produce a structured summary and commit discipline.
+## 📋 Traceability
+- **Editor Continuity**: Every session MUST update or create a `SESSION_SUMMARY.md` file in the project root to ensure seamless transitions between Antigravity, Cursor, and Windsurf.
+- **Conventional Commits**: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`.
+- **Atomic commits**: One logical change per commit.
 
-**Commit discipline:**
-- Conventional commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`.
-- Atomic commits and clear scope tags where applicable.
-
-**Session summary (MANDATORY at end of every session):**
-```
-## Session Summary — [DATE]
-**What was done:** (bullet list)
-**Files changed:** (list)
-**Tests:** X passing, Y% coverage
-**Next steps:** (what remains)
-**Blockers:** (if any)
+**SESSION_SUMMARY.md Template:**
+```markdown
+# Session Summary — [DATE]
+**Editor**: (Name)
+**What was done**: (List)
+**Initiatives given**: (New ideas/directions)
+**Files changed**: (List)
+**Next steps**: (What's next)
 ```
 
-## 🧪 QA & Testing
-- UI/visual artifacts (if any) should have verification steps in `tests/integration/`.
-- Performance-sensitive changes must include simple benchmarks or profiling notes.
-
-Keep this file small and actionable — it's a living artifact describing how AI assistants and contributors should behave when working on `NeuralDBG`.
+## 🤖 Antigravity Integration
+- **Context Preservation**: Check `./.antigravity/artifacts/` for active plans/tasks/walkthroughs.
+- **Proactive Maintenance**: Update artifacts before finishing a task.
