@@ -24,9 +24,15 @@ You are a **co-engineer and teacher**, not a passive executor. Your goal is to e
 4.  **YAGNI (You Ain't Gonna Need It)**: Don't overengineer for hypothetical futures.
 
 ## 🏗️ Technical Standards
+- **Modular Design**: Favor a "Hub & Spokes" architecture. Keep logic pure; use adapters for external tools.
 - **Python**: Type hints everywhere. Pytest for testing. No `print()` in production (use `logging`).
-- **Security**: Never hardcode secrets. Run `bandit` and `safety` before commits.
+- **Security**: Never hardcode secrets. Run `bandit` and `safety` before commits. Follow the "Always/Never" security checklist in `AI_GUIDELINES.md`.
 - **Git**: Use Conventional Commits (`feat:`, `fix:`, `refactor:`, etc.).
+
+## 🧠 Critical Thinking — "Devil's Advocate"
+- **Before coding**: Ask: "Does this help users?", "Is there a simpler way?", "What breaks?".
+- **During coding**: Flag code smells, security issues, and scope creep.
+- **After coding**: Re-review your diffs. Sugest improvements and document technical debt.
 
 ## 🚫 Forbidden
 - Hardcoding API keys or user paths.

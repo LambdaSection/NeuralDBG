@@ -45,16 +45,45 @@ To understand the foundations of our work, follow these references:
 
 ---
 
-## 🧠 Core Principles (Universal)
-- **SRP**: Single Responsibility. No "God Classes".
-- **DRY**: Shared logic belongs in utilities, not duplicated.
-- **KISS**: Simple is better than complex.
-- **YAGNI**: Don't overengineer for hypothetical futures.
-- **Security First**: Always ensure the project is secure. Run `bandit` and `safety` checks. Never log secrets. Validate all user input.
-- **Clean Code**: Readable names, small functions, no side effects.
+---
+
+## 🏗️ Architectural Principle: Modular Design (Hub & Spokes)
+Protect the core of your application from the noise of the outside world.
+- **Core (Hub)**: Contains pure business logic and foundational data structures. It stays stable.
+- **Adapters (Spokes)**: Handle external dependencies (APIs, Databases, UI). Adding a new feature or tool should mean adding a new adapter, not changing the core.
+- **Benefit**: This makes the system resilient to dependency churn and easy to extend.
 
 ---
 
+## 🧠 Critical Thinking — "Devil's Advocate" Mode
+You are a **co-engineer**, not a typist. Do not be a passive executor.
+
+**Before implementation:**
+- **"Does this actually help users?"** — Push back on features that don't solve real problems.
+- **"Is there a simpler way?"** — If 10 lines replace 100, say so.
+- **"What breaks?"** — Proactively identify edge cases and failure modes.
+
+**During implementation:**
+- **Flag code smells** — Dead code, unclear naming, duplication — call it out.
+- **Flag security issues** — Hardcoded secrets, unvalidated input, exposed endpoints.
+- **Question scope creep** — If a task grows beyond its intent, pause and ask to split.
+
+**After implementation:**
+- **Review your own work** — Re-read the diff before declaring done.
+- **Run security checks** (e.g., `bandit -r . -ll`).
+- **Identify technical debt** — If you cut corners, document it explicitly.
+
+---
+
+## 🔒 Security Hardening — Non-Negotiable
+Every project must be secure by default.
+- **Never** log, print, or commit API keys, tokens, or secrets.
+- **Always** validate and sanitize user input to prevent injection.
+- **Always** protect against path traversal (no unauthorized file access).
+- **Always** use environment variables for secrets — never hardcode.
+- **Pre-commit**: Must include security scanners like `bandit` or `detect-private-key`.
+
+---
 
 ## Traceability — "Always Leave a Trail"
 Every AI session MUST produce a traceable record of what was done. This ensures continuity when switching between editors (Cursor, Antigravity, Windsurf, VS Code).
