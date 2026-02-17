@@ -7,8 +7,9 @@
 ## Projet A — Transformer Probabiliste pour Séries Temporelles
 
 **Repo**: [Quant-Search](https://github.com/Quant-Search) (organisation) — repo dédié  
+**Clone local**: `Documents/Aladin`  
 **Debug**: NeuralDBG (ce repo) — utilisé pour déboguer l'entraînement au fur et à mesure  
-**Workflow**: Développer A dans Quant-Search, améliorer NeuralDBG et le projet A itérativement
+**Workflow**: Développer A dans Aladin, améliorer NeuralDBG et le projet A itérativement
 
 **Orientation**: OpenQuant
 
