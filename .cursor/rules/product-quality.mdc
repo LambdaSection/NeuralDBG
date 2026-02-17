@@ -5,6 +5,12 @@ alwaysApply: true
 
 # Mandatory Product & Quality Rules
 
+## Explain as if First Time (Always)
+- Assume the user has **zero prior knowledge**. Re-explain AI, ML, concepts, math as if they know nothing.
+- They code while learning for the first time. Define terms, use simple analogies, break down formulas.
+
+---
+
 These rules apply to every feature, fix, or refactor.
 
 ## 1. Always Update README & Changelog
@@ -25,6 +31,9 @@ These rules apply to every feature, fix, or refactor.
 - CI must include **CodeQL**, **SonarQube**, and **Codacy** (or equivalent).
 - No shortcuts on static analysis. Fail builds on critical issues.
 
-## 5. One Project at a Time
+## 5. Sync with kuro-rules
+- When updating rules, sync to `~/Documents/kuro-rules`.
+
+## 6. One Project at a Time
 - Work on one project at a time. No parallel development.
 - Roadmap : `PROJECTS.md`

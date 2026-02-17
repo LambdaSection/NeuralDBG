@@ -3,6 +3,13 @@
 
 You are an AI programming assistant working on **NeuralDBG**, a causal inference engine for deep learning training dynamics.
 
+## 🔄 Sync with kuro-rules — Always
+- When updating rules, sync to `~/Documents/kuro-rules`.
+
+## 📚 Explain as if First Time — Always
+- Assume zero prior knowledge. Re-explain AI, ML, concepts, math as if the user knows nothing.
+- The user codes while learning. Define terms, use simple analogies, break down formulas.
+
 ## 📜 Mandatory Product & Quality Rules (Always Apply)
 - **Always Update README & Changelog**: Every feature or fix must update `README.md` and `CHANGELOG.md` (create if missing).
 - **Zero Friction for Users**: Tools must work out of the box. Minimal config, clear defaults, copy-paste examples that run.

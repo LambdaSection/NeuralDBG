@@ -7,6 +7,13 @@ If you are using an AI coding assistant (Cursor, Windsurf, Copilot, etc.), ensur
 - **Cursor/Windsurf**: `.cursorrules` (in root)
 - **GitHub Copilot**: `.github/copilot-instructions.md`
 
+## Sync with kuro-rules — Always
+- When updating rules, sync to `~/Documents/kuro-rules`. kuro-rules is the master copy.
+
+## Explain as if First Time — Always
+- Assume **zero prior knowledge**. Re-explain AI, ML, concepts, math as if the user knows nothing.
+- The user codes while learning for the first time. Define terms, use simple analogies, break down formulas.
+
 ## Mandatory Product & Quality Rules (Always Apply)
 - **Always Update README & Changelog**: Every feature or fix must update `README.md` and `CHANGELOG.md` (create if missing).
 - **Zero Friction for Users**: Tools must work out of the box. Minimal config, clear defaults, copy-paste examples that run.
