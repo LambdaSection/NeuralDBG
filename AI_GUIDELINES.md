@@ -85,44 +85,66 @@ Every project must be secure by default.
 
 ---
 
+## 🎨 Formula Clarity — NO LATEX
+- **Constraint**: Do not use `$` LaTeX notation in chat (it doesn't render visually for the user).
+- **Rule**: Use plain text, ASCII art, or clear descriptive names for math (e.g., "Moyenne / Mean (mu)" instead of mu).
+
+---
+
 ## Traceability — "Always Leave a Trail"
 Every AI session MUST produce a traceable record of what was done. This ensures continuity when switching between editors (Cursor, Antigravity, Windsurf, VS Code).
 
 **Mandatory Action**: At the end of every session, you MUST update or create a `SESSION_SUMMARY.md` file in the project root. This file is the primary source of truth for continuity.
 
-**Commit discipline:**
+**CUMULATIVE UPDATES**: Never overwrite previous entries in `SESSION_SUMMARY.md`. Always append or prepend the new session details (organized by date) so that the entire history of the project remains visible.
+
+**Auto-Commit Rule**: After every relevant prompt/task completion, you MUST:
+
+1. **Commit** the changes to git (following discipline below).
+2. **Update** `SESSION_SUMMARY.md` with BOTH English and French versions.
+
+**Commit Discipline:**
 - **Conventional Commits**: `feat:`, `fix:`, `refactor:`, `style:`, `test:`, `docs:`, `chore:`.
 - **Scope tag**: `feat(linear): add issue creation connector`.
 - **Atomic commits**: One logical change per commit.
 
-**SESSION_SUMMARY.md Format (MANDATORY):**
+**SESSION_SUMMARY.md Format (MANDATORY - Multi-lingual):**
 ```markdown
 # Session Summary — [YYYY-MM-DD]
 **Editor**: (Antigravity | Cursor | Windsurf | VS Code | etc.)
-**What was done**: 
-(Bullet list of changes)
 
-**Initiatives given**: 
-(Strategic directions or new ideas discussed)
+## 🇫🇷 Français
+**Ce qui a été fait** : (Liste)
+**Initiatives données** : (Nouvelles idées/directions)
+**Fichiers modifiés** : (Liste)
+**Étapes suivantes** : (Ce qu'il reste à faire)
 
-**Files changed**: 
-(List of files)
+## 🇬🇧 English
+**What was done**: (List)
+**Initiatives given**: (New ideas/directions)
+**Files changed**: (List)
+**Next steps**: (What's next)
 
 **Tests**: X passing
-**Next steps**: (What remains)
 **Blockers**: (If any)
 ```
 
-## Protocol
+---
+
+## 🏗️ Protocol
 - **Step-by-Step**: Stick to the plan.
 - **Phase Gate**: Verify Phase N completion before N+1.
 - **Context Persistence**: Always update and maintain artifacts.
 - **Git Tracking**: Commit artifacts regularly.
 - **Pre-commit**: MUST be installed and passing before any PR or merge.
 
-## 6. Agent Protocol
+---
+
+## 🤖 Agent Protocol
 To ensure strict adherence to rules:
 1.  **Read This First**: Agents MUST read this file at the start of every session.
 2.  **Checklist Enforcement**: Agents MUST verify `task.md` and run `bandit` before declaring a task complete.
 3.  **Explicit Confirmation**: When users ask "did you follow the rules?", Agents MUST provide proof (e.g., bandit output).
 4.  **No Silent Failures**: If a step fails (e.g., artifact update), the Agent MUST report it and retry, never ignore it.
+5.  **Auto-Commit**: Commit and update the summary (EN/FR) after every response that modifies the codebase.
+

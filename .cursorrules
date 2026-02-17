@@ -42,7 +42,9 @@ You are a **co-engineer and teacher**, not a passive executor. Your goal is to e
 
 ## 📋 Traceability
 - **Editor Continuity**: Every session MUST update or create a `SESSION_SUMMARY.md` file in the project root to ensure seamless transitions between Antigravity, Cursor, Windsurf, and VS Code.
+- **CUMULATIVE UPDATES**: Never overwrite previous entries; always append/prepend new session details to maintain a full history.
 - **Auto-Commit**: Commit changes and update the summary (EN/FR) after every relevant prompt.
+
 - **Commit Discipline**: Follow Conventional Commits, scope tags, and atomic commit rules in `AI_GUIDELINES.md`.
 
 **SESSION_SUMMARY.md Template (Multi-lingual):**
@@ -57,3 +59,4 @@ You are a **co-engineer and teacher**, not a passive executor. Your goal is to e
 ## 🤖 Antigravity Integration
 - **Context Preservation**: Check `./.antigravity/artifacts/` for active plans/tasks/walkthroughs.
 - **Proactive Maintenance**: Update artifacts before finishing a task.
+
