@@ -43,9 +43,9 @@
 - Check current test coverage.
 - Add README badges.
 
-**Tests**: Not run yet
+**Tests**: 12 passing, 40% coverage (target: 60%)
 **Blockers**: None
-**Progress**: 15% (rules updated, testing/security/CI pending)
+**Progress**: 25% (rules updated, pre-commit created, sync_summary.py created, security scans pass, coverage needs improvement)
 
 ---
 
