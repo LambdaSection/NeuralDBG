@@ -202,6 +202,52 @@ To ensure strict adherence to rules:
 
 ---
 
+## Mom Test — First 10% Rule (MANDATORY)
+
+**Principe**: Ne pas ecrire une seule ligne de code de production avant d'avoir valide que le probleme existe et est douloureux.
+
+### Regle absolue
+- **Progress 0-10%**: Mom Test uniquement. Pas de code, pas d'architecture.
+- **Gate**: Le passage a 10%+ necessite une validation explicite du probleme.
+- **Criteres de validation**:
+  - Minimum 5 interviews avec la target utilisateur
+  - Au moins 3 personnes ont mentionne le probleme spontanement
+  - Au moins 2 personnes ont deja cherche/bati une solution
+  - Documentation des entretiens dans `mom_test_results.md`
+
+### Les 3 regles du Mom Test
+1. **Ne pas parler de l'idee** — Parler du probleme uniquement
+2. **Passe, pas futur** — Demander ce qui s'est passe, pas ce qui se passerait
+3. **Ecouter > Parler** — 25% parler, 75% ecouter
+
+### Questions obligatoires
+- "Racontez-moi la derniere fois que [probleme] vous est arrive."
+- "Combien de temps avez-vous passe a le resoudre?"
+- "Qu'avez-vous fait pour le resoudre?"
+- "Avez-vous deja cherche/build une solution?"
+
+### Signaux positifs (Continue)
+- "J'ai passe X jours a..." — Temps perdu = douleur reelle
+- "J'ai fait un script custom..." — Solution bricolee = besoin non satisfait
+- "J'ai abandonne le projet..." — Impact critique = urgence
+
+### Signaux negatifs (Pivot ou Stop)
+- "Ca m'arrive rarement" — Pas assez frequent
+- "TensorBoard me suffit" — Pas assez douloureux
+- "Cool projet!" sans histoire — Politesse, pas validation
+
+### Livrables du Mom Test
+- [ ] `mom_test_script.md` — Questions d'entretien (EN/FR)
+- [ ] `mom_test_results.md` — Comptes-rendus des interviews (EN/FR)
+- [ ] `decision.md` — Go/No-Go/Pivot avec justification (EN/FR)
+
+### Integration Progress Tracking
+Le Mom Test represente **les premiers 10%** du progress. Un projet ne peut pas depasser 10% sans:
+- `mom_test_results.md` complete
+- Decision documentee dans `decision.md`
+
+---
+
 ## Suggested Reading & Resources
 To understand the foundations of our work, follow these references:
 

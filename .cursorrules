@@ -192,6 +192,67 @@ Every AI session MUST produce a traceable record of what was done. This ensures 
 
 ---
 
+## Mom Test — First 10% Rule (MANDATORY)
+
+**Principe**: Ne pas ecrire une seule ligne de code de production avant d'avoir valide que le probleme existe et est douloureux.
+
+### Regle absolue
+- **Progress 0-10%**: Mom Test uniquement. Pas de code, pas d'architecture.
+- **Gate**: Le passage a 10%+ necessite une validation explicite du probleme.
+- **Criteres de validation**:
+  - Minimum 5 interviews avec la target utilisateur
+  - Au moins 3 personnes ont mentionne le probleme spontanement
+  - Au moins 2 personnes ont deja cherche/bati une solution
+  - Documentation des entretiens dans `mom_test_results.md`
+
+### Les 3 regles du Mom Test
+1. **Ne pas parler de l'idee** — Parler du probleme uniquement
+2. **Passe, pas futur** — Demander ce qui s'est passe, pas ce qui se passerait
+3. **Ecouter > Parler** — 25% parler, 75% ecouter
+
+### Questions obligatoires
+- "Racontez-moi la derniere fois que [probleme] vous est arrive."
+- "Combien de temps avez-vous passe a le resoudre?"
+- "Qu'avez-vous fait pour le resoudre?"
+- "Avez-vous deja cherche/build une solution?"
+
+### Signaux positifs (Continue)
+- "J'ai passe X jours a..." — Temps perdu = douleur reelle
+- "J'ai fait un script custom..." — Solution bricolee = besoin non satisfait
+- "J'ai abandonne le projet..." — Impact critique = urgence
+
+### Signaux negatifs (Pivot ou Stop)
+- "Ca m'arrive rarement" — Pas assez frequent
+- "TensorBoard me suffit" — Pas assez douloureux
+- "Cool projet!" sans histoire — Politesse, pas validation
+
+### Livrables du Mom Test
+- [ ] `mom_test_script.md` — Questions d'entretien (EN/FR)
+- [ ] `mom_test_results.md` — Comptes-rendus des interviews (EN/FR)
+- [ ] `decision.md` — Go/No-Go/Pivot avec justification (EN/FR)
+
+### Integration Progress Tracking
+Le Mom Test represente **les premiers 10%** du progress. Un projet ne peut pas depasser 10% sans:
+- `mom_test_results.md` complete
+- Decision documentee dans `decision.md`
+
+### AI Guidance During Mom Test (MANDATORY)
+Pendant la periode Mom Test (0-10%), l'agent DOIT:
+1. **Guider pas a pas**: Expliquer chaque etape clairement et patiemment.
+2. **Ne pas extraire de features**: Le Mom Test valide le PROBLEME, pas la solution. Ne pas proposer de nouvelles features a developper.
+3. **Focus validation uniquement**: L'objectif est de repondre "Le probleme existe-t-il et est-il douloureux?" - rien d'autre.
+4. **Proteger le fichier mom_test_results.md**: Ce fichier est dans .gitignore car il contient des donnees d'interview privees.
+5. **Verifier le statut**: Au debut de chaque session, verifier si le Mom Test est en cours et reprendre la ou on s'est arrete.
+
+### Anti-Patterns pendant Mom Test
+- NE PAS proposer de features basees sur les donnees collectees
+- NE PAS commencer a concevoir l'architecture
+- NE PAS ecrire du code de production
+- NE PAS supposer que le probleme est valide avant d'avoir 5 interviews
+
+
+---
+
 ## Agent Protocol
 To ensure strict adherence to rules:
 1.  **Read This First**: Agents MUST read this file at the start of every session.
