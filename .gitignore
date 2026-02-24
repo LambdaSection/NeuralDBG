@@ -4,6 +4,11 @@ PLAN.md
 # Mom Test results (private interview data)
 mom_test_results.md
 
+# Ideas and architecture notes (work-in-progress brainstorms)
+ideas.md
+architecture_notes.md
+interview_collection_guide.md
+
 # Test cache files
 .pytest_cache/
 __pycache__/

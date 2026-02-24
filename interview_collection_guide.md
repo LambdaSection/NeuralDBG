@@ -2,6 +2,25 @@
 
 ## Francais
 
+### Follow-up MechaAthro (Interview #2)
+
+**Contexte**: Reponse courte "MLFlow est solide" - signal neutre. Necessite creusage.
+
+**Questions de suivi (a poser sur Discord)**:
+
+1. "Tu mentionnes MLFlow - tu l'utilises pour quoi exactement ? Tracking de metriques, ou aussi pour debugger ?"
+2. "La derniere fois que t'as eu un training qui part en vrille (loss qui explose, gradients qui vanish, etc.), t'as fait quoi ?"
+3. "Combien de temps t'as passe a comprendre ce qui se passait ?"
+4. "Est-ce qu'il t'est arrive de ne pas comprendre pourquoi un training echouait ?"
+5. "T'as deja abandonne un projet/model a cause d'un probleme d'entrainement incomprehensible ?"
+
+**Signaux a surveiller**:
+- **Positif**: "J'ai passe X jours", "J'ai du faire un script custom", "J'ai abandonne"
+- **Negatif**: "MLFlow me suffit", "Ca m'arrive rarement"
+- **Neutre**: Reponses vagues, "Ca depend"
+
+---
+
 ### Ressources pour Interviews Supplementaires
 
 #### Subreddits a Explorer

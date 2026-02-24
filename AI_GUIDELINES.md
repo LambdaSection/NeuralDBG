@@ -246,6 +246,34 @@ Le Mom Test represente **les premiers 10%** du progress. Un projet ne peut pas d
 - `mom_test_results.md` complete
 - Decision documentee dans `decision.md`
 
+### AI Guidance During Mom Test (MANDATORY)
+Pendant la periode Mom Test (0-10%), l'agent DOIT:
+1. **Guider pas a pas**: Expliquer chaque etape clairement et patiemment.
+2. **Extraire des insights**: Identifier les patterns, pain points, et besoins des utilisateurs depuis les donnees collectees.
+3. **Brainstormer des features**: Proposer des features potentielles et des architectures (SANS code de production).
+4. **Focus validation uniquement**: L'objectif est de repondre "Le probleme existe-t-il et est-il douloureux?" - rien d'autre.
+5. **Proteger le fichier mom_test_results.md**: Ce fichier est dans .gitignore car il contient des donnees d'interview privees.
+6. **Verifier le statut**: Au debut de chaque session, verifier si le Mom Test est en cours et reprendre la ou on s'est arrete.
+
+### Ce qui est AUTORISE pendant Mom Test
+- Extraire des features potentielles des donnees collectees
+- Brainstormer des architectures et solutions
+- Documenter les idees dans des fichiers dedies (ex: `ideas.md`, `architecture_notes.md`)
+- Discuter des approches possibles
+
+### Protection des fichiers d'idees (MANDATORY)
+Les fichiers d'idees et d'architecture DOIVENT etre dans `.gitignore`:
+- `mom_test_results.md` — donnees d'interview privees
+- `ideas.md` — brainstorms work-in-progress
+- `architecture_notes.md` — notes d'architecture
+
+**Raison**: Ces fichiers contiennent des reflexions en cours, des donnees privees, et ne doivent pas etre exposes publiquement.
+
+### Ce qui est INTERDIT pendant Mom Test
+- NE PAS ecrire du code de production
+- NE PAS implementer les features proposees
+- NE PAS supposer que le probleme est valide avant d'avoir 5 interviews
+
 ---
 
 ## Suggested Reading & Resources
