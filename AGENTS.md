@@ -328,6 +328,84 @@ IF rules are updated without sync:
 
 ---
 
+## RULE 11: Roadmap Adherence — MANDATORY
+
+### Rule
+Every project MUST have a roadmap file (PLAN.md or ROADMAP.md) and all development MUST follow it.
+
+### Verification
+```
+BEFORE starting any task:
+  CHECK: Does PLAN.md or ROADMAP.md exist?
+  CHECK: Is the task aligned with the roadmap?
+  IF NO roadmap: CREATE one before coding
+  IF task NOT in roadmap: ASK user for confirmation
+```
+
+### Roadmap Requirements
+- Clear build order with numbered steps
+- Success criteria for each phase
+- Anti-goals (what NOT to build)
+- MVP scope definition
+
+### Enforcement
+```
+IF no roadmap exists:
+  ACTION: STOP and create PLAN.md
+  ACTION: Define MVP scope, build order, success criteria
+  DO NOT: Write code without a plan
+
+IF code deviates from roadmap:
+  ACTION: ASK user if roadmap should be updated
+  ACTION: Document the deviation reason
+  DO NOT: Silently ignore the plan
+```
+
+### Progress Alignment
+- Roadmap phases should map to progress percentages
+- Each completed phase updates SESSION_SUMMARY.md progress
+- Roadmap changes require explicit user approval
+
+---
+
+## RULE 12: Roadmap Duration — MANDATORY
+
+### Rule
+Every roadmap MUST have a minimum duration of **one month** with clearly defined phases.
+
+### Verification
+```
+BEFORE creating PLAN.md:
+  CHECK: Does the roadmap span at least 4 weeks?
+  CHECK: Are phases clearly defined with start/end dates?
+  CHECK: Is there a realistic scope for each phase?
+  IF duration < 1 month: EXPAND scope or EXTEND timeline
+```
+
+### Roadmap Duration Requirements
+- Minimum 4 weeks of planned work
+- Weekly milestones or checkpoints
+- Clear deliverables for each phase
+- Buffer time for unexpected issues (10-15%)
+
+### Progress Calculation Integration
+The roadmap progress contributes to overall SESSION_SUMMARY.md progress:
+
+| Component | Weight | Calculation |
+|-----------|--------|-------------|
+| Roadmap Phase Completion | Sub-component of Core Functionality | (Completed Phases / Total Phases) × 40% |
+| Phase Quality | Multiplier | 0.5x (incomplete) to 1.0x (fully tested) |
+
+### Enforcement
+```
+IF roadmap duration < 1 month:
+  ACTION: STOP and expand the plan
+  ACTION: Add more phases or extend timeline
+  DO NOT: Start coding with insufficient planning horizon
+```
+
+---
+
 ## VERIFICATION CHECKLIST FOR USERS
 
 When asking "Did you follow AGENTS.md?", the agent MUST provide:
@@ -342,6 +420,8 @@ When asking "Did you follow AGENTS.md?", the agent MUST provide:
 8. **Rule 8**: "Critical thinking applied: [YES/NO - details]"
 9. **Rule 9**: "Protected files: [SAFE/EXPOSED]"
 10. **Rule 10**: "Rules synced: [YES/NO]"
+11. **Rule 11**: "Roadmap: [EXISTS/MISSING] - Task aligned: [YES/NO]"
+12. **Rule 12**: "Roadmap duration: [>=1 month/TOO SHORT]"
 
 ---
 
@@ -359,6 +439,8 @@ When asking "Did you follow AGENTS.md?", the agent MUST provide:
 | Rule 8 (Critical Thinking) | Apply questions retroactively |
 | Rule 9 (File Protection) | Remove from git, add to .gitignore |
 | Rule 10 (Sync) | Sync to kuro-rules immediately |
+| Rule 11 (Roadmap) | STOP and create PLAN.md if missing |
+| Rule 12 (Roadmap Duration) | STOP and expand plan if < 1 month |
 
 ---
 
