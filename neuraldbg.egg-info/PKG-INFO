@@ -47,6 +47,10 @@ A causal inference engine for deep learning training that provides **structured 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Build Status](https://github.com/Lemniscate-world/Neural/workflows/Build/badge.svg)](https://github.com/Lemniscate-world/Neural/actions)
+[![CodeQL](https://github.com/Lemniscate-world/Neural/workflows/CodeQL/badge.svg)](https://github.com/Lemniscate-world/Neural/actions)
+[![Security: Bandit](https://img.shields.io/badge/security-bandit-green.svg)](https://github.com/PyCQA/bandit)
+[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
 ## Overview
 
