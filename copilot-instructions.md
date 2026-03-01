@@ -267,18 +267,68 @@ To ensure strict adherence to rules:
 
 ---
 
-## DevOps & MLOps Collaboration Profile (MANDATORY)
+## RULE 25: MLOps/DevOps Collaboration — MANDATORY
 
+### Rule
 When interacting with a DevOps or MLOps engineer on this repository, the AI Agent MUST shift its focus to infrastructure, delivery, and reliability.
 
-1. **Focus Areas**:
-   - **MLOps**: Experiment tracking (MLflow/W&B), model registry, dataset versioning, reproducible training pipelines (e.g., for model training scripts).
-   - **DevOps**: CI/CD pipelines (GitHub Actions), containerization (Docker/Docker Compose), Infrastructure as Code (Terraform), and robust environment management.
-2. **Guidelines for AI when helping DevOps/MLOps**:
-   - Provide clean, production-ready configuration files (`.yaml`, `Dockerfile`, etc.).
-   - Prioritize deterministic and reproducible builds.
-   - Enforce security scans natively in the pipeline (`bandit`, `safety`, `sonar`).
-   - Treat infrastructure code with the same rigor (testing, DRY, modularity) as application code.
-3. **Communication**:
-   - Use standard DevOps terminology. 
-   - When suggesting architectural changes for ML models, immediately propose the corresponding MLOps pipeline adjustments.
+### Verification Checklist
+```
+WHEN working on infrastructure/deployment:
+  1. FOCUS: Are we prioritizing reproducibility and clean pipelines?
+  2. SECURITY: Are security tools (bandit, cargo audit) strictly enforced in the CI/CD configuration proposals?
+  3. MLOPS: Are we tracking experiments and versioning data appropriately?
+```
+
+### Enforcement
+```
+IF providing MLOps/DevOps assistance:
+  ACTION: Provide production-ready configurations (Dockerfiles, YAML).
+  ACTION: Propose architecture adjustments synchronously for ML model changes.
+  DO NOT: Provide brittle or untestable infrastructure code.
+```
+
+---
+
+## RULE 26: DevOps/MLOps Milestone Task Generation — MANDATORY
+
+### Rule
+At every progress milestone (10%, 25%, 50%, 75%, 90%, 95%), the AI Agent MUST strictly analyze the repository's current state and propose exactly **5 concrete DevOps or MLOps tasks**.
+
+### Requirements
+1. **Analysis-Driven**: Tasks must be based on a strict analysis of the current codebase and its bottlenecks.
+2. **Resource Estimation**: Each task MUST include a strict estimation of the time or resources it will save the team.
+3. **Documentation**: These tasks MUST be documented in a designated folder at the root of the project (e.g., `infrastructure_planning/`) in a dedicated Markdown file for the current milestone.
+4. **Actionable**: Tasks must be ready for a DevOps/MLOps engineer to pick up.
+
+### Enforcement
+```
+IF a milestone is reached:
+  ACTION: Analyze repo for infrastructure/pipeline needs.
+  ACTION: Generate 5 DevOps/MLOps tasks with Return on Investment (ROI) estimations.
+  ACTION: Save to `infrastructure_planning/milestone_X_tasks.md`.
+  DO NOT: Skip this operational planning step.
+```
+
+---
+
+## RULE 27: Persona Adaptability — MANDATORY
+
+### Rule
+Before initiating significant work or generating explanations, the AI Agent MUST identify or ask "Who is interacting with me? (e.g., CEO, DevOps, MLOps, Fullstack Dev)". The AI MUST adapt its depth of explanation, vocabulary, and feature propositions accordingly.
+
+### Requirements
+1. **CEO/Product Persona**: Focus on "Why". Explain business value, Mom Test integration, user impact, KPIs, time-to-market. Keep technical details abstract (ASCII diagrams).
+2. **DevOps/MLOps Persona**: Focus on "How (Infra)". Discuss CI/CD gates, reproducible pipelines, determinism, network latency, security layers.
+3. **Developer Persona**: Focus on "How (Code)". Discuss architecture, modularity, algorithmic complexity, DRY, SOLID.
+4. **Pedagogy Engine**: If the persona is learning, provide highly detailed ASCII diagrams and step-by-step decoding.
+
+### Enforcement
+```
+IF the user's role is known or stated:
+  ACTION: Adjust vocabulary and technical depth immediately.
+  ACTION: Emphasize the rules most relevant to that persona.
+  DO NOT: Speak to a CEO like a DevOps, or a DevOps like a CEO, unless pedagogical translation is requested.
+```
+
+When in doubt, ASK the user. Do not assume.
