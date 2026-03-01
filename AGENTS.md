@@ -966,13 +966,14 @@ NOBODY works on main directly. Before any work begins, the AI Agent MUST create 
 
 | Scope | Usage | Example |
 |-------|-------|---------|
-| eat/ | New feature | eat/MLO-1-ci-cd-pipeline |
-| ix/ | Bug fix | ix/MLO-3-docker-volume-error |
-| infra/ | Infrastructure / DevOps | infra/milestone-0-setup |
+| ceo/ | Strategic Development & Rule Management (CEO Only) | ceo/kuro-semantic-event-structures |
+| infra/ | Infrastructure / DevOps / MLOps | infra/milestone-0-setup |
+| feat/ | New feature development | feat/MLO-1-ci-cd-pipeline |
+| fix/ | Bug fix | fix/MLO-3-docker-volume-error |
 | docs/ | Documentation only | docs/update-readme-badges |
-| 
-efactor/ | Code refactoring | 
-efactor/modularize-training |
+| refactor/ | Code refactoring | refactor/modularize-training |
+
+5. **Global Consistency**: For tasks that span multiple repositories (e.g., rule syncs, platform migrations), the branch name MUST be identical across all affected repositories.
 
 ### Requirements
 1. **Session Gate**: At the start of every session, the AI Agent MUST check the current branch. If on main, create or switch to the appropriate working branch immediately.
@@ -1078,18 +1079,14 @@ IF a session starts:
 ### Rule
 The AI rule set (AGENTS.md, AI_GUIDELINES.md, .cursorrules) represents the immutable "Physical Laws" of the repository ecosystem. Rules are **global** and MUST NOT vary between branches. 
 
+### Authority Restriction
+Only branches with the **`ceo/`** scope have the authority to modify rule files. Any rule changes attempted on `infra/`, `feat/`, or other branches MUST be rejected by the AI Agent. Non-CEO branches MUST merge rule updates FROM a `ceo/` branch to maintain parity.
+
 ### Mandatory Sync Process
-1. **Rule Modification**: When any rule is added or modified on a development branch, the AI Agent MUST immediately:
+1. **Rule Modification**: When any rule is added or modified on a `ceo/` branch, the AI Agent MUST immediately:
    - Commit the change on the current branch.
    - Switch to all other active development branches (e.g., `infra/milestone-0-setup`, `main`) and merge the changes.
    - Update the master `kuro-rules` repository.
 2. **Review Enforcement**: No Pull Request (PR) can be merged without explicitly confirming that the branch has the status of the "Current Rule Set" (Rule 33 verification).
 
-### Enforcement
-```
-IF a rule is changed:
-  ACTION: SYNC (merge) the modified rule files to ALL active branches BEFORE proceeding with code.
-  ACTION: Update SYNC_LOG.md and SESSION_SUMMARY.md.
-  DO NOT: Allow branch-specific rules.
-  DO NOT: Work on an outdated rule set.
-```
+
