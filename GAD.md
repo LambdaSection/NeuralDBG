@@ -34,6 +34,7 @@ Maintain high standards. No emojis (Rule 9), 60% test coverage (Rule 5), and con
 | Milestone Lock | R20 | Hard stop at validation gates. |
 | Intel Harvester | R21 | 3 sources researched at milestones. |
 | Feature Focus | R22 | Focus on ONE feature per validation cycle. |
+| Project Isolation | R34 | Scope limited to CURRENT project context ONLY. |
 
 ---
 
@@ -239,6 +240,12 @@ Before transitioning to the next phase, the user MUST demonstrate deep understan
 **Enforcement**: STOP and provide deep explanation before phase transition.
 
 ---
+
+## RULE 34: Strict Project Isolation (MANDATORY)
+
+- **Directive**: Interaction scope strictly limited to current project context.
+- **Execution**: Apply project filters to all external tool searches.
+- **Constraint**: No context leakage from other projects. Ask user for project selection if ambiguous.
 
 ## RULE 25: MLOps/DevOps Collaboration — MANDATORY
 

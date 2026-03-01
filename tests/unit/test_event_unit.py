@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import pytest
 from neuraldbg import (
-    SemanticEvent, EventType, GradientHealth, CausalHypothesis,
+    SemanticEvent, EventType, GradientHealth, ActivationHealth, CausalHypothesis,
     NeuralDbg
 )
 
@@ -65,8 +65,8 @@ class TestNeuralDbgCore:
         # Test exploding gradient
         assert dbg._classify_gradient_health(1e4) == GradientHealth.EXPLODING
 
-        # Test saturated gradient
-        assert dbg._classify_gradient_health(15.0) == GradientHealth.SATURATED
+        # Test saturated gradient (Small but > vanishing)
+        assert dbg._classify_gradient_health(dbg.threshold_vanishing * 10) == GradientHealth.SATURATED
 
     def test_activation_stats_computation(self):
         """Test activation statistics computation."""
@@ -105,18 +105,18 @@ class TestNeuralDbgCore:
         assert transition is None
 
     def test_activation_shift_detection(self):
-        """Test detection of activation regime shifts."""
+        """Test detection of activation regime shifts via semantic states."""
         model = nn.Linear(10, 5)
         dbg = NeuralDbg(model)
 
-        prev_stats = {'sparsity': 0.1, 'norm': 1.0}
-        current_stats = {'sparsity': 0.5, 'norm': 0.2}  # Large changes
+        # Normal to Dead transition
+        prev_stats = {'dead_ratio': 0.1, 'saturation_ratio': 0.1, 'std': 1.0}
+        current_stats = {'dead_ratio': 0.95, 'saturation_ratio': 0.1, 'std': 0.0} 
 
         shift = dbg._detect_activation_shift(prev_stats, current_stats)
         assert shift is not None
-        assert shift['confidence'] > 0
-        assert shift['sparsity_change'] == 0.4
-        assert shift['norm_change'] == 0.8
+        assert 'dead' in shift['type']
+        assert shift['confidence'] == 0.9
 
 
 class TestCausalReasoning:
@@ -164,8 +164,8 @@ class TestCausalReasoning:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.VANISHING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.VANISHING.value,
             confidence=0.9,
             metadata={'prev_norm': 1.0, 'current_norm': 1e-8}
         )
@@ -205,8 +205,8 @@ class TestCausalReasoning:
         couplings = dbg.detect_coupled_failures()
         assert len(couplings) >= 1
         coupling = couplings[0]
-        assert 'linear1' in coupling['event1']
-        assert 'relu1' in coupling['event2']
+        assert 'linear1' in coupling['trigger']
+        assert 'relu1' in coupling['consequence']
         assert coupling['step_difference'] == 2
 
 

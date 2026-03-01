@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import pytest
 from neuraldbg import (
-    SemanticEvent, EventType, GradientHealth, CausalHypothesis,
+    SemanticEvent, EventType, GradientHealth, ActivationHealth, CausalHypothesis,
     NeuralDbg
 )
 
@@ -35,8 +35,8 @@ class TestExplodingGradients:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=100,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.EXPLODING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.EXPLODING.value,
             confidence=0.95,
             metadata={'prev_norm': 1.0, 'current_norm': 1e5}
         )
@@ -57,8 +57,8 @@ class TestExplodingGradients:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.EXPLODING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.EXPLODING.value,
             confidence=0.9,
             metadata={}
         ))
@@ -66,8 +66,8 @@ class TestExplodingGradients:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear2',
             step=100,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.EXPLODING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.EXPLODING.value,
             confidence=0.8,
             metadata={}
         ))
@@ -99,8 +99,8 @@ class TestDeadNeurons:
             event_type=EventType.ACTIVATION_REGIME_SHIFT,
             layer_name='relu1',
             step=200,
-            from_state={'dead_ratio': 0.1},
-            to_state={'dead_ratio': 0.95},
+            from_state=ActivationHealth.NORMAL.value,
+            to_state=ActivationHealth.DEAD.value,
             confidence=0.88,
             metadata={}
         )
@@ -121,8 +121,8 @@ class TestDeadNeurons:
             event_type=EventType.ACTIVATION_REGIME_SHIFT,
             layer_name='relu1',
             step=200,
-            from_state={'dead_ratio': 0.1},
-            to_state={'dead_ratio': 0.5},  # Below 0.9 threshold
+            from_state=ActivationHealth.NORMAL.value,
+            to_state=ActivationHealth.NORMAL.value,  # Low ratio doesn't trigger shift in new logic
             confidence=0.7,
             metadata={}
         ))
@@ -152,8 +152,8 @@ class TestSaturatedActivations:
             event_type=EventType.ACTIVATION_REGIME_SHIFT,
             layer_name='sigmoid1',
             step=150,
-            from_state={'saturation_ratio': 0.2},
-            to_state={'saturation_ratio': 0.85},
+            from_state=ActivationHealth.NORMAL.value,
+            to_state=ActivationHealth.SATURATED.value,
             confidence=0.92,
             metadata={}
         )
@@ -174,8 +174,8 @@ class TestSaturatedActivations:
             event_type=EventType.ACTIVATION_REGIME_SHIFT,
             layer_name='sigmoid1',
             step=150,
-            from_state={'saturation_ratio': 0.2},
-            to_state={'saturation_ratio': 0.5},  # Below 0.7 threshold
+            from_state=ActivationHealth.NORMAL.value,
+            to_state=ActivationHealth.NORMAL.value,
             confidence=0.6,
             metadata={}
         ))
@@ -196,8 +196,8 @@ class TestExplainFailure:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.VANISHING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.VANISHING.value,
             confidence=0.9,
             metadata={}
         ))
@@ -215,8 +215,8 @@ class TestExplainFailure:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.EXPLODING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.EXPLODING.value,
             confidence=0.85,
             metadata={}
         ))
@@ -233,8 +233,8 @@ class TestExplainFailure:
             event_type=EventType.ACTIVATION_REGIME_SHIFT,
             layer_name='relu1',
             step=100,
-            from_state={'dead_ratio': 0.1},
-            to_state={'dead_ratio': 0.95},
+            from_state=ActivationHealth.NORMAL.value,
+            to_state=ActivationHealth.DEAD.value,
             confidence=0.8,
             metadata={}
         ))
@@ -251,8 +251,8 @@ class TestExplainFailure:
             event_type=EventType.ACTIVATION_REGIME_SHIFT,
             layer_name='sigmoid1',
             step=100,
-            from_state={'saturation_ratio': 0.2},
-            to_state={'saturation_ratio': 0.85},
+            from_state=ActivationHealth.NORMAL.value,
+            to_state=ActivationHealth.SATURATED.value,
             confidence=0.75,
             metadata={}
         ))
@@ -270,8 +270,8 @@ class TestExplainFailure:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.VANISHING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.VANISHING.value,
             confidence=0.5,
             metadata={}
         ))
@@ -279,8 +279,8 @@ class TestExplainFailure:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear2',
             step=100,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.VANISHING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.VANISHING.value,
             confidence=0.9,
             metadata={}
         ))
@@ -311,8 +311,8 @@ class TestMermaidGraphExport:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.VANISHING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.VANISHING.value,
             confidence=0.9,
             metadata={}
         ))
@@ -333,8 +333,8 @@ class TestMermaidGraphExport:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.VANISHING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.VANISHING.value,
             confidence=0.9,
             metadata={}
         ))
@@ -342,8 +342,8 @@ class TestMermaidGraphExport:
             event_type=EventType.ACTIVATION_REGIME_SHIFT,
             layer_name='relu1',
             step=52,
-            from_state={},
-            to_state={},
+            from_state=ActivationHealth.NORMAL.value,
+            to_state=ActivationHealth.DEAD.value,
             confidence=0.8,
             metadata={}
         ))
@@ -361,8 +361,8 @@ class TestMermaidGraphExport:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.VANISHING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.VANISHING.value,
             confidence=0.9,
             metadata={}
         ))
@@ -370,8 +370,8 @@ class TestMermaidGraphExport:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=100,
-            from_state=GradientHealth.VANISHING,
-            to_state=GradientHealth.HEALTHY,
+            from_state=GradientHealth.VANISHING.value,
+            to_state=GradientHealth.HEALTHY.value,
             confidence=0.8,
             metadata={}
         ))
@@ -400,8 +400,8 @@ class TestTraceCausalChain:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.VANISHING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.VANISHING.value,
             confidence=0.9,
             metadata={'test': 'value'}
         ))
@@ -424,8 +424,8 @@ class TestGetCausalHypotheses:
             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
             layer_name='linear1',
             step=50,
-            from_state=GradientHealth.HEALTHY,
-            to_state=GradientHealth.VANISHING,
+            from_state=GradientHealth.HEALTHY.value,
+            to_state=GradientHealth.VANISHING.value,
             confidence=0.9,
             metadata={}
         ))

@@ -26,6 +26,13 @@ class GradientHealth(Enum):
     EXPLODING = "exploding"
     SATURATED = "saturated"
 
+class ActivationHealth(Enum):
+    """Activation health states for semantic regime monitoring."""
+    NORMAL = "normal"
+    SATURATED = "saturated"
+    DEAD = "dead"
+    ANOMALOUS = "anomalous"
+
 @dataclass
 class SemanticEvent:
     """
@@ -77,6 +84,10 @@ class NeuralDbg:
         # Previous state tracking for transition detection
         self.previous_gradient_norms: Dict[str, float] = {}
         self.previous_activation_stats: Dict[str, Dict[str, float]] = {}
+        
+        # Causal tracking: First layer to fail in a specific way
+        self.first_failure_step: Dict[str, int] = {} # failure_key -> step
+        self.first_failure_layer: Dict[str, str] = {} # failure_key -> layer_name
 
         # Hook storage for automatic monitoring
         self.hooks: List[torch.utils.hooks.RemovableHandle] = []
@@ -108,20 +119,30 @@ class NeuralDbg:
             # Extract activation regime information
             if isinstance(output, torch.Tensor):
                 activation_stats = self._compute_activation_stats(output)
+                current_health = self._classify_activation_health(activation_stats)
 
                 # Detect activation regime shifts
                 if layer_name in self.previous_activation_stats:
                     prev_stats = self.previous_activation_stats[layer_name]
-                    shift = self._detect_activation_shift(prev_stats, activation_stats)
-                    if shift:
+                    prev_health = self._classify_activation_health(prev_stats)
+                    
+                    if prev_health != current_health:
+                        if current_health != ActivationHealth.NORMAL:
+                            self._track_first_occurrence(f"activation_{current_health.value}", layer_name)
+                            
                         event = SemanticEvent(
                             event_type=EventType.ACTIVATION_REGIME_SHIFT,
                             layer_name=layer_name,
                             step=self.step,
-                            from_state=prev_stats,
-                            to_state=activation_stats,
-                            confidence=shift['confidence'],
-                            metadata=shift
+                            from_state=prev_health.value,
+                            to_state=current_health.value,
+                            confidence=0.9,
+                            metadata={
+                                'prev_saturation': prev_stats.get('saturation_ratio'),
+                                'current_saturation': activation_stats.get('saturation_ratio'),
+                                'prev_dead': prev_stats.get('dead_ratio'),
+                                'current_dead': activation_stats.get('dead_ratio')
+                            }
                         )
                         self.events.append(event)
 
@@ -144,12 +165,16 @@ class NeuralDbg:
                     prev_norm = self.previous_gradient_norms[layer_name]
                     transition = self._detect_gradient_transition(prev_norm, grad_norm)
                     if transition:
+                        current_health = self._classify_gradient_health(grad_norm)
+                        if current_health != GradientHealth.HEALTHY:
+                            self._track_first_occurrence(f"gradient_{current_health.value}", layer_name)
+
                         event = SemanticEvent(
                             event_type=EventType.GRADIENT_HEALTH_TRANSITION,
                             layer_name=layer_name,
                             step=self.step,
-                            from_state=self._classify_gradient_health(prev_norm),
-                            to_state=self._classify_gradient_health(grad_norm),
+                            from_state=self._classify_gradient_health(prev_norm).value,
+                            to_state=current_health.value,
                             confidence=transition['confidence'],
                             metadata={
                                 'prev_norm': prev_norm,
@@ -215,25 +240,24 @@ class NeuralDbg:
             'saturation_ratio': saturation_ratio
         }
 
-    def _detect_activation_shift(self, prev_stats: Dict[str, float], current_stats: Dict[str, float]) -> Optional[Dict[str, Any]]:
-        """Detect significant shifts in activation patterns."""
-        # Simple heuristic: large change in sparsity or norm indicates regime shift
-        sparsity_change = abs(current_stats.get('sparsity', 0) - prev_stats.get('sparsity', 0))
-        norm_change = abs(current_stats.get('norm', 0) - prev_stats.get('norm', 0)) / max(prev_stats.get('norm', 0), 1e-6)
-        saturation_change = abs(current_stats.get('saturation_ratio', 0) - prev_stats.get('saturation_ratio', 0))
+    def _classify_activation_health(self, stats: Dict[str, float]) -> ActivationHealth:
+        """Classify activation regime based on extracted statistics."""
+        if stats.get('dead_ratio', 0) > 0.9:
+            return ActivationHealth.DEAD
+        elif stats.get('saturation_ratio', 0) > 0.7:
+            return ActivationHealth.SATURATED
+        elif stats.get('std', 1.0) < 1e-4:
+            return ActivationHealth.ANOMALOUS
+        else:
+            return ActivationHealth.NORMAL
 
-        if sparsity_change > 0.1 or norm_change > 0.5 or saturation_change > 0.1:  # Thresholds for detection
-            confidence = max(
-                min(sparsity_change * 10, 1.0),
-                min(norm_change * 2, 1.0),
-                min(saturation_change * 10, 1.0)
-            )
-            return {
-                'confidence': confidence,
-                'sparsity_change': sparsity_change,
-                'norm_change': norm_change,
-                'saturation_change': saturation_change
-            }
+    def _detect_activation_shift(self, prev_stats: Dict[str, float], current_stats: Dict[str, float]) -> Optional[Dict[str, Any]]:
+        """Deprecated: Use _classify_activation_health and direct transition detection instead."""
+        # Kept for compatibility if needed, but preferred to use state-based transitions
+        prev_health = self._classify_activation_health(prev_stats)
+        curr_health = self._classify_activation_health(current_stats)
+        if prev_health != curr_health:
+            return {'type': f"{prev_health.value}_to_{curr_health.value}", 'confidence': 0.9}
         return None
 
     def _classify_gradient_health(self, norm: float) -> GradientHealth:
@@ -242,10 +266,18 @@ class NeuralDbg:
             return GradientHealth.VANISHING
         elif norm > self.threshold_exploding:
             return GradientHealth.EXPLODING
-        elif norm > 1.0:  # Lower threshold for saturation
+        # Saturated gradients in this context refer to persistent small values 
+        # that are just above vanishing but indicate diminishing flow.
+        elif norm < (self.threshold_vanishing * 100):
             return GradientHealth.SATURATED
         else:
             return GradientHealth.HEALTHY
+
+    def _track_first_occurrence(self, failure_type: str, layer_name: str):
+        """Track the first layer that encountered a specific failure."""
+        if failure_type not in self.first_failure_step:
+            self.first_failure_step[failure_type] = self.step
+            self.first_failure_layer[failure_type] = layer_name
 
     def _detect_gradient_transition(self, prev_norm: float, current_norm: float) -> Optional[Dict[str, Any]]:
         """Detect transitions in gradient health."""
@@ -279,18 +311,30 @@ class NeuralDbg:
         """
         hypotheses = []
 
+        # Start with root causes from first-occurrence tracking
+        root_causes = self.get_root_causes()
+        hypotheses.extend(root_causes)
+
         if failure_type == "vanishing_gradients":
-            hypotheses = self._explain_vanishing_gradients()
+            hypotheses.extend(self._explain_vanishing_gradients())
         elif failure_type == "exploding_gradients":
-            hypotheses = self._explain_exploding_gradients()
+            hypotheses.extend(self._explain_exploding_gradients())
         elif failure_type == "dead_neurons":
-            hypotheses = self._explain_dead_neurons()
+            hypotheses.extend(self._explain_dead_neurons())
         elif failure_type == "saturated_activations":
-            hypotheses = self._explain_saturated_activations()
+            hypotheses.extend(self._explain_saturated_activations())
+
+        # Filter out duplicates (based on description)
+        seen = set()
+        unique_hypotheses = []
+        for h in hypotheses:
+            if h.description not in seen:
+                unique_hypotheses.append(h)
+                seen.add(h.description)
 
         # Sort by confidence
-        hypotheses.sort(key=lambda h: h.confidence, reverse=True)
-        return hypotheses
+        unique_hypotheses.sort(key=lambda h: h.confidence, reverse=True)
+        return unique_hypotheses
 
     def _explain_exploding_gradients(self) -> List[CausalHypothesis]:
         """Generate hypotheses for exploding gradient failures."""
@@ -299,7 +343,7 @@ class NeuralDbg:
         # Find first exploding gradient event
         exploding_events = [e for e in self.events
                           if e.event_type == EventType.GRADIENT_HEALTH_TRANSITION
-                          and e.to_state == GradientHealth.EXPLODING]
+                          and e.to_state == GradientHealth.EXPLODING.value]
 
         if not exploding_events:
             return hypotheses
@@ -320,10 +364,10 @@ class NeuralDbg:
         """Generate hypotheses for dead neuron failures."""
         hypotheses = []
 
-        # Use ACTIVATION_REGIME_SHIFT to detect high sparsity/dead_ratio
+        # Use ACTIVATION_REGIME_SHIFT to detect DEAD state
         dead_events = [e for e in self.events
                       if e.event_type == EventType.ACTIVATION_REGIME_SHIFT
-                      and e.to_state.get('dead_ratio', 0) > 0.9]
+                      and e.to_state == ActivationHealth.DEAD.value]
 
         if not dead_events:
             return hypotheses
@@ -334,7 +378,7 @@ class NeuralDbg:
             description=f"Neuron death detected in layer '{first_dead.layer_name}' at step {first_dead.step}",
             confidence=first_dead.confidence,
             evidence=[first_dead],
-            causal_chain=[f"High dead_ratio ({first_dead.to_state['dead_ratio']:.2f}) in {first_dead.layer_name}"]
+            causal_chain=[f"High dead_ratio ({first_dead.metadata.get('current_dead', 1.0):.2f}) in {first_dead.layer_name}"]
         ))
 
         return hypotheses
@@ -342,10 +386,10 @@ class NeuralDbg:
         """Generate hypotheses for saturated activation failures."""
         hypotheses = []
 
-        # Find events with high saturation
+        # Find events with SATURATED state
         sat_events = [e for e in self.events
                      if e.event_type == EventType.ACTIVATION_REGIME_SHIFT
-                     and e.to_state.get('saturation_ratio', 0) > 0.7]
+                     and e.to_state == ActivationHealth.SATURATED.value]
 
         if not sat_events:
             return hypotheses
@@ -356,7 +400,7 @@ class NeuralDbg:
             description=f"Activation saturation detected in layer '{first_sat.layer_name}' at step {first_sat.step}",
             confidence=first_sat.confidence,
             evidence=[first_sat],
-            causal_chain=[f"High saturation_ratio ({first_sat.to_state['saturation_ratio']:.2f}) in {first_sat.layer_name}"]
+            causal_chain=[f"High saturation_ratio ({first_sat.metadata.get('current_saturation', 1.0):.2f}) in {first_sat.layer_name}"]
         ))
 
         return hypotheses
@@ -368,7 +412,7 @@ class NeuralDbg:
         # Find first vanishing gradient event
         vanishing_events = [e for e in self.events
                           if e.event_type == EventType.GRADIENT_HEALTH_TRANSITION
-                          and e.to_state == GradientHealth.VANISHING]
+                          and e.to_state == GradientHealth.VANISHING.value]
 
         if not vanishing_events:
             return hypotheses
@@ -412,22 +456,69 @@ class NeuralDbg:
         relevant_events = [e for e in self.events if e.event_type.value == event_type]
         return [f"{e.layer_name} at step {e.step}: {e.metadata}" for e in relevant_events]
 
-    def detect_coupled_failures(self) -> List[Dict[str, Any]]:
-        """Detect coupled failures (events that occur together)."""
+    def detect_coupled_failures(self, window: int = 5) -> List[Dict[str, Any]]:
+        """
+        Detect coupled failures (events that occur together or in sequence).
+        
+        Args:
+            window: Maximum step difference to consider events coupled.
+            
+        Returns:
+            List of detected couplings with confidence and direction.
+        """
         couplings = []
+        if len(self.events) < 2:
+            return couplings
 
-        # Simple coupling detection: events within 5 steps of each other
-        for i, event1 in enumerate(self.events):
-            for event2 in self.events[i+1:]:
-                if abs(event1.step - event2.step) <= 5 and event1.layer_name != event2.layer_name:
+        # Sort events by step to find sequential dependencies
+        sorted_events = sorted(self.events, key=lambda e: e.step)
+
+        for i, event1 in enumerate(sorted_events):
+            for event2 in sorted_events[i+1:]:
+                step_diff = event2.step - event1.step
+                if step_diff > window:
+                    break # Events too far apart
+
+                if event1.layer_name != event2.layer_name:
+                    # Potential causal coupling (event1 might influence event2)
+                    confidence = min(event1.confidence, event2.confidence)
+                    # Boost confidence for specific known patterns (e.g. saturation -> vanishing)
+                    if (event1.event_type == EventType.ACTIVATION_REGIME_SHIFT and 
+                        event2.event_type == EventType.GRADIENT_HEALTH_TRANSITION):
+                        confidence = min(confidence + 0.2, 1.0)
+
                     couplings.append({
-                        'event1': f"{event1.event_type.value} in {event1.layer_name}",
-                        'event2': f"{event2.event_type.value} in {event2.layer_name}",
-                        'step_difference': abs(event1.step - event2.step),
-                        'confidence': min(event1.confidence, event2.confidence)
+                        'trigger': f"{event1.event_type.value} in {event1.layer_name}",
+                        'consequence': f"{event2.event_type.value} in {event2.layer_name}",
+                        'step_difference': step_diff,
+                        'confidence': confidence,
+                        'is_causal_candidate': True
                     })
 
         return couplings
+
+    def get_root_causes(self) -> List[CausalHypothesis]:
+        """Identify and rank root causes based on first-occurrence tracking."""
+        hypotheses = []
+        for failure_key, layer_name in self.first_failure_layer.items():
+            step = self.first_failure_step[failure_key]
+            # Find the actual event object
+            matching_events = [e for e in self.events if e.layer_name == layer_name and e.step == step]
+            evidence = matching_events[:1]
+            
+            hypotheses.append(CausalHypothesis(
+                description=f"Root cause candidate: {failure_key.replace('_', ' ')} originated in '{layer_name}' at step {step}",
+                confidence=0.95, # First occurrence is a strong indicator
+                evidence=evidence,
+                causal_chain=[f"First instance of {failure_key} detected in layer {layer_name}"]
+            ))
+        return hypotheses
+
+    def _collapse_events(self) -> List[SemanticEvent]:
+        """Collapse multiple sequential events in the same layer into a summary trace."""
+        # For now, just return all events, but in a production system, 
+        # this would merge e.g. HEALTHY->SATURATED and SATURATED->VANISHING
+        return self.events
 
     def export_mermaid_causal_graph(self) -> str:
         """
@@ -451,13 +542,13 @@ class NeuralDbg:
             idx1 = -1
             idx2 = -1
             for i, event in enumerate(self.events):
-                if f"{event.event_type.value} in {event.layer_name}" == coupling['event1']:
+                if f"{event.event_type.value} in {event.layer_name}" == coupling['trigger']:
                     idx1 = i
-                if f"{event.event_type.value} in {event.layer_name}" == coupling['event2']:
+                if f"{event.event_type.value} in {event.layer_name}" == coupling['consequence']:
                     idx2 = i
             
             if idx1 != -1 and idx2 != -1:
-                lines.append(f"    E{idx1} <-->|coupled| E{idx2}")
+                lines.append(f"    E{idx1} -->|coupled| E{idx2}")
                 
         # Create edges for temporal flow in the same layer
         layer_events: Dict[str, List[int]] = {}

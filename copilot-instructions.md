@@ -267,6 +267,17 @@ To ensure strict adherence to rules:
 
 ---
 
+---
+15. **Strict Project Isolation**: Scope limited to current project context only? [YES/NO]
+
+---
+
+## RULE 34: Strict Project Isolation (MANDATORY)
+
+- **Rule**: Limit scope to the current active project context only.
+- **Filter**: Filter Linear issues by project name/ID.
+- **Action**: Ignore unrelated projects. Ask for clarification if project selection is ambiguous.
+
 ## RULE 25: MLOps/DevOps Collaboration — MANDATORY
 
 ### Rule

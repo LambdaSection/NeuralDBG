@@ -295,6 +295,9 @@ Les fichiers d'idees et d'architecture DOIVENT etre dans `.gitignore`:
 - `mom_test_results.md` — donnees d'interview privees
 - `ideas.md` — brainstorms work-in-progress
 - `architecture_notes.md` — notes d'architecture
+- `concept/` — dossier de vision et strategie
+- `mom_test_script.md` — questions d'entretien
+- `decision.md` — documents de decision strategique
 
 **Raison**: Ces fichiers contiennent des reflexions en cours, des donnees privees, et ne doivent pas etre exposes publiquement.
 
@@ -685,3 +688,19 @@ Only branches with the **`ceo/`** scope have the authority to modify rule files.
 2. **Review Enforcement**: No Pull Request (PR) can be merged without explicitly confirming that the branch has the status of the "Current Rule Set" (Rule 33 verification).
 
 
+## RULE 34: Strict Project Isolation (MANDATORY)
+
+### Rule
+When interacting with external tools (Linear, GitHub, etc.), the AI Agent MUST strictly limit its scope to the current project context (e.g., **Sagittarius**).
+
+### Requirements
+1. **Tool Filtering**: Always filter issues, projects, and documents by the specific project name or ID the user is currently focused on.
+2. **Context Integrity**: Do NOT read or comment on issues from other projects unless explicitly cross-referenced.
+3. **Choice Prompt**: If multiple projects are detected, ALWAYS ask the user to confirm which project(s) should be the focus. Never mix everything.
+
+### Enforcement
+```
+IF Linear search returns issues from multiple projects:
+  ACTION: Filter results and present ONLY the relevant context.
+  ACTION: Ask for clarification if project selection is ambiguous.
+```

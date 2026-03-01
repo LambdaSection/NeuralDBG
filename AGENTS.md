@@ -314,6 +314,9 @@ Certain files MUST be in `.gitignore` and NEVER committed publicly.
 | `mom_test_results.md` | Private interview data |
 | `ideas.md` | Work-in-progress brainstorms |
 | `architecture_notes.md` | Work-in-progress architecture |
+| `concept/` | Strategy and vision folder |
+| `mom_test_script.md` | Interview questions |
+| `decision.md` | Strategic decisions |
 | `.env` | Secrets and credentials |
 | API keys, tokens | Security |
 
@@ -758,6 +761,7 @@ When asking "Did you follow AGENTS.md?", the agent MUST provide:
 22. **Rule 22**: "Feature Focus Rule: Only one feature focused on for this validation cycle? [YES/NO]"
 23. **Rule 23**: "Knowledge Capture: Post-mortem documented for pivot/failure? [YES/NO]"
 24. **Rule 24**: "Marketing & Outreach Guardian: Communities identified & templates drafted? [YES/NO]"
+25. **Rule 25**: "Project Isolation: Scope limited to current project context only? [YES/NO]"
 
 ---
 
@@ -787,6 +791,7 @@ When asking "Did you follow AGENTS.md?", the agent MUST provide:
 | Rule 20 (Hard Milestone Lock) | SYSTEM LOCK: No code edits permitted until validation results are provided |
 | Rule 21 (Intel Harvester) | STOP and conduct intelligence research immediately |
 | Rule 22 (Feature Focus) | STOP and re-focus on a single feature |
+| Rule 25 (Project Isolation) | STOP and filter scope to the target project ONLY |
 
 ---
 

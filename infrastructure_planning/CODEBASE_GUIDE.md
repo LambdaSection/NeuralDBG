@@ -40,9 +40,10 @@ This is the Hub of the project. It contains:
 | Class | What it does |
 |-------|--------------|
 | `EventType` | Enum of semantic events (gradient transitions, activation shifts, etc.) |
-| `GradientHealth` | Enum of gradient states (healthy, vanishing, exploding, saturated) |
-| `SemanticEvent` | A data structure representing a meaningful training transition |
-| `CausalHypothesis` | A ranked explanation of why training failed |
+| `ActivationHealth` | Enum (NORMAL, SATURATED, DEAD, ANOMALOUS) for state-based tracking. |
+| `GradientHealth` | Enum (HEALTHY, VANISHING, EXPLODING, SATURATED). |
+| `SemanticEvent` | Pure Python representation of a failure (vanishing gradients, dead neurons). |
+| `CausalHypothesis` | Reasoning result with evidence and causal chain. |
 | `NeuralDbg` | The main engine class. Wraps a PyTorch model with hooks to detect events |
 
 **Key methods in `NeuralDbg`:**
@@ -50,8 +51,10 @@ This is the Hub of the project. It contains:
 - `_install_hooks` : Attaches PyTorch forward/backward hooks to every layer
 - `_classify_gradient_health` : Categorizes a gradient norm as healthy/vanishing/exploding
 - `_detect_gradient_transition` : Detects when gradient health changes between steps
-- `explain_failure` : The main output -- returns ranked causal hypotheses
-- `export_mermaid_causal_graph` : Generates a visual causal graph
+- `explain_failure()`: Main entry point for causal reasoning.
+- `get_root_causes()`: Identifies the first layer and step where a failure originated.
+- `detect_coupled_failures()`: Identifies temporal and structural links between events.
+- `export_mermaid_causal_graph()`: Visualizes the trace.
 
 ### demo_vanishing_gradients.py (The Demo)
 This is a self-contained script that:

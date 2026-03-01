@@ -250,6 +250,11 @@ All Outreach/Growth/Mom Test posts MUST be logged in `~/Documents/kuro-rules/acq
 
 ---
 
+## Project Isolation — CONTEXT ISOLATION (MANDATORY)
+- **Constraint**: When using the Linear MCP or searching issues, you MUST strictly filter for the current active project context.
+- **Reason**: To avoid mixing context with other startup ideas or projects in the same organizational space.
+- **Rule**: If results from multiple projects are returned, ignore everything except the target project. ALWAYS ask the user to confirm the project if ambiguous.
+
 ## Working Demos (MANDATORY)
 
 At each validation milestone (25%, 50%, 75%, 90%, 95%), the project MUST have at least **2 working demos**.
