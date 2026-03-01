@@ -318,6 +318,7 @@ At every progress milestone (10%, 25%, 50%, 75%, 90%, 95%), the AI Agent MUST st
 2. **Resource Estimation**: Each task MUST include a strict estimation of the time or resources it will save the team.
 3. **Documentation**: These tasks MUST be documented in the infrastructure_planning/ folder in TWO Markdown files: an English version (milestone_X_tasks.md) and a French pedagogical version (milestone_X_tasks_fr.md).
 4. **Actionable**: Tasks must be ready for a DevOps/MLOps engineer to pick up.
+5. **Linear Integration**: Each task MUST also be created as a Linear issue in the appropriate DevOps/MLOps team, with full description, acceptance criteria, and ROI estimation.
 
 ### Enforcement
 ```
