@@ -534,3 +534,26 @@ IF a session starts:
   ACTION: Verify the contributor has the required stack.
   ACTION: If missing, guide setup before any work.
 ```
+
+---
+
+## RULE 33: Global Rule Parity and Mandatory Cross-Branch Sync -- CRITICAL
+
+### Rule
+The AI rule set (AGENTS.md, AI_GUIDELINES.md, .cursorrules) represents the immutable "Physical Laws" of the repository ecosystem. Rules are **global** and MUST NOT vary between branches. 
+
+### Mandatory Sync Process
+1. **Rule Modification**: When any rule is added or modified on a development branch, the AI Agent MUST immediately:
+   - Commit the change on the current branch.
+   - Switch to all other active development branches (e.g., `infra/milestone-0-setup`, `main`) and merge the changes.
+   - Update the master `kuro-rules` repository.
+2. **Review Enforcement**: No Pull Request (PR) can be merged without explicitly confirming that the branch has the status of the "Current Rule Set" (Rule 33 verification).
+
+### Enforcement
+```
+IF a rule is changed:
+  ACTION: SYNC (merge) the modified rule files to ALL active branches BEFORE proceeding with code.
+  ACTION: Update SYNC_LOG.md and SESSION_SUMMARY.md.
+  DO NOT: Allow branch-specific rules.
+  DO NOT: Work on an outdated rule set.
+```
