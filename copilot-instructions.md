@@ -365,3 +365,39 @@ IF the DevOps/MLOps engineer submits work:
   ACTION: Provide feedback as a senior reviewer.
   DO NOT: Accept work that does not meet the documented criteria.
 `
+
+---
+
+## RULE 29: Mandatory Linear Integration — CRITICAL
+
+### Rule
+Every team member and every AI Agent MUST have a working connection to Linear before starting any work session. This is non-negotiable. Without Linear, no task tracking occurs, and work is invisible to the team.
+
+### Integration Methods (by environment)
+
+| Environment | Required Integration |
+|-------------|---------------------|
+| VS Code | Linear extension from VS Code Marketplace |
+| Cursor | Linear extension OR MCP server (linear-mcp-server) |
+| Antigravity | MCP server (linear-mcp-server) |
+| Windsurf | MCP server (linear-mcp-server) |
+| GitHub Codespaces | Linear GitHub integration + MCP server |
+| Terminal-only | Linear CLI or MCP server |
+
+### Requirements
+1. **Session Gate**: The AI Agent MUST verify Linear connectivity at the start of every session. If unavailable, guide the user through setup before proceeding.
+2. **Human Onboarding**: When a new team member joins, the FIRST task is to configure their Linear connection. No code is written until Linear is operational.
+3. **Issue Visibility**: All tasks, bugs, and features MUST be trackable in Linear. Work done outside Linear is considered undocumented and violates traceability (Rule 4).
+
+### Enforcement
+`
+IF Linear connection is not configured:
+  ACTION: STOP all work.
+  ACTION: Guide user through Linear setup for their IDE/environment.
+  DO NOT: Allow any development work without Linear tracking.
+
+IF a new team member joins:
+  ACTION: First task is Linear setup and verification.
+  ACTION: Assign them a test issue to confirm the connection works.
+  DO NOT: Skip this onboarding step.
+`
