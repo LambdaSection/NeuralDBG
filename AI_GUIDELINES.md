@@ -82,6 +82,43 @@ High-quality code requires proactive testing and deep analysis.
 
 ---
 
+## Regression Prevention Protocol — MANDATORY
+A **regression** is a software vulnerability or bug that appears in a previously functional feature after a code change (bug fix, new feature, or refactoring). To mitigate this:
+
+1.  **Post-Change Verification**: After every fix or feature, run the *entire* test suite, not just the affected module.
+2.  **Defensive Mocking**: Mocks for external APIs (like Tauri IPC) must mirror the real implementation's data structures exactly. Use strictly typed interfaces to catch structural regressions.
+3.  **Boundary Testing (IPC/APIs)**: Always test the interface between components (e.g., Rust backend and TS frontend). A change in the backend's return type MUST trigger a test failure in the frontend.
+4.  **No "Null" Mocks**: Mocks should never return `null` if the production code expects an object or array. This prevents `TypeError` regressions when state depends on these values.
+5.  **Time-Dependent Isolation**: Always use localized fake timers (`vi.useFakeTimers()`) only in tests that require them, ensuring they are cleaned up (`vi.useRealTimers()`) to avoid side effects in subsequent tests.
+
+---
+
+## Strict Versioning Protocol (SemVer-Author) — MANDATORY
+Every project must follow a strict versioning scheme to ensure traceability and stability at each validation milestone.
+
+1.  **Notation**: Use Semantic Versioning (SemVer) with a custom author suffix.
+    - Format: `v[Major].[Minor].[Patch]-[Author]`
+    - Example: `v0.1.0-kuro`, `v1.0.0-lem-world`
+2.  **Versioning Strategy**:
+    - **Major**: Breaking changes.
+    - **Minor**: New features (backwards-compatible).
+    - **Patch**: Bug fixes (backwards-compatible).
+3.  **Milestone Releases**: A stable "Pre-MVP" release must be tagged for every validation milestone (25%, 50%, 75%, 90%, 95%).
+4.  **Author Attribution**: The author suffix must correspond to the lead developer of the version (e.g., `kuro` for Jacques-Charles Gad).
+5.  **Git Tags**: Every version MUST be a Git tag. Use `git tag -a vX.Y.Z-author -m "Release description"`
+6.  **No SVN Required**: Git provides superior branching and local tracking. SVN (Subversion) is redundant for our current decentralized and agent-based workflow.
+
+## Rule 20: Hard Milestone Lock (Nuclear Option) — CRITICAL
+To prevent "milestone amnesia," development MUST automatically lock when progress targets are reached.
+
+1.  **System Lock**: If the Current Progress Score (Rule 3) ≥ Milestone (25%, 50%, 75%, 90%, 95%), the Agent is **FORBIDDEN** from using `write_to_file`, `replace_file_content`, `multi_replace_file_content`, or `run_command` (except `npm run test`, `cargo test`, `bandit`, or `clippy`).
+2.  **Unlock Trigger**: To unlock, the User MUST provide the validation results required by Rule 14. The Agent then updates `SESSION_SUMMARY.md` with: `**Milestone Validation**: [Milestone]% PASSED - [Date]`.
+3.  **Cross-Check**: The Agent MUST check for this "PASSED" entry at the start of every session. If missing and progress is over the milestone, the lock is ACTIVE.
+4.  **Bypass Consequences**: Any attempt by an Agent to bypass this lock (e.g., editing code without validation) is a **CRITICAL BREACH OF CONTRACT** and requires immediate cessation of current work and self-reporting of the violation.
+
+## Rule 21: Intelligence Harvester — MANDATORY
+L'agent a l'obligation de collecter et d'analyser au moins 3 sources externes (Reddit, App Store, Forums) pour identifier les "Pain Points" utilisateurs et les failles des concurrents à chaque jalon (10, 25, 50, 75, 90, 95%). Cette analyse doit être consignée avant toute validation.
+
 ## Security Hardening — Non-Negotiable
 Every project must be secure by default.
 - **Never** log, print, or commit API keys, tokens, or secrets.
@@ -99,7 +136,7 @@ Every project must be secure by default.
 ---
 
 ## Formula Clarity — NO LATEX
-- **Constraint**: Do not use `$` LaTeX notation in chat (it doesn't render visually for the user).
+- **Constraint**: Do NOT use `$` LaTeX notation in chat (it doesn't render visually for the user).
 - **Rule**: Use plain text, ASCII art, or clear descriptive names for math (e.g., "Moyenne / Mean (mu)" instead of mu).
 
 ---
@@ -155,11 +192,11 @@ Every AI session MUST produce a traceable record of what was done. This ensures 
 # Session Summary — [YYYY-MM-DD]
 **Editor**: (Antigravity | Cursor | Windsurf | VS Code | etc.)
 
-## Francais
-**Ce qui a ete fait** : (Liste)
-**Initiatives donnees** : (Nouvelles idees/directions)
-**Fichiers modifies** : (Liste)
-**Etapes suivantes** : (Ce qu'il reste a faire)
+## Français
+**Ce qui a été fait** : (Liste)
+**Initiatives données** : (Nouvelles idées/directions)
+**Fichiers modifiés** : (Liste)
+**Étapes suivantes** : (Ce qu'il reste à faire)
 
 ## English
 **What was done**: (List)
@@ -189,16 +226,6 @@ Every AI session MUST produce a traceable record of what was done. This ensures 
 - **Update README & Changelog**: Always update README.md and CHANGELOG.md after significant changes.
 - **Zero Friction**: Always ensure zero friction for users when using tools. Clear documentation, simple setup, intuitive UX.
 - **Solve Real Pain Points**: Always ensure what we are building solves real pain points. Build for users, not for the sake of building.
-
----
-
-## Agent Protocol
-To ensure strict adherence to rules:
-1.  **Read This First**: Agents MUST read this file at the start of every session.
-2.  **Checklist Enforcement**: Agents MUST verify `task.md` and run `bandit` before declaring a task complete.
-3.  **Explicit Confirmation**: When users ask "did you follow the rules?", Agents MUST provide proof (e.g., bandit output).
-4.  **No Silent Failures**: If a step fails (e.g., artifact update), the Agent MUST report it and retry, never ignore it.
-5.  **Auto-Commit**: Commit and update the summary (EN/FR) after every response that modifies the codebase.
 
 ---
 
@@ -236,15 +263,17 @@ To ensure strict adherence to rules:
 - "TensorBoard me suffit" — Pas assez douloureux
 - "Cool projet!" sans histoire — Politesse, pas validation
 
-### Livrables du Mom Test
+### Livrables du Mom Test & Acquisition
 - [ ] `mom_test_script.md` — Questions d'entretien (EN/FR)
 - [ ] `mom_test_results.md` — Comptes-rendus des interviews (EN/FR)
 - [ ] `decision.md` — Go/No-Go/Pivot avec justification (EN/FR)
+- [ ] **Mise à jour de `acquisition_tracker.md` (MANDATORY)** — Tout post (Reddit, Discord, X) pour le Mom Test ou le Growth DOIT être consigné dans `~/Documents/kuro-rules/acquisition_tracker.md` avec son résultat (ban, succès, réponse) pour créer une mémoire collective d'acquisition.
 
 ### Integration Progress Tracking
 Le Mom Test represente **les premiers 10%** du progress. Un projet ne peut pas depasser 10% sans:
 - `mom_test_results.md` complete
 - Decision documentee dans `decision.md`
+- Mise à jour de `acquisition_tracker.md` avec les plateformes testées.
 
 ### AI Guidance During Mom Test (MANDATORY)
 Pendant la periode Mom Test (0-10%), l'agent DOIT:
@@ -276,18 +305,111 @@ Les fichiers d'idees et d'architecture DOIVENT etre dans `.gitignore`:
 
 ---
 
-## Suggested Reading & Resources
-To understand the foundations of our work, follow these references:
+## Agent Protocol
+To ensure strict adherence to rules:
+1.  **Read This First**: Agents MUST read this file at the start of every session.
+2.  **Checklist Enforcement**: Agents MUST verify `task.md` and run `bandit` before declaring a task complete.
+3.  **Explicit Confirmation**: When users ask "did you follow the rules?", Agents MUST provide proof (e.g., bandit output).
+4.  **No Silent Failures**: If a step fails (e.g., artifact update), the Agent MUST report it and retry, never ignore it.
+5.  **Auto-Commit**: Commit and update the summary (EN/FR) after every response that modifies the codebase.
 
-1.  **Foundations of Machine Learning**:
-    - *Book*: "Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow" (Aurélien Géron).
-    - *Goal*: General understanding of ML workflows and tools.
-2.  **Probabilistic ML & Uncertainty**:
-    - *Book*: "Probabilistic Machine Learning: An Introduction" (Kevin P. Murphy).
-    - *Goal*: Understand Gaussian models, NLL loss, and modeling probability distributions.
-3.  **Modern Deep Learning (Transformers)**:
-    - *Article*: "The Illustrated Transformer" (Jay Alammar) — Read this first!
-    - *Paper*: "Attention Is All You Need" (Vaswani et al.).
-    - *Book*: "Deep Learning" (Ian Goodfellow et al.).
-4.  **Time Series**:
-    - *Book*: "Forecasting: Principles and Practice" (Rob J. Hyndman).
+---
+
+## Periodic Validation (MANDATORY)
+
+At progress milestones (25%, 50%, 75%, 90%, 95%), the product MUST be validated:
+
+| Milestone | Required Validation |
+|-----------|-------------------|
+| 25% | Mom Test follow-up (3+ users), Marketing Test (landing page views) |
+| 50% | Mom Test validation (5+ new users), Marketing Test (conversion metrics) |
+| 75% | Mom Test expansion (different segments), Marketing Test (pricing) |
+| 90% | Final Mom Test, Marketing Test (launch readiness) |
+| 95% | Pre-launch validation (all criteria met) |
+
+**Enforcement**: STOP development at each milestone until validation is complete.
+
+---
+
+## Feature Focus Rule (MANDATORY)
+
+To ensure the highest quality and depth of implementation, development MUST focus on only ONE specific feature for each periodic validation cycle.
+
+1.  **Single Feature Focus**: Each milestone validation (25%, 50%, 75%, 90%, 95%) must center on validating and polishing one primary feature.
+2.  **Breadth vs. Depth**: Avoid shallow implementation of multiple features. Prioritize deep, robust implementation of the selected feature.
+3.  **Post-MVP Continuity**: This rule remains active even after the MVP (Minimum Viable Product) phase to maintain long-term product standards.
+
+**Enforcement**: Development on other features is paused until the current target feature is fully validated.
+## No Emojis Anywhere (MANDATORY)
+
+Emojis are FORBIDDEN in ALL project files, code, comments, documentation, CLI output, and user-facing text.
+
+**Reason**: Encoding issues, tool compatibility, professionalism.
+
+**Enforcement**: REMOVE immediately if found.
+
+---
+
+## Rule Synchronization (MANDATORY)
+
+When ANY rule file is updated, ALL rule files MUST be updated:
+- AGENTS.md
+- AI_GUIDELINES.md
+- .cursorrules
+- copilot-instructions.md
+- GAD.md
+
+**Enforcement**: SYNC immediately to all files, document in SYNC_LOG.md.
+
+---
+
+## Working Demos (MANDATORY)
+
+At each validation milestone (25%, 50%, 75%, 90%, 95%), the project MUST have at least **2 working demos**.
+
+**Requirements**:
+- Minimum 2 demos per milestone
+- Each demo must be runnable without errors
+- Demos must demonstrate different aspects of the product
+
+**Enforcement**: STOP and create 2 working demos if missing.
+
+---
+
+## Deep Understanding Before Phase Transition (MANDATORY)
+
+Before transitioning to the next phase, the user MUST demonstrate deep understanding of what was created.
+
+**Requirements**:
+1. Explain the mechanism: How does it work under the hood?
+2. 2nd order consequences: What happens in production? What edge cases?
+3. 3rd order consequences: What long-term effects? What dependencies?
+4. Teach something new: Agent must teach user at least one new concept
+5. Critical thinking prompts: Agent must ask probing questions
+
+**Critical Thinking Questions (Agent MUST Ask)**:
+1. "What could break this in production that we haven't tested?"
+2. "What would happen if 10x more users used this?"
+3. "What assumptions are we making that might be wrong?"
+4. "What would you do if this completely failed?"
+5. "What did you learn that surprised you?"
+
+**Enforcement**: STOP and provide deep explanation before phase transition.
+
+---
+
+## DevOps & MLOps Collaboration Profile (MANDATORY)
+
+When interacting with a DevOps or MLOps engineer on this repository, the AI Agent MUST shift its focus to infrastructure, delivery, and reliability.
+
+1. **Focus Areas**:
+   - **MLOps**: Experiment tracking (MLflow/W&B), model registry, dataset versioning, reproducible training pipelines (e.g., for model training scripts).
+   - **DevOps**: CI/CD pipelines (GitHub Actions), containerization (Docker/Docker Compose), Infrastructure as Code (Terraform), and robust environment management.
+2. **Guidelines for AI when helping DevOps/MLOps**:
+   - Provide clean, production-ready configuration files (`.yaml`, `Dockerfile`, etc.).
+   - Prioritize deterministic and reproducible builds.
+   - Enforce security scans natively in the pipeline (`bandit`, `safety`, `sonar`).
+   - Treat infrastructure code with the same rigor (testing, DRY, modularity) as application code.
+3. **Communication**:
+   - Use standard DevOps terminology. 
+   - When suggesting architectural changes for ML models, immediately propose the corresponding MLOps pipeline adjustments.

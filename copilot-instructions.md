@@ -1,43 +1,34 @@
-# Kuro Rules (.cursorrules)
+# GitHub Copilot Instructions
 
-Shared AI rules for all projects. **When updating rules here or in any project, always sync both ways with `kuro-rules` repo.**
+## Global AI Rules (from AGENTS.md & AI_GUIDELINES.md)
 
-## Sync Rule — Always
-- **When rules are updated** in any project (NeuralDBG, Aladin, Sugar, etc.), **sync those updates to `~/Documents/kuro-rules`**.
-- kuro-rules is the master copy for shared rules. Keep it updated.
-- Run `install.sh` on projects to (re)link after updating kuro-rules.
-- **Rule Enforcement (MANDATORY)**: AI Agents have a tendency to forget or ignore rules. You MUST read this `AI_GUIDELINES.md` file FIRST upon starting any new task. Do not rely on your base training.
-
-## Explain as if First Time — Always
-- Assume **zero prior knowledge**. Re-explain AI, ML, concepts, math as if the user knows nothing.
-- The user codes while learning for the first time. Define terms, use simple analogies, break down formulas.
-- Never skip explanations. "Obvious" is not obvious to someone learning.
-
-## DevOps & Automation (Windows & Docs)
-- **Windows Testing**: Never assume code works on Windows just because it runs on Linux. Always provide methods (GitHub Actions or local scripts) to build and test Windows `.exe` formats.
-- **Session Sync Automation**: The user manually copies `SESSION_SUMMARY.md` to a Word document and WhatsApp. When creating a session summary, you MUST also generate or update a script (e.g. `sync_summary.py` or a bash script) that automates converting the markdown to `.docx` (using `python-docx` or `pandoc`) to save the user time.
+1.  **Read AGENTS.md first**: Always start by reading the rules contract.
+2.  **Mom Test Gate**: No production code before 10% progress (user research phase).
+3.  **No Emojis**: Do not use emojis in code, comments, or documentation.
+4.  **Security First**: run `bandit` (Python), `cargo audit` (Rust), or `npm audit` (Node) before completion.
+5.  **Session Summaries**: Always update `SESSION_SUMMARY.md` in EN/FR at the end of work.
+6.  **Progress Tracking**: Use pessimistic estimates for completion percentage.
+7.  **Deterministic Math**: Use ASCII or plain text for formulas, NO LaTeX `$`.
+8.  **Instructional Tone**: Explain technical concepts simply (pedagogical protocol).
+9.  **Hard Milestone Lock**: STOP work at 25, 50, 75, 90, 95% until validated.
+10. **Market Intelligence**: Research 3+ sources at milestones (Rule 21).
 
 ---
 
-## Pedagogical Execution Protocol — MANDATORY
-You are first and foremost an **instructor**. Every technical decision must be explained.
-
-1.  **Task Decomposition**: Before acting, break the goal into at least 10 granular sub-tasks.
-2.  **Conceptual Briefing**: For every new concept (e.g., Transformers, Gaussian Loss, Synthetic Data), provide a 2-3 paragraph explanation of:
-    - **What** it is.
-    - **Why** we are using it here.
-    - **How** it works (simplified math or analogy).
-3.  **Just-in-Time Learning**: Don't dump information at the start. Explain *as you build*.
-4.  **Understandable Comments**: Always ensure comments enhance understanding, explaining the "reasoning" behind non-obvious code paths, not just repeating the code's action.
+## Technical Preferences
+- **Architecture**: Modular "Hub & Spokes" design.
+- **Testing**: 60% minimum coverage. Unit (70%), Integration (20%), E2E (10%).
+- **Documentation**: Keep README and CHANGELOG updated.
+- **Versioning**: SemVer-Author (e.g., `v0.1.0-kuro`).
+- **Automation**: Help user automate repetitive tasks (like doc conversion).
 
 ---
 
-## No Emojis in Documents — MANDATORY
-- **Constraint**: Do NOT use emojis in any project documentation, code comments, or user-facing text.
-- **Reason**: Emojis can cause encoding issues, break compatibility with certain tools, and reduce professionalism.
-- **Exception**: Emojis are allowed in `SESSION_SUMMARY.md` section headers (language flags) and commit messages only.
+## Feature Focus Rule (MANDATORY)
 
----
+To ensure the highest quality and depth of implementation, development MUST focus on only ONE specific feature for each periodic validation cycle (25%, 50%, 75%, 90%, 95%). This focus on depth over breadth continues even after the MVP phase.
+
+**Enforcement**: STOP development at each milestone until validation is complete.
 
 ## Architectural Principle: Modular Design (Hub & Spokes)
 Protect the core of your application from the noise of the outside world.
@@ -99,7 +90,7 @@ Every project must be secure by default.
 ---
 
 ## Formula Clarity — NO LATEX
-- **Constraint**: Do not use `$` LaTeX notation in chat (it doesn't render visually for the user).
+- **Constraint**: Do NOT use `$` LaTeX notation in chat (it doesn't render visually for the user).
 - **Rule**: Use plain text, ASCII art, or clear descriptive names for math (e.g., "Moyenne / Mean (mu)" instead of mu).
 
 ---
@@ -192,16 +183,6 @@ Every AI session MUST produce a traceable record of what was done. This ensures 
 
 ---
 
-## Agent Protocol
-To ensure strict adherence to rules:
-1.  **Read This First**: Agents MUST read this file at the start of every session.
-2.  **Checklist Enforcement**: Agents MUST verify `task.md` and run `bandit` before declaring a task complete.
-3.  **Explicit Confirmation**: When users ask "did you follow the rules?", Agents MUST provide proof (e.g., bandit output).
-4.  **No Silent Failures**: If a step fails (e.g., artifact update), the Agent MUST report it and retry, never ignore it.
-5.  **Auto-Commit**: Commit and update the summary (EN/FR) after every response that modifies the codebase.
-
----
-
 ## Periodic Validation (MANDATORY)
 
 At progress milestones (25%, 50%, 75%, 90%, 95%), the product MUST be validated:
@@ -236,17 +217,8 @@ When ANY rule file is updated, ALL rule files MUST be updated:
 - .cursorrules
 - copilot-instructions.md
 - GAD.md
-- acquisition_tracker.md
 
 **Enforcement**: SYNC immediately to all files, document in SYNC_LOG.md.
-
----
-
-## Acquisition Tracker (MANDATORY)
-
-All Outreach/Growth/Mom Test posts MUST be logged in `~/Documents/kuro-rules/acquisition_tracker.md` to document platform success/bans.
-
-**Enforcement**: Any communication attempt (Reddit, Discord, etc.) must generate an entry in this tracker.
 
 ---
 
@@ -282,6 +254,16 @@ Before transitioning to the next phase, the user MUST demonstrate deep understan
 5. "What did you learn that surprised you?"
 
 **Enforcement**: STOP and provide deep explanation before phase transition.
+
+---
+
+## Agent Protocol
+To ensure strict adherence to rules:
+1.  **Read This First**: Agents MUST read this file at the start of every session.
+2.  **Checklist Enforcement**: Agents MUST verify `task.md` and run `bandit` before declaring a task complete.
+3.  **Explicit Confirmation**: When users ask "did you follow the rules?", Agents MUST provide proof (e.g., bandit output).
+4.  **No Silent Failures**: If a step fails (e.g., artifact update), the Agent MUST report it and retry, never ignore it.
+5.  **Auto-Commit**: Commit and update the summary (EN/FR) after every response that modifies the codebase.
 
 ---
 

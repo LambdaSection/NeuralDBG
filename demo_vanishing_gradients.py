@@ -44,7 +44,7 @@ def train_with_monitoring(model, dataloader, num_steps=100):
     optimizer = optim.SGD(model.parameters(), lr=0.0001)  # Even smaller LR
     criterion = nn.MSELoss()
 
-    print("🔍 Training with NeuralDBG monitoring...")
+    print("[TRAINING] NeuralDBG monitoring active...")
     print("   Model: Deep Tanh network with small LR")
     print("   Expected: Vanishing gradients due to saturation + small LR")
     print()
@@ -68,14 +68,14 @@ def train_with_monitoring(model, dataloader, num_steps=100):
                 print(f"Step {step}: Loss = {loss.item():.6f}")
 
     print()
-    print("🔬 Post-mortem Causal Analysis:")
+    print("[ANALYSIS] Post-mortem Causal Analysis:")
     print("=" * 50)
 
     # Get causal explanations
     hypotheses = dbg.explain_failure("vanishing_gradients")
 
     if hypotheses:
-        print(f"📋 Found {len(hypotheses)} causal hypotheses:")
+        print(f"[RESULT] Found {len(hypotheses)} causal hypotheses:")
         for i, hyp in enumerate(hypotheses, 1):
             print(f"\n{i}. {hyp.description}")
             print(f"   Confidence: {hyp.confidence:.2f}")
@@ -83,29 +83,29 @@ def train_with_monitoring(model, dataloader, num_steps=100):
             if hyp.causal_chain:
                 print("   Chain:")
                 for step in hyp.causal_chain:
-                    print(f"     • {step}")
+                    print(f"     - {step}")
     else:
-        print("❌ No vanishing gradient events detected")
+        print("[WARNING] No vanishing gradient events detected")
 
     # Show detected coupled failures
     couplings = dbg.detect_coupled_failures()
     if couplings:
-        print(f"\n🔗 Detected {len(couplings)} coupled failure patterns:")
+        print(f"\n[COUPLING] Detected {len(couplings)} coupled failure patterns:")
         for coupling in couplings:
             print(f"   {coupling['event1']} ↔ {coupling['event2']} (confidence: {coupling['confidence']:.2f})")
 
     # Show all semantic events detected
-    print(f"\n📊 Total semantic events captured: {len(dbg.events)}")
+    print(f"\n[STATS] Total semantic events captured: {len(dbg.events)}")
     event_counts = {}
     for event in dbg.events:
         event_type = event.event_type.value
         event_counts[event_type] = event_counts.get(event_type, 0) + 1
 
     for event_type, count in event_counts.items():
-        print(f"   • {event_type}: {count} events")
+        print(f"   - {event_type}: {count} events")
 
     # Show Mermaid graph
-    print("\n🗺️ Causal Graph (Mermaid):")
+    print("\n[GRAPH] Causal Graph (Mermaid):")
     print("-" * 50)
     print(dbg.export_mermaid_causal_graph())
     print("-" * 50)
@@ -114,7 +114,7 @@ def train_with_monitoring(model, dataloader, num_steps=100):
 
 def main():
     """Main demonstration function."""
-    print("🧠 NeuralDBG: Causal Inference Demo")
+    print("[NeuralDBG] Causal Inference Demo")
     print("=" * 50)
     print()
 
@@ -125,27 +125,27 @@ def main():
     model = create_failing_model()
     dataloader = create_problematic_data()
 
-    print("🎯 Problem Setup:")
-    print("   • Deep network with Tanh activations (prone to saturation)")
-    print("   • Very small learning rate (0.001)")
-    print("   • Small input/target scales")
-    print("   • Expected outcome: Vanishing gradients from LR × saturation mismatch")
+    print("[SETUP] Problem Setup:")
+    print("   - Deep network with Tanh activations (prone to saturation)")
+    print("   - Very small learning rate (0.001)")
+    print("   - Small input/target scales")
+    print("   - Expected outcome: Vanishing gradients from LR x saturation mismatch")
     print()
 
     # Train and analyze
     hypotheses = train_with_monitoring(model, dataloader)
 
     print()
-    print("🎉 Demo Complete!")
+    print("[DONE] Demo Complete!")
     print()
     print("Key Insights:")
-    print("• No tensor storage - only semantic events")
-    print("• Causal hypotheses ranked by confidence")
-    print("• Compiler-safe (module boundary monitoring)")
-    print("• Abductive reasoning, not deductive inspection")
+    print("- No tensor storage - only semantic events")
+    print("- Causal hypotheses ranked by confidence")
+    print("- Compiler-safe (module boundary monitoring)")
+    print("- Abductive reasoning, not deductive inspection")
 
     if hypotheses:
-        print("• Successfully identified root cause without debugging!")
+        print("- Successfully identified root cause without debugging!")
 
 if __name__ == "__main__":
     main()

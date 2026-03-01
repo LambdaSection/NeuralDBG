@@ -273,7 +273,37 @@ IF agent implements without questioning:
 
 ---
 
-## RULE 9: File Protection — MANDATORY
+## RULE 9: No Emojis Anywhere — MANDATORY
+
+### Rule
+Emojis are FORBIDDEN in ALL project files, code, comments, documentation, CLI output, and user-facing text. No exceptions.
+
+### Reason
+- Encoding issues across platforms
+- Break compatibility with certain tools and terminals
+- Reduce professionalism
+- Distract from content
+
+### Verification
+```
+BEFORE any output:
+  CHECK: Does this contain emojis?
+  IF YES: REMOVE all emojis
+  CHECK: Does code/comments contain emojis?
+  IF YES: REMOVE them
+```
+
+### Enforcement
+```
+IF emoji found in any file:
+  ACTION: REMOVE immediately
+  ACTION: WARN user if emoji was in user-provided content
+  DO NOT: Add emojis to any output
+```
+
+---
+
+## RULE 10: File Protection — MANDATORY
 
 ### Rule
 Certain files MUST be in `.gitignore` and NEVER committed publicly.
@@ -305,7 +335,7 @@ IF protected file is committed:
 
 ---
 
-## RULE 10: Sync Rule — MANDATORY
+## RULE 11: Sync Rule — MANDATORY
 
 ### Rule
 When rules are updated in ANY project, SYNC to `~/Documents/kuro-rules` (master copy).
@@ -328,7 +358,7 @@ IF rules are updated without sync:
 
 ---
 
-## RULE 11: Roadmap Adherence — MANDATORY
+## RULE 12: Roadmap Adherence — MANDATORY
 
 ### Rule
 Every project MUST have a roadmap file (PLAN.md or ROADMAP.md) and all development MUST follow it.
@@ -368,7 +398,7 @@ IF code deviates from roadmap:
 
 ---
 
-## RULE 12: Roadmap Duration — MANDATORY
+## RULE 13: Roadmap Duration — MANDATORY
 
 ### Rule
 Every roadmap MUST have a minimum duration of **one month** with clearly defined phases.
@@ -406,22 +436,328 @@ IF roadmap duration < 1 month:
 
 ---
 
-## VERIFICATION CHECKLIST FOR USERS
+## RULE 14: Periodic Validation — MANDATORY
+
+### Rule
+At progress milestones (25%, 50%, 75%, 90%, 95%), the product MUST be validated through Mom Test and Marketing Test before continuing.
+
+### Validation Gates
+
+| Progress Milestone | Required Validation |
+|-------------------|-------------------|
+| 25% | Mom Test follow-up (3+ users), Marketing Test (landing page views, signups) |
+| 50% | Mom Test validation (5+ new users), Marketing Test (conversion metrics) |
+| 75% | Mom Test expansion (different user segments), Marketing Test (pricing validation) |
+| 90% | Final Mom Test (comprehensive), Marketing Test (launch readiness) |
+| 95% | Pre-launch validation (all criteria met) |
+
+### Validation Checklist
+```
+AT each milestone:
+  CHECK: Mom Test conducted with new users?
+  CHECK: Marketing Test metrics collected?
+  CHECK: User feedback documented?
+  CHECK: Pivot/continue decision made?
+  IF validation FAILED:
+    ACTION: STOP development
+    ACTION: Address feedback or pivot
+    DO NOT: Continue without validation
+```
+
+### Mom Test Requirements
+- Interview minimum 3-5 new users at each milestone
+- Ask about actual behavior, not opinions
+- Document spontaneous mentions and solution-seeking behavior
+- Update `mom_test_results.md` with new findings
+
+### Marketing Test Requirements
+- Landing page or demo available
+- Track views, signups, engagement
+- Document conversion metrics
+- Validate pricing hypothesis (if applicable)
+
+### Enforcement
+```
+IF milestone reached without validation:
+  ACTION: STOP immediately
+  ACTION: Conduct validation before continuing
+  DO NOT: Skip validation gates
+```
+
+---
+
+## RULE 15: Rule Synchronization — MANDATORY
+
+### Rule
+When ANY rule file is updated, ALL rule files MUST be updated to include the same rule. Rules must be consistent across AGENTS.md, AI_GUIDELINES.md, .cursorrules, copilot-instructions.md, and GAD.md.
+
+### Verification
+```
+AFTER updating any rule file:
+  CHECK: Is this rule in all other rule files?
+  IF NO: ADD the rule to all files
+  CHECK: Is wording consistent?
+  IF NO: SYNC wording across files
+```
+
+### Enforcement
+```
+IF rules are inconsistent across files:
+  ACTION: SYNC immediately to all files
+  ACTION: Document sync in SYNC_LOG.md
+  DO NOT: Allow rule drift between files
+```
+
+---
+
+## RULE 16: Working Demos — MANDATORY
+
+### Rule
+At each validation milestone (25%, 50%, 75%, 90%, 95%), the project MUST have at least **2 working demos** that demonstrate core functionality.
+
+### Requirements
+- Minimum 2 demos per milestone
+- Each demo must be runnable without errors
+- Demos must demonstrate different aspects of the product
+- Demos must be documented with expected output
+
+### Verification
+```
+AT each milestone:
+  CHECK: Are there at least 2 demos?
+  CHECK: Do all demos run successfully?
+  CHECK: Do demos demonstrate different features?
+  IF demos < 2:
+    ACTION: STOP and create missing demos
+    DO NOT: Continue without 2 working demos
+```
+
+### Enforcement
+```
+IF milestone reached without 2 working demos:
+  ACTION: STOP immediately
+  ACTION: Create/fix demos until 2 are working
+  DO NOT: Skip this requirement
+```
+
+---
+
+## RULE 17: Deep Understanding Before Phase Transition — MANDATORY
+
+### Rule
+Before transitioning to the next phase, the user MUST demonstrate deep understanding of what was created, including 2nd and 3rd order consequences.
+
+### Requirements
+1. **Explain the mechanism**: How does it work under the hood?
+2. **2nd order consequences**: What happens if this is used in production? What edge cases emerge?
+3. **3rd order consequences**: What long-term effects? What dependencies form?
+4. **Teach something new**: Agent must teach user at least one new concept
+5. **Critical thinking prompts**: Agent must ask probing questions about the creation
+
+### Verification Checklist
+```
+BEFORE phase transition:
+  CHECK: Can user explain the mechanism?
+  CHECK: Have 2nd/3rd order consequences been discussed?
+  CHECK: Has user learned something new?
+  CHECK: Have critical thinking questions been asked?
+  IF NOT:
+    ACTION: STOP and provide deep explanation
+    ACTION: Ask probing questions
+    ACTION: Teach new concepts
+    DO NOT: Transition without understanding
+```
+
+### Critical Thinking Questions (Agent MUST Ask)
+1. "What could break this in production that we haven't tested?"
+2. "What would happen if 10x more users used this?"
+3. "What assumptions are we making that might be wrong?"
+4. "What would you do if this completely failed?"
+5. "What did you learn that surprised you?"
+
+### Enforcement
+```
+IF phase transition requested without deep understanding:
+  ACTION: STOP and provide explanation
+  ACTION: Ask all 5 critical thinking questions
+  ACTION: Discuss 2nd and 3rd order consequences
+  DO NOT: Allow superficial understanding
+```
+
+---
+
+## RULE 18: Regression Prevention — MANDATORY
+
+### Rule
+A **regression** is a bug that appears in a previously functional feature after a code change. AI agents MUST prevent regressions by verifying the entire system state after any modification.
+
+### Verification Checklist
+```
+AFTER any change (fix, feature, or refactor):
+  1. RUN: Entire test suite (not just the local module)
+  2. CHECK: Did previously passing tests fail?
+  3. VERIFY: Mocks match production data structures exactly
+  4. ENSURE: Fake timers are isolated and cleaned up
+  5. CONFIRM: No "null" returns in mocks when objects/arrays are expected
+```
+
+### Enforcement
+```
+IF a regression is detected:
+  ACTION: STOP new work
+  ACTION: FIX the regression immediately
+  ACTION: DOCUMENT why it happened (mock mismatch, side effect, etc.)
+  DO NOT: Ignore failing tests from "unrelated" modules
+```
+
+---
+
+## RULE 19: Strict Versioning — MANDATORY
+
+### Rule
+Every project MUST follow Semantic Versioning (SemVer) with author attribution (e.g., `v0.1.0-kuro`). Stable releases MUST be tagged at each validation milestone.
+
+### Verification Checklist
+```
+AT each validation milestone (25%, 50%, 75%, 90%, 95%):
+  1. VERIFY: Code is stable and entire test suite passes
+  2. GENERATE: Release tag with SemVer + Author (e.g. v0.1.0-kuro)
+  3. PUSH: Tag to repository
+```
+
+### Enforcement
+```
+IF milestone reached without version tag:
+  ACTION: STOP development
+  ACTION: Create and push the version tag immediately
+  DO NOT: Continue to next phase without a stable versioned release
+```
+
+---
+
+## RULE 20: Hard Milestone Lock — CRITICAL
+
+### Rule
+STOP ALL code/system modifications if a progress milestone (Rule 14) is crossed without "VALIDATION_PASSED" in SESSION_SUMMARY.md. This is a hard lock.
+
+### Verification Checklist
+```
+AT each validation milestone (25%, 50%, 75%, 90%, 95%):
+  1. CHECK: Is "VALIDATION_PASSED" explicitly stated in SESSION_SUMMARY.md for the current milestone?
+  2. IF NO: Trigger Hard Milestone Lock.
+```
+
+### Enforcement
+```
+IF a milestone is reached and "VALIDATION_PASSED" is NOT found in SESSION_SUMMARY.md:
+  ACTION: SYSTEM LOCK - No code edits or system modifications are permitted.
+  ACTION: User MUST provide validation results and explicitly state "VALIDATION_PASSED" in SESSION_SUMMARY.md.
+  DO NOT: Proceed with any development until the lock is released.
+```
+
+---
+
+---
+
+## RULE 21: Intelligence Harvester — MANDATORY
+
+### Rule
+The agent MUST perform external market intelligence research at every milestone (10%, 25%, 50%, 75%, 90%, 95%). This involves searching at least 3 distinct sources (Reddit, App Store, specialized forums, etc.) to identify user pain points, competitor weaknesses, and market gaps.
+
+### Verification Checklist
+```
+AT each milestone:
+  1. SEARCH: At least 3 external sources for the project domain
+  2. ANALYZE: Identify 2+ major user complaints about competitors
+  3. SYNTHESIZE: Document how the current project addresses these "pain points"
+  4. RECORD: Add the "Intelligence Report" to the milestone validation documentation
+```
+
+### Enforcement
+```
+IF milestone reached without Intelligence Report:
+  ACTION: STOP development
+  ACTION: Conduct and document the intelligence research immediately
+  DO NOT: Continue implementation until market gaps are documented
+```
+
+---
+
+---
+
+## RULE 22: Feature Focus Rule — MANDATORY
+
+### Rule
+Development MUST focus on only ONE specific feature for each periodic validation cycle (25%, 50%, 75%, 90%, 95%). This focus on depth over breadth continues even after the MVP phase.
+
+### Verification Checklist
+```
+AT each milestone:
+  1. IDENTIFY: Which single feature is the focus of this validation cycle?
+  2. VERIFY: Has this feature been implemented with maximum depth and robustness?
+  3. CHECK: Are all other feature developments currently paused?
+  4. CONFIRM: Is this rule being applied post-MVP?
+```
+
+### Enforcement
+```
+IF validation involves multiple shallow features or lacks a single focus:
+  ACTION: STOP development
+  ACTION: Re-focus on a single primary feature for this cycle
+  ACTION: Ensure implementation depth meets standards before proceeding
+  DO NOT: Sacrifice depth for breadth during validation
+```
+
+---
+
+## RULE 23: Knowledge Capture — MANDATORY
+
+### Rule
+Every project failure or pivot MUST be documented in the central `kuro-rules/KNOWLEDGE_BASE/` to ensure cross-project intelligence and prevent repeating mistakes.
+
+### Verification Checklist
+```
+AFTER a pivot or project termination:
+  1. CREATE: A post-mortem document in `kuro-rules/KNOWLEDGE_BASE/`
+  2. DOCUMENT: Rationale for failure/pivot and key technical or market learnings
+  3. SYNC: Ensure this rule is added to all local project rule files
+```
+
+### Enforcement
+```
+IF a project pivots without a post-mortem:
+  ACTION: STOP and document the failure in the master repository
+  DO NOT: Start a new project without acknowledging previous learnings
+```
+
+---
 
 When asking "Did you follow AGENTS.md?", the agent MUST provide:
 
-1. **Rule 1**: "I read AGENTS.md at the start of this session"
-2. **Rule 2**: "Mom Test status: [COMPLETE/IN PROGRESS/NOT STARTED]"
-3. **Rule 3**: "Progress: X% (calculated as: [breakdown])"
-4. **Rule 4**: "SESSION_SUMMARY.md: [UPDATED/NEEDS UPDATE]"
-5. **Rule 5**: "Test coverage: X%"
-6. **Rule 6**: "Security scans: [PASSED/FAILED/PENDING]"
-7. **Rule 7**: "Any failures: [NONE/REPORTED]"
-8. **Rule 8**: "Critical thinking applied: [YES/NO - details]"
-9. **Rule 9**: "Protected files: [SAFE/EXPOSED]"
-10. **Rule 10**: "Rules synced: [YES/NO]"
-11. **Rule 11**: "Roadmap: [EXISTS/MISSING] - Task aligned: [YES/NO]"
-12. **Rule 12**: "Roadmap duration: [>=1 month/TOO SHORT]"
+1.  **Rule 1**: "I read AGENTS.md at the start of this session"
+2.  **Rule 2**: "Mom Test status: [COMPLETE/IN PROGRESS/NOT STARTED]"
+3.  **Rule 3**: "Progress: X% (calculated as: [breakdown])"
+4.  **Rule 4**: "SESSION_SUMMARY.md: [UPDATED/NEEDS UPDATE]"
+5.  **Rule 5**: "Test coverage: X%"
+6.  **Rule 6**: "Security scans: [PASSED/FAILED/PENDING]"
+7.  **Rule 7**: "Any failures: [NONE/REPORTED]"
+8.  **Rule 8**: "Critical thinking applied: [YES/NO - details]"
+9.  **Rule 9**: "Emojis: [NONE FOUND/REMOVED]"
+10. **Rule 10**: "Protected files: [SAFE/EXPOSED]"
+11. **Rule 11**: "Rules synced: [YES/NO]"
+12. **Rule 12**: "Roadmap: [EXISTS/MISSING] - Task aligned: [YES/NO]"
+13. **Rule 13**: "Roadmap duration: [>=1 month/TOO SHORT]"
+14. **Rule 14**: "Periodic validation: [DONE/PENDING/NOT REQUIRED YET]"
+15. **Rule 15**: "All rule files synced: [YES/NO]"
+16. **Rule 16**: "Working demos: [2+/1/0]"
+17. **Rule 17**: "Deep understanding demonstrated: [YES/NO]"
+18. **Rule 18**: "Regression prevention: [FOLLOWED - entire suite ran?]"
+19. **Rule 19**: "Strict Versioning: [vX.Y.Z-author tag created?]"
+20. **Rule 20**: "Hard Milestone Lock: [LOCKED/UNLOCKED]"
+21. **Rule 21**: "Intelligence Harvester: At least 3 sources analyzed for the current milestone? [YES/NO]"
+22. **Rule 22**: "Feature Focus Rule: Only one feature focused on for this validation cycle? [YES/NO]"
+23. **Rule 23**: "Knowledge Capture: Post-mortem documented for pivot/failure? [YES/NO]"
+24. **Rule 24**: "Marketing & Outreach Guardian: Communities identified & templates drafted? [YES/NO]"
 
 ---
 
@@ -437,10 +773,20 @@ When asking "Did you follow AGENTS.md?", the agent MUST provide:
 | Rule 6 (Security) | STOP commit, fix vulnerabilities |
 | Rule 7 (No Silent Failures) | Report and retry |
 | Rule 8 (Critical Thinking) | Apply questions retroactively |
-| Rule 9 (File Protection) | Remove from git, add to .gitignore |
-| Rule 10 (Sync) | Sync to kuro-rules immediately |
-| Rule 11 (Roadmap) | STOP and create PLAN.md if missing |
-| Rule 12 (Roadmap Duration) | STOP and expand plan if < 1 month |
+| Rule 9 (No Emojis) | REMOVE emojis immediately |
+| Rule 10 (File Protection) | Remove from git, add to .gitignore |
+| Rule 11 (Sync) | Sync to kuro-rules immediately |
+| Rule 12 (Roadmap) | STOP and create PLAN.md if missing |
+| Rule 13 (Roadmap Duration) | STOP and expand plan if < 1 month |
+| Rule 14 (Periodic Validation) | STOP and conduct validation at milestones |
+| Rule 15 (Rule Synchronization) | SYNC all rule files immediately |
+| Rule 16 (Working Demos) | STOP and create 2 working demos |
+| Rule 17 (Deep Understanding) | STOP and provide deep explanation |
+| Rule 18 (Regression Prevention) | STOP and fix immediately |
+| Rule 19 (Strict Versioning) | STOP and create tag immediately |
+| Rule 20 (Hard Milestone Lock) | SYSTEM LOCK: No code edits permitted until validation results are provided |
+| Rule 21 (Intel Harvester) | STOP and conduct intelligence research immediately |
+| Rule 22 (Feature Focus) | STOP and re-focus on a single feature |
 
 ---
 
@@ -452,5 +798,28 @@ These rules are NON-NEGOTIABLE. They exist to ensure:
 - Security is never compromised
 - Progress is accurately tracked
 - Knowledge persists across sessions
+
+---
+
+## RULE 25: MLOps/DevOps Collaboration — MANDATORY
+
+### Rule
+When interacting with a DevOps or MLOps engineer on this repository, the AI Agent MUST shift its focus to infrastructure, delivery, and reliability.
+
+### Verification Checklist
+```
+WHEN working on infrastructure/deployment:
+  1. FOCUS: Are we prioritizing reproducibility and clean pipelines?
+  2. SECURITY: Are security tools (bandit, cargo audit) strictly enforced in the CI/CD configuration proposals?
+  3. MLOPS: Are we tracking experiments and versioning data appropriately?
+```
+
+### Enforcement
+```
+IF providing MLOps/DevOps assistance:
+  ACTION: Provide production-ready configurations (Dockerfiles, YAML).
+  ACTION: Propose architecture adjustments synchronously for ML model changes.
+  DO NOT: Provide brittle or untestable infrastructure code.
+```
 
 When in doubt, ASK the user. Do not assume.

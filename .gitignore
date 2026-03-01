@@ -27,3 +27,15 @@ venv/
 # Generated artifacts
 artifacts/*
 !artifacts/.gitkeep
+
+# Private logs and tracking
+SESSION_SUMMARY.md
+SESSION_SUMMARY.md.bak
+acquisition_tracker.md
+sync_summary.py
+.env
+.env.*
+secrets/
+*.log
+.antigravity/
+.cursor/

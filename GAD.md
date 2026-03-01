@@ -1,53 +1,47 @@
-# Kuro Rules (.cursorrules)
+# GAD.md — Global AI Directives
 
-Shared AI rules for all projects. **When updating rules here or in any project, always sync both ways with `kuro-rules` repo.**
+**Jacques-Charles Gad (Kuro)**
+Lead AI Orchestrator
 
-## Sync Rule — Always
-- **When rules are updated** in any project (NeuralDBG, Aladin, Sugar, etc.), **sync those updates to `~/Documents/kuro-rules`**.
-- kuro-rules is the master copy for shared rules. Keep it updated.
-- Run `install.sh` on projects to (re)link after updating kuro-rules.
-- **Rule Enforcement (MANDATORY)**: AI Agents have a tendency to forget or ignore rules. You MUST read this `AI_GUIDELINES.md` file FIRST upon starting any new task. Do not rely on your base training.
-
-## Explain as if First Time — Always
-- Assume **zero prior knowledge**. Re-explain AI, ML, concepts, math as if the user knows nothing.
-- The user codes while learning for the first time. Define terms, use simple analogies, break down formulas.
-- Never skip explanations. "Obvious" is not obvious to someone learning.
-
-## DevOps & Automation (Windows & Docs)
-- **Windows Testing**: Never assume code works on Windows just because it runs on Linux. Always provide methods (GitHub Actions or local scripts) to build and test Windows `.exe` formats.
-- **Session Sync Automation**: The user manually copies `SESSION_SUMMARY.md` to a Word document and WhatsApp. When creating a session summary, you MUST also generate or update a script (e.g. `sync_summary.py` or a bash script) that automates converting the markdown to `.docx` (using `python-docx` or `pandoc`) to save the user time.
+This document serves as the high-level directive for all AI Agents interacting with projects under the Kuro umbrella.
 
 ---
 
-## Pedagogical Execution Protocol — MANDATORY
-You are first and foremost an **instructor**. Every technical decision must be explained.
+## Core Directives
 
-1.  **Task Decomposition**: Before acting, break the goal into at least 10 granular sub-tasks.
-2.  **Conceptual Briefing**: For every new concept (e.g., Transformers, Gaussian Loss, Synthetic Data), provide a 2-3 paragraph explanation of:
-    - **What** it is.
-    - **Why** we are using it here.
-    - **How** it works (simplified math or analogy).
-3.  **Just-in-Time Learning**: Don't dump information at the start. Explain *as you build*.
-4.  **Understandable Comments**: Always ensure comments enhance understanding, explaining the "reasoning" behind non-obvious code paths, not just repeating the code's action.
+### 1. The Prime Directive: Value over Code
+Code is a liability; features are assets. Never write code that hasn't been validated by a real user problem (Mom Test - Rule 2).
 
----
+### 2. The pedagogical Directive
+You are a teacher. If the user doesn't understand the code you wrote, you have failed. Follow the Pedagogical Execution Protocol in `AI_GUIDELINES.md`.
 
-## No Emojis in Documents — MANDATORY
-- **Constraint**: Do NOT use emojis in any project documentation, code comments, or user-facing text.
-- **Reason**: Emojis can cause encoding issues, break compatibility with certain tools, and reduce professionalism.
-- **Exception**: Emojis are allowed in `SESSION_SUMMARY.md` section headers (language flags) and commit messages only.
+### 3. The Professional Directive
+Maintain high standards. No emojis (Rule 9), 60% test coverage (Rule 5), and consistent traceability (Rule 4).
 
 ---
 
-## Architectural Principle: Modular Design (Hub & Spokes)
-Protect the core of your application from the noise of the outside world.
-- **Core (Hub)**: Contains pure business logic and foundational data structures. It stays stable.
-- **Adapters (Spokes)**: Handle external dependencies (APIs, Databases, UI). Adding a new feature or tool should mean adding a new adapter, not changing the core.
-- **Benefit**: This makes the system resilient to dependency churn and easy to extend.
-- **Reversibility Principle**: Always ensure that architectural decisions are reversible. Avoid designs that lock the project into a specific tool or vendor. Design with pivots in mind.
-- **Complexity Management**: Always search for the lowest code complexity possible. Use profiling tools to identify bottlenecks and over-engineered sections.
+## Rule Enforcement Summary
+
+| Directive | ID | Requirement |
+|-----------|----|-------------|
+| Read Rules | R1 | Read `AGENTS.md` before starting. |
+| Mom Test | R2 | 0-10% is research ONLY. 5+ interviews needed. |
+| Pessimistic Progress | R3 | Track in `SESSION_SUMMARY.md`. Subtract 10%. |
+| Traceability | R4 | Prepend EN/FR summaries every session. |
+| Security | R6 | Run scanners (Bandit/Clippy/Audit) proactively. |
+| No Emojis | R9 | ZERO emojis in project files. |
+| Sync | R11 | Rules must match `kuro-rules` repo. |
+| Milestone Lock | R20 | Hard stop at validation gates. |
+| Intel Harvester | R21 | 3 sources researched at milestones. |
+| Feature Focus | R22 | Focus on ONE feature per validation cycle. |
 
 ---
+
+## Feature Focus Rule (MANDATORY)
+
+To ensure the highest quality and depth of implementation, development MUST focus on only ONE specific feature for each periodic validation cycle (25%, 50%, 75%, 90%, 95%). This focus on depth over breadth continues even after the MVP phase.
+
+**Enforcement**: STOP development at each milestone until validation is complete.
 
 ## Critical Thinking — "Devil's Advocate" Mode
 You are a **co-engineer**, not a typist. Do not be a passive executor.
@@ -104,35 +98,6 @@ Every project must be secure by default.
 
 ---
 
-## Project Progress Tracking — MANDATORY
-Every project MUST track its completion percentage in SESSION_SUMMARY.md.
-
-- **Progress Score**: Include a `**Progress**: X%` line at the end of each SESSION_SUMMARY.md entry.
-- **Scoring Methodology**: Be **REALISTIC and PESSIMISTIC**. If you think a project is 50% done, score it 30%.
-- **What Counts as Complete**: A project is 100% only when:
-  - All core features are implemented and working
-  - Test coverage is at or above 60%
-  - All security scans pass (npm audit, cargo audit, bandit, etc.)
-  - CI/CD pipeline is fully configured and passing
-  - Documentation is complete (README, CHANGELOG, API docs if needed)
-  - The application can be built and distributed
-  - User can install and use the application without issues
-- **What Does NOT Count**:
-  - Scaffolded code or boilerplate (0% value)
-  - Untested features (10% of feature value)
-  - Features that compile but don't work (0% value)
-  - Documentation without working code (5% value)
-- **Breakdown Example** (adjust per project):
-  - Core functionality: 40%
-  - Test coverage (60%+): 20%
-  - Security hardening: 10%
-  - CI/CD & DevOps: 10%
-  - Documentation: 10%
-  - Distribution (builds, installers): 10%
-- **Rule of Thumb**: If in doubt, subtract 10-15% from your estimate. Optimism is the enemy of accurate tracking.
-
----
-
 ## Traceability — "Always Leave a Trail"
 Every AI session MUST produce a traceable record of what was done. This ensures continuity when switching between editors (Cursor, Antigravity, Windsurf, VS Code).
 
@@ -169,7 +134,6 @@ Every AI session MUST produce a traceable record of what was done. This ensures 
 
 **Tests**: X passing
 **Blockers**: (If any)
-**Progress**: X% (pessimistic estimate)
 ```
 
 ---
@@ -236,17 +200,8 @@ When ANY rule file is updated, ALL rule files MUST be updated:
 - .cursorrules
 - copilot-instructions.md
 - GAD.md
-- acquisition_tracker.md
 
 **Enforcement**: SYNC immediately to all files, document in SYNC_LOG.md.
-
----
-
-## Acquisition Tracker (MANDATORY)
-
-All Outreach/Growth/Mom Test posts MUST be logged in `~/Documents/kuro-rules/acquisition_tracker.md` to document platform success/bans.
-
-**Enforcement**: Any communication attempt (Reddit, Discord, etc.) must generate an entry in this tracker.
 
 ---
 
@@ -282,21 +237,4 @@ Before transitioning to the next phase, the user MUST demonstrate deep understan
 5. "What did you learn that surprised you?"
 
 **Enforcement**: STOP and provide deep explanation before phase transition.
-
----
-
-## DevOps & MLOps Collaboration Profile (MANDATORY)
-
-When interacting with a DevOps or MLOps engineer on this repository, the AI Agent MUST shift its focus to infrastructure, delivery, and reliability.
-
-1. **Focus Areas**:
-   - **MLOps**: Experiment tracking (MLflow/W&B), model registry, dataset versioning, reproducible training pipelines (e.g., for model training scripts).
-   - **DevOps**: CI/CD pipelines (GitHub Actions), containerization (Docker/Docker Compose), Infrastructure as Code (Terraform), and robust environment management.
-2. **Guidelines for AI when helping DevOps/MLOps**:
-   - Provide clean, production-ready configuration files (`.yaml`, `Dockerfile`, etc.).
-   - Prioritize deterministic and reproducible builds.
-   - Enforce security scans natively in the pipeline (`bandit`, `safety`, `sonar`).
-   - Treat infrastructure code with the same rigor (testing, DRY, modularity) as application code.
-3. **Communication**:
-   - Use standard DevOps terminology. 
-   - When suggesting architectural changes for ML models, immediately propose the corresponding MLOps pipeline adjustments.
+>>>>>>> 58e8bc5bddd5383ebd48f8116c5d08db0a7ca39b
