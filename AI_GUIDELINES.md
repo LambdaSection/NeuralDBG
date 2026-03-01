@@ -532,3 +532,44 @@ IF a new team member joins:
   ACTION: Assign them a test issue to confirm the connection works.
   DO NOT: Skip this onboarding step.
 `
+
+---
+
+## RULE 30: Mandatory Branch Creation — CRITICAL
+
+### Rule
+NOBODY works on main directly. Before any work begins, the AI Agent MUST create or verify a dedicated git branch for the contributor. Every contributor gets their own branch, named according to a strict convention.
+
+### Branch Naming Convention
+`
+[scope]/[issue-id]-[short-description]
+`
+
+| Scope | Usage | Example |
+|-------|-------|---------|
+| eat/ | New feature | eat/MLO-1-ci-cd-pipeline |
+| ix/ | Bug fix | ix/MLO-3-docker-volume-error |
+| infra/ | Infrastructure / DevOps | infra/milestone-0-setup |
+| docs/ | Documentation only | docs/update-readme-badges |
+| 
+efactor/ | Code refactoring | 
+efactor/modularize-training |
+
+### Requirements
+1. **Session Gate**: At the start of every session, the AI Agent MUST check the current branch. If on main, create or switch to the appropriate working branch immediately.
+2. **One Branch Per Task**: Each Linear issue or task MUST have its own branch. Do not mix unrelated changes.
+3. **Merge via PR Only**: Branches are merged into main exclusively through Pull Requests. Direct pushes to main are forbidden.
+4. **Branch for Every Contributor**: When a new team member starts, the AI Agent MUST create their first working branch before any code is written.
+
+### Enforcement
+`
+IF contributor is on main and about to write code:
+  ACTION: STOP immediately.
+  ACTION: Create a branch following the naming convention.
+  ACTION: Switch to the new branch before any edits.
+  DO NOT: Allow any code changes on main.
+
+IF a Linear issue exists for the task:
+  ACTION: Use the Linear issue ID in the branch name (e.g., feat/MLO-1-ci-cd).
+  DO NOT: Create unnamed or generic branches (e.g., dev, 	est, 	emp).
+`
