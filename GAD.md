@@ -452,3 +452,58 @@ IF creating a Linear issue for a team member:
   DO NOT: Assume the contributor knows the codebase.
   DO NOT: Create issues that reference files without explaining them.
 ```
+
+---
+
+## RULE 32: Mandatory Team Stack -- CRITICAL
+
+### Rule
+Every team member MUST use the following standardized stack. The AI Agent MUST verify compliance at session start and guide setup if any tool is missing.
+
+### Official Stack
+
+| Category | Tool | Purpose | Required |
+|----------|------|---------|----------|
+| **Project Management** | Linear | Issue tracking, sprints, milestones, labels | YES |
+| **IDE (Primary)** | Cursor | AI-assisted coding with MCP and rules support | YES (or alternative below) |
+| **IDE (Alternative)** | VS Code / Antigravity / Windsurf | Coding with AI extensions | YES (one of these) |
+| **Version Control** | Git + GitHub | Source control, PRs, branch protection | YES |
+| **AI Integration** | MCP Server (linear-mcp-server) | Linear access from IDE | YES (Rule 29) |
+| **CI/CD** | GitHub Actions | Automated testing, security, deployment | YES (Rule 26 Task 1) |
+| **Containerization** | Docker + docker-compose | Hermetic dev environments | RECOMMENDED |
+| **Experiment Tracking** | MLflow or W&B | ML experiment logging | RECOMMENDED (MLOps) |
+| **Data Versioning** | DVC | Large file versioning | RECOMMENDED (MLOps) |
+| **Language** | Python 3.10+ | Core development language | YES |
+| **ML Framework** | PyTorch | Deep learning framework | YES |
+| **Testing** | pytest + pytest-cov | Unit tests with coverage | YES (Rule 5) |
+| **Security** | bandit + safety | Static analysis and dependency audit | YES (Rule 6) |
+| **Communication** | Linear comments + GitHub PRs | Async team communication | YES |
+
+### Onboarding Checklist
+When a new team member joins, the AI Agent MUST walk them through this checklist:
+```
+[ ] Git configured (name, email)
+[ ] GitHub access to the repository
+[ ] IDE installed (Cursor recommended)
+[ ] Linear account created and connected (Rule 29)
+[ ] MCP server configured (linear-mcp-server)
+[ ] Python 3.10+ installed
+[ ] Virtual environment created (.venv)
+[ ] Dependencies installed (pip install -e .)
+[ ] Tests passing locally (pytest tests/)
+[ ] Demo running (python demo_vanishing_gradients.py)
+[ ] CODEBASE_GUIDE.md read
+[ ] First working branch created (Rule 30)
+```
+
+### Enforcement
+```
+IF a new team member joins:
+  ACTION: Present the onboarding checklist above.
+  ACTION: Do NOT proceed with code until all YES items are confirmed.
+  DO NOT: Allow coding without Linear + IDE + Git configured.
+
+IF a session starts:
+  ACTION: Verify the contributor has the required stack.
+  ACTION: If missing, guide setup before any work.
+```
