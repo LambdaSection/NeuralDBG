@@ -316,7 +316,7 @@ At every progress milestone (10%, 25%, 50%, 75%, 90%, 95%), the AI Agent MUST st
 ### Requirements
 1. **Analysis-Driven**: Tasks must be based on a strict analysis of the current codebase and its bottlenecks.
 2. **Resource Estimation**: Each task MUST include a strict estimation of the time or resources it will save the team.
-3. **Documentation**: These tasks MUST be documented in a designated folder at the root of the project (e.g., `infrastructure_planning/`) in a dedicated Markdown file for the current milestone.
+3. **Documentation**: These tasks MUST be documented in the infrastructure_planning/ folder in TWO Markdown files: an English version (milestone_X_tasks.md) and a French pedagogical version (milestone_X_tasks_fr.md).
 4. **Actionable**: Tasks must be ready for a DevOps/MLOps engineer to pick up.
 
 ### Enforcement
