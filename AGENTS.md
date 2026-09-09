@@ -20,12 +20,13 @@ To read a rule, use your 'view_file' tool on the corresponding file in the maste
 - **rule_105_multirepo_governance**: RULE 105: Multi-Repo & Monorepo Governance â€” MANDATORY
 - **rule_106_plan_roadmap_split**: RULE 106: Private Plan + Public Roadmap Split â€” MANDATORY
 - **rule_107_upstream_pr_strategy**: RULE 107: Upstream PR Strategy â€” Credibility Through Merged Contributions
-- **rule_108_design_language**: RULE 108: Design Language â€” Â« Ledger Brutal Â» (LifeTrack & dÃ©rivÃ©s)
+- **rule_108_design_language**: RULE 108: Design Language â€” Â« Quiet Precision Â» (LifeTrack & dÃ©rivÃ©s)
 - **rule_108_validation_pipeline**: RULE 108: Validation Pipeline â€” Progressive Gates (MANDATORY)
 - **rule_109_adaptive_design**: RULE 109: Adaptive Design Systems â€” identitÃ© par produit, socle universel
 - **rule_110_blogging**: RULE 110: Blogging & Contenu Public â€” le systÃ¨me d'Ã©criture lambda-Section
 - **rule_111_finance_local**: RULE 111: Local Finance Data â€” donnÃ©es financiÃ¨res 100% locales â€” MANDATORY
 - **rule_112_standard_tooling**: RULE 112: Standard Tooling â€” Agent-Reach + Codebase-Memory sur chaque projet â€” MANDATORY
+- **rule_113_desktop_install**: RULE 113: Desktop Install on Every Test/Update â€” MANDATORY
 - **rule_14_validation_and_failure**: RULE 14.5: 5-Risk Failure Mode Table - Full Detail
 - **rule_20_21_22_23_24_25_26_27_29_31_32_33_34_35_37_40**: LINEAR, TEAM & PROJECT MANAGEMENT RULES - Full Detail
 - **rule_28_linear_review**: RULE 28: Linear Automation and DevOps Review - Full Detail
