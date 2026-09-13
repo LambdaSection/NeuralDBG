@@ -77,6 +77,9 @@ repos:
     rev: 'v1.4.0'
     hooks:
       - id: detect-secrets
+        # .kuro/rules-manifest.json est genere (sync-rules.ps1) et ne contient
+        # que des SHA256 de controle (faux positif "Hex High Entropy String")
+        exclude: ^\.kuro/rules-manifest\.json$
 
 # CI configuration
 ci:
