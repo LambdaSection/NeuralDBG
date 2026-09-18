@@ -73,10 +73,13 @@ repos:
       - id: detect-private-key
 
   # Security - detect secrets
+  # .kuro/rules-manifest.json est genere (sync-rules.ps1) et ne contient
+  # que des SHA256 de controle (faux positif "Hex High Entropy String", cf #682)
   - repo: https://github.com/Yelp/detect-secrets
     rev: 'v1.4.0'
     hooks:
       - id: detect-secrets
+        exclude: ^\.kuro/rules-manifest\.json$
 
 # CI configuration
 ci:

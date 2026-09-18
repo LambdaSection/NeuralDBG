@@ -635,9 +635,10 @@ class Explanator:
         lines = ["graph TD"]
 
         for event in self.dbg.events:
-            label = (
-                f"{event.event_type.value} in {event.layer_name} (Step {event.step})"
-            )
+            # Tolerate foreign event-likes (e.g. merged RLDetector events
+            # whose event_type is a plain string, not an EventType enum).
+            etype = getattr(event.event_type, "value", event.event_type)
+            label = f"{etype} in {event.layer_name} (Step {event.step})"
             lines.append(f'    E_{event.id}["{label}"]')
 
         couplings = self.dbg.detect_coupled_failures()
