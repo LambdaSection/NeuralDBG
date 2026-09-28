@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7 silent PyTorch failure patterns (checklist, 2 pages)</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 16px;line-height:1.6;color:#111}
+a{color:#0b5fff}small{color:#555}
+</style>
+</head>
+<body>
+<h1>7 silent PyTorch failure patterns (checklist, 2 pages)</h1>
+<ol>
+<li>NaN brutal : une seule operation instable contamine tout. Check : detect_anomaly sur run reduit.</li>
+<li>LR trop eleve + activation saturee : escalier des les premieres etapes. Check : LR/10 sur 50 etapes.</li>
+<li>Gradients evanouissants : couches profondes figees. Check : normes par couche a l'etape 100.</li>
+<li>ReLU morts en masse : >50 % a zero. Check : histogramme des activations.</li>
+<li>Oubli train()/eval() : ecart fantome. Check : meme batch dans les 2 modes.</li>
+<li>Seed et non-determinisme : 2 runs, 2 destins. Check : seeds fixees + versions notees.</li>
+<li>Donnees corrompues en silence : labels decales, fuite train/test. Check : visualiser 1 batch reel.</li>
+</ol>
+<p><a href="landing.html">Back : NeuralDBG</a> · <a href="https://github.com/LambdaSection/NeuralDBG">GitHub repo</a></p>
+<p><small>Questions ? <a href="mailto:Lemniscate_zero@proton.me">Email us</a>. No tracking on this page.</small></p>
+</body>
+</html>
