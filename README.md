@@ -81,7 +81,7 @@ Latest results: [benchmark_public/results.json](benchmark_public/results.json)
 - **Architecture fuzzer** — 0 crashes, 19/20 injected bugs detected (1 documented asymptomatic: LayerNorm neutralizes fp16 overflow); deterministic (seed 42, audit §2.2)
 - **Stress test suite** — 15/15 tests pass: 10x gradients, NaN/Inf, fp16, 100-layer depth, 1K token attention
 - **GPU classifier** — Qwen2-0.5B + LoRA (v5, 108 examples, 6 families); changelog "93.7% accuracy" **withdrawn** — re-verification scored 13.9% (15/108) with category collapse ([audit §2.7](docs/paper_number_audit.md))
-- **Aquarium web dashboard** — Zero-dependency HTML causal viewer. [Open Aquarium](https://lambdasection.github.io/NeuralDBG/docs/aquarium.html)
+- **Aquarium web dashboard** — Zero-dependency HTML causal viewer. [Open Aquarium](https://lambdasection.github.io/NeuralDBG/aquarium.html)
 - **2 upstream diagnostic test PRs** — svdvals NaN (#188053) + gradient health tests (#188923); F.normalize retiré (comportement voulu confirmé par albanD)
 - **100% detection** on DeepMLP (6/6 bugs) | **96% Tier 1** black-swans | **94% Tier 2** black-swans
 - **2 upstream PRs** (open) to PyTorch | **CI benchmark workflow** on GitHub Actions
