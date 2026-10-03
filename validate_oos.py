@@ -26,10 +26,13 @@ Usage: python validate_oos.py
 """
 
 import sys, json, time, random, os
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.path.insert(0, r"C:\Users\Utilisateur\Documents\NeuralDBG")
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torchvision.models import resnet18
 from torchvision import transforms
 from torch.utils.data import DataLoader, TensorDataset
@@ -198,8 +201,9 @@ def build_mamba_mini():
             x_ssm = self.conv1d(x_ssm)
             x_ssm = x_ssm.transpose(1, 2)
             # SSM (simplified: linear + gate)
+            # NB: torch.silu alias was removed in torch>=2.13 — use F.silu.
             ssm_out = self.ssm_proj(x_ssm)
-            out = torch.silu(gate) * ssm_out
+            out = F.silu(gate) * ssm_out
             return residual + self.out_proj(out)
 
     class MambaMini(nn.Module):
@@ -242,16 +246,47 @@ def bug_exploding_lr(opt):
         pg['lr'] = 10.0
 
 def bug_vanishing_sigmoid(model):
-    """Replace ReLU activations in layer3 with Sigmoid to cause vanishing."""
-    for name, module in model.named_modules():
-        if isinstance(module, nn.ReLU) and 'layer3' in name:
-            # Find parent and replace
-            parts = name.split('.')
-            parent = model
+    """Replace ReLU with Sigmoid to cause vanishing (arch-agnostic).
+
+    Targets layer3 on ResNet (realistic single-block swap); on other
+    architectures the first ReLU found anywhere. Same bug type everywhere;
+    a no-op injector is a harness bug, not a detection result.
+    """
+    replaced = []
+
+    def _swap(name):
+        parts = name.split('.')
+        parent = model
+        try:
             for p in parts[:-1]:
                 parent = getattr(parent, p)
             setattr(parent, parts[-1], nn.Sigmoid())
-    print("  [bug] Replaced ReLU->Sigmoid in layer3")
+        except AttributeError:
+            return False
+        replaced.append(name)
+        return True
+
+    # Pass 1: ResNet-realistic block-level swap — ALL ReLUs in layer3
+    # (a whole stage configured with the wrong activation family).
+    for name, module in model.named_modules():
+        if isinstance(module, nn.ReLU) and 'layer3' in name:
+            _swap(name)
+    # Pass 2: other architectures — first ReLU anywhere (same bug type).
+    if not replaced:
+        for name, module in model.named_modules():
+            if isinstance(module, nn.ReLU):
+                if _swap(name):
+                    break
+    # Pass 3 (fallback): no ReLU module at all (ViT/GELU, EffNet/SiLU,
+    # Mamba/SiLU-functional) — scale weights down (same vanishing family
+    # as the sweep's bug_vanishing injector).
+    if not replaced:
+        with torch.no_grad():
+            for p in model.parameters():
+                if p.dim() >= 2:
+                    p.mul_(0.001)
+        replaced.append("<weight-scale-x0.001>")
+    print(f"  [bug] Replaced ReLU->Sigmoid in {replaced!r}")
 
 def bug_nan_data(x):
     """Inject NaN into one sample of the batch."""
@@ -260,11 +295,17 @@ def bug_nan_data(x):
     return x
 
 def bug_zero_init(model):
-    """Zero-initialize layer4 to simulate bad init."""
-    for name, param in model.named_parameters():
-        if 'layer4' in name and param.dim() >= 2:
-            nn.init.zeros_(param)
-    print("  [bug] Zero-initialized layer4 weights")
+    """Zero-initialize one layer to simulate bad init (arch-agnostic).
+
+    Targets layer4 on ResNet; otherwise the last weight matrix (dim>=2),
+    i.e. the output-proximal layer — same bug type everywhere.
+    """
+    names = [n for n, p in model.named_parameters() if p.dim() >= 2]
+    targets = [n for n in names if 'layer4' in n] or names[-1:]
+    for name in targets:
+        param = dict(model.named_parameters())[name]
+        nn.init.zeros_(param)
+    print(f"  [bug] Zero-initialized {targets}")
 
 def bug_divergence_lr(opt):
     """Set absurdly high LR."""

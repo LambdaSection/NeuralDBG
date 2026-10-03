@@ -1,10 +1,15 @@
 {
-  "date": "2026-07-19",
-  "scenarios": 6,
-  "detect_anomaly_detection": "1/6",
-  "wandb_detection": "5/6",
-  "neuraldbg_detection": "5/6",
+  "date": "2026-10-03",
+  "scenarios": 5,
+  "detect_anomaly_detection": "1/5",
+  "wandb_detection": "5/5",
+  "neuraldbg_detection": "5/5",
   "neuraldbg_causal_chains": 150,
+  "false_positives_healthy": {
+    "detect_anomaly": 0,
+    "wandb": 0,
+    "neuraldbg": 0
+  },
   "neuraldbg_advantage": "+0 detection, +150 chains",
   "results": [
     {
@@ -41,22 +46,21 @@
       "wandb_monitoring": {
         "total_alerts": 26,
         "alert_types": [
-          "loss_spike",
+          "nan_loss",
           "exploding_gradient",
-          "nan_loss"
+          "loss_spike"
         ],
         "has_root_cause": false,
         "time_to_diagnose_est": "hours (manual correlation of charts)"
       },
       "neuraldbg": {
-        "total_events": 29,
-        "anomaly_events": 19,
+        "total_events": 23,
+        "anomaly_events": 23,
         "causal_chains": 30,
         "anomaly_types": [
           "data_anomaly",
           "exploding",
-          "optimizer_instability",
-          "saturated"
+          "optimizer_instability"
         ],
         "root_cause": "gradient_health_transition[exploding]",
         "hypotheses": 6
@@ -140,18 +144,17 @@
         "time_to_diagnose_est": "hours (manual correlation of charts)"
       },
       "neuraldbg": {
-        "total_events": 13,
-        "anomaly_events": 7,
+        "total_events": 12,
+        "anomaly_events": 10,
         "causal_chains": 30,
         "anomaly_types": [
           "data_anomaly",
           "dead",
           "optimizer_instability",
-          "saturated",
           "vanishing"
         ],
         "root_cause": "gradient_health_transition[vanishing]",
-        "hypotheses": 7
+        "hypotheses": 5
       }
     },
     {

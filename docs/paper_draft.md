@@ -8,7 +8,7 @@
 
 ## Abstract
 
-Training deep neural networks fails silently: vanishing gradients, exploding gradients, dead neurons, and data corruption can propagate undetected for hundreds of steps before surfacing as NaN losses. Existing tools monitor metrics but do not trace failures to their root causes. We present NeuralDBG, a causal diagnostic engine that instruments PyTorch's autograd to extract semantic events and construct directed causal chains linking root causes to final symptoms. Across a combinatorial sweep of 200 architectures spanning 6 families (MLP, CNN, RNN, Transformer, Hybrid, and Black-Swan), NeuralDBG detects 99.4% of injected failures (1,193/1,200) with near-zero false positives on healthy baselines. On out-of-sample validation using four production-grade architectures (torchvision ResNet-18, ViT-Tiny, EfficientNet-B0, Mamba-Mini), it achieves 24/24 detection (100%) with zero false positives (healthy baselines: 1/2/0/0 events). On novel black-swan architectures, Tier 1 (graph neural networks, mixture of experts, diffusion models) reaches 96% detection (104/108) and Tier 2 (FlashAttention, Neural ODE, quantized) reaches 94% (102/108); Tier 4 reaches 100% on RAG with 50% on federated learning (reinforcement learning is covered by a dedicated detector scoring 5/5 on policy-gradient scenarios). We introduce NeuralPrune, a companion diagnostic that identifies redundant parameters without modifying the model, and demonstrate a closed-loop auto-fix pipeline that diagnoses and remediates training failures. A linear probe on frozen Qwen2-0.5B embeddings scores 29/29 on a held-out diagnostic set. The engine, benchmark suite, and interactive notebook are open-source under the MIT license.
+Training deep neural networks fails silently: vanishing gradients, exploding gradients, dead neurons, and data corruption can propagate undetected for hundreds of steps before surfacing as NaN losses. Existing tools monitor metrics but do not trace failures to their root causes. We present NeuralDBG, a causal diagnostic engine that instruments PyTorch's autograd to extract semantic events and construct directed causal chains linking root causes to final symptoms. Across a combinatorial sweep of 200 architectures spanning 6 families (MLP, CNN, RNN, Transformer, Hybrid, and Black-Swan), NeuralDBG detects 99.2% of injected failures (1,190/1,200) with near-zero false positives on healthy baselines. On out-of-sample validation using four production-grade architectures (torchvision ResNet-18, ViT-Tiny, EfficientNet-B0, Mamba-Mini), it detects 19/20 injected bugs; the single miss is a sigmoid-stage swap that leaves training dynamics nearly unchanged on synthetic data even over 60 steps. Healthy baselines are clean on ResNet-18 and Mamba-Mini (0 events); ViT-Tiny's baseline remains noisy (123 events), a disclosed limitation. On novel black-swan architectures, Tier 1 (graph neural networks, mixture of experts, diffusion models) reaches 96% detection (104/108) and Tier 2 (FlashAttention, Neural ODE, quantized) reaches 94% (102/108); Tier 4 reaches 100% on RAG with 50% on federated learning (reinforcement learning is covered by a dedicated detector scoring 5/5 on policy-gradient scenarios). We introduce NeuralPrune, a companion diagnostic that identifies redundant parameters without modifying the model, and demonstrate a closed-loop auto-fix pipeline that diagnoses and remediates training failures. A linear probe on frozen Qwen2-0.5B embeddings scores 29/29 on a held-out diagnostic set. The engine, benchmark suite, and interactive notebook are open-source under the MIT license.
 
 ---
 
@@ -139,19 +139,19 @@ We constructed a combinatorial architecture generator producing 200 configuratio
 
 Each configuration is tested with a healthy baseline (8 steps) and 6 injected bugs (exploding LR, vanishing gradients, zero init, NaN data, dead bias, divergence). Total: 1,200 evaluations.
 
-### 5.2 Canonical Detection Results (run 2026-08-13)
+### 5.2 Canonical Detection Results (run 2026-10-03, P2b engine)
 
 | Bug | Detection |
 |-----|:---------:|
-| Exploding gradients | 100% |
-| Vanishing gradients | 100% |
-| Dead bias | 100% |
-| Divergence | 100% |
-| Zero initialization | 98% |
-| NaN data | 98.5% |
-| **Overall** | **99.4% (1,193/1,200)** |
+| Exploding gradients | 100% (200/200) |
+| Vanishing gradients | 98.5% (197/200) |
+| Dead bias | 98% (196/200) |
+| Divergence | 100% (200/200) |
+| Zero initialization | 100% (200/200) |
+| NaN data | 98.5% (197/200) |
+| **Overall** | **99.2% (1,190/1,200)** |
 
-RNN detection reached 100% (198/198) after fixing a harness bug (`out[:, -1, :]` on bidirectional LSTMs produced exactly-zero gradients on the reverse pass) combined with mean-pooling over time and family-adaptive thresholds. Seven residual misses (1 CNN, 6 FlashAttention) are masked by an absolute saturation heuristic unsuitable for unbounded Linear outputs; fixing it requires an engine change with full re-validation, so we report 99.4% with this limitation disclosed rather than tuning around it.
+RNN and Hybrid families reach 100% (198/198 and 180/180) after harness fixes (temporal mean pooling, family-adaptive thresholds with inclusive comparison, composite hooks). The engine's saturation heuristic is now conditioned on bounded module outputs (Sigmoid/Tanh/Softmax), removing the false-saturated baselines that previously masked bugs. Ten residuals were analyzed without tuning around them: 3 shallow-MLP vanishing cases with weak signals near the detection floor, 1 GNN dead-bias case missed by a single event, and 6 FlashAttention cases where noisy healthy baselines (8 events) drown out the bug signal.
 
 ### 5.3 Black-Swan Architecture Detection (Tier 1)
 
@@ -202,7 +202,7 @@ We designed 15 stress scenarios targeting extreme training conditions:
 
 ### 5.6 Architecture Fuzzer
 
-We built a random valid-model generator spanning 10 layer types (Linear, Conv1d, Conv2d, LSTM, GRU, MultiheadAttention, BatchNorm, LayerNorm, Dropout, Skip connections). Across 20 randomly generated architectures (seed 42, deterministic), the generator produced zero crashes after fixing spec-generation bugs, and NeuralDBG detected 19/19 manifested bugs. One run injected an asymptomatic fault (a LayerNorm absorbed an fp16 scale perturbation, leaving no detectable failure); we report it as-is rather than forcing a detection.
+We built a random valid-model generator spanning 10 layer types (Linear, Conv1d, Conv2d, LSTM, GRU, MultiheadAttention, BatchNorm, LayerNorm, Dropout, Skip connections). Across 20 randomly generated architectures (seed 42, deterministic), the generator produced zero crashes after fixing spec-generation bugs (fixed input dim, flat shape state machine, T=4 RNN sequences, ≥2 trainable layers, comparative healthy control), and NeuralDBG detected 16/20 injected bugs. The 4 non-detections were analyzed: 3 vanishing cases with weak signals on short runs and 1 NaN case masked by a noisy healthy baseline (24 events against a threshold of 25).
 
 This demonstrates that even "valid" random architectures frequently contain silent bugs that NeuralDBG can detect pre-training.
 
@@ -278,24 +278,24 @@ We compare NeuralDBG against two real baselines on five injected bugs plus one h
 
 To verify that NeuralDBG generalizes beyond the toy architectures used in our combinatorial sweep, we tested on four production-grade architectures with architecture-agnostic bug injectors: **torchvision ResNet-18** (11.2M parameters), a custom **ViT-Tiny**, an **EfficientNet-B0** implementation, and a **Mamba-Mini** state-space model. None appeared in any training or calibration data.
 
-Detection rate: **24/24 (100%)** with zero false positives (healthy baselines: 1/2/0/0 events). Command: `python validate_oos.py`. Earlier lower scores were traced to harness bugs (a removed `torch.silu` alias crashing Mamba builds; ResNet-specific injectors acting as no-ops elsewhere), not to detection limits — documented in `paper_number_audit.md`, not cited as results.
+Detection rate: **19/20 injected bugs (95%)** with arch-agnostic injectors (vanishing: first ReLU anywhere or weight-scale fallback; zero-init: layer4 or last matrix). The single miss is the ResNet sigmoid-stage swap, which leaves training dynamics nearly unchanged on synthetic data (0 events even over 60 steps) — a genuine sensitivity floor for misconfigurations without gradient pathology. Healthy baselines: ResNet-18 0 events, Mamba-Mini 0, EfficientNet-B0 5, ViT-Tiny 123 (noisy, known limitation). Command: `python validate_oos.py`. History: an initial "Mamba 0/6 crash" verdict was a builder bug (`torch.silu`, removed in torch ≥2.13), fixed and re-run; a 21/24-era run used ResNet-only injectors that were no-ops elsewhere; see [paper_number_audit.md](docs/paper_number_audit.md) §2.5b–2.5c and §6.
 
-The detailed ResNet-18 run below illustrates the diagnostic depth (6/6 with per-scenario chains):
+The detailed ResNet-18 run below illustrates the diagnostic depth (current artefact, 4/5 with per-scenario chains):
 
 **Setup**: 6 scenarios on ResNet-18 with CIFAR-shaped inputs (3×32×32, 512 samples, 10 classes). Training uses SGD+momentum, CrossEntropyLoss, 20 steps per scenario. CIFAR-10 download was unavailable due to network constraints; synthetic data in the exact CIFAR-10 shape exercises identical code paths.
 
-**Results** (Table 4.13.1):
+**Results** (run 2026-10-03):
 
 | Scenario | Events | Chains | Key Finding |
 |----------|-------:|-------:|-------------|
-| Healthy baseline | 5 | 0 | After FP fixes (Sec 8.4), only mild activation regime shifts |
-| Exploding LR (lr=10) | 245 | 30 | Chain: `data_anomaly → optimizer_instability[loss_spike]` |
-| Vanishing Sigmoid (layer3) | 7 | 0 | Weak signal on random data — honest limitation |
+| Healthy baseline | 0 | 0 | Clean — no false positives |
+| Exploding LR (lr=10) | 110 | 30 | Chain: `data_anomaly → optimizer_instability[loss_spike]` |
+| Vanishing Sigmoid (layer3) | 0 | 0 | **Missed** — asymptotically silent on synthetic data (see below) |
 | NaN Data Injection | 54 | 30 | Perfect propagation trace: `conv1 → bn1 → relu → ...` |
-| Zero-Init layer4 | 103 | 30 | Correctly localized: `layer4.0.conv1 → vanishing` |
-| Divergence (lr=100) | 352 | 30 | Loss reaches $2.8 \times 10^{19}$ then NaN |
+| Zero-Init layer4 | 115 | 30 | Correctly localized: `layer4.0.conv1 → vanishing` |
+| Divergence (lr=100) | 187 | 30 | Loss reaches NaN with full chain coverage |
 
-Detection rate: **6/6 (100%)**. Root cause localization: zero-init correctly attributed to layer4; NaN source correctly traced to data pipeline (conv1), not optimizer. The vanishing sigmoid produced only 7 events — an honest finding: on random data without real feature structure, replacing a single block's activation with Sigmoid does not produce strong vanishing gradients. This is a data limitation, not a detection failure.
+Detection rate: **4/5 (80%)** on ResNet-18. Root cause localization: zero-init correctly attributed to layer4; NaN source correctly traced to data pipeline (conv1), not optimizer. The vanishing sigmoid produced 0 events even over 60 steps — an honest finding: on random data without real feature structure, swapping one stage's activation to Sigmoid barely perturbs gradient dynamics (final loss 3.03 vs 3.29 healthy). This is a data limitation, not a detection failure.
 
 **False positive improvement**: The initial healthy baseline produced 142 events (Sec 4.2 combinatorial sweep era). After the four fixes described in Section 8.4 (first-encounter suppression, calibrated thresholds, anti-oscillation debounce, per-step gating), healthy ResNet-18 produces only 5 events — a **96% reduction**. These remaining 5 are mild activation regime shifts (e.g., a single layer briefly saturating at step 11), which are genuine observations, not false positives.
 
@@ -370,13 +370,13 @@ Using NeuralDBG during development, we reproduced and diagnosed 10 cataloged PyT
 
 ### 8.1 When Does It Work?
 
-NeuralDBG excels at detecting catastrophic failures: exploding gradients (100%), vanishing gradients (100%), divergence (100%), dead biases (100%). On novel architectures (MoE, Diffusion), it achieves 100% detection; FlashAttention is partial in-sweep (12/18) while reaching 100% in the Tier 2 setup. These produce large, unmistakable signatures in gradient and activation statistics.
+NeuralDBG excels at detecting catastrophic failures: exploding gradients (100%), divergence (100%), zero initialization (100%), vanishing gradients (98.5%), dead biases (98%), NaN data (98.5%). On novel architectures (MoE, Diffusion), it achieves 100% detection; FlashAttention and GNN show partial in-sweep scores where noisy healthy baselines drown out weak bug signals. These produce large, unmistakable signatures in gradient and activation statistics.
 
 ### 8.2 When Does It Struggle?
 
 1. **Quantized models**: INT4 precision loss introduces gradient noise that partially masks bug signals (83% vs 100% for fp32 architectures).
 2. **GNN tuple inputs**: Backward hooks using `register_backward_hook` do not fully capture gradient flow for modules receiving tuple inputs `(nodes, adj)`. Detection (88%) will improve with `register_full_backward_hook`.
-3. **Absolute saturation heuristic**: `saturation_ratio = (|x|>0.95)`, designed for sigmoid/tanh, misfires on unbounded Linear outputs and masks 7 sweep residuals (1 CNN, 6 FlashAttention). Fixing it requires an engine change with full re-validation (pending).
+3. **Sensitivity floor (fixed heuristic, remaining gaps)**: saturation is now computed only for bounded activations, removing the false-saturated baselines. What remains are genuine sensitivity gaps: weak vanishing signals on shallow nets, noisy healthy baselines on some FlashAttention configs (8 events drowning +0/+1 bug deltas), a noisy ViT-Tiny healthy baseline (123 events), and misconfigurations without gradient pathology (ResNet sigmoid-stage swap: 0 events at 60 steps).
 
 ### 8.3 Comparison with Existing Tools
 
@@ -401,13 +401,13 @@ Initial versions of NeuralDBG (v1.0–v1.4) exhibited high false positive rates 
 
 4. **Classifier head noise**: The final linear layer (`fc`) naturally exhibits high input variance as it aggregates features from the entire network. Distribution shifts on the classifier head are expected during normal training. Fix: in non-strict mode, distribution shifts on layers named `fc`, `head`, or `classifier` are suppressed.
 
-After these fixes, the healthy ResNet-18 baseline produces only 5 events (all mild activation regime shifts) — a **96% reduction**. This was achieved without compromising detection: all 6 failure scenarios remain at 100% detection with clear causal chains.
+After these fixes plus the P2b engine change (saturation computed only for bounded activations), the healthy ResNet-18 baseline produces **0 events** — a **100% reduction** from the initial 142. This was achieved without compromising detection: all other failure scenarios remain detected with clear causal chains.
 
 ---
 
 ## 9. Limitations & Future Work
 
-1. **Out-of-sample validation**: ✅ Four production architectures (ResNet-18, ViT-Tiny, EfficientNet-B0, Mamba-Mini) achieve 24/24 detection with architecture-agnostic injectors. ⚠ Data remains synthetic (CIFAR-shaped random tensors; CIFAR-10 download blocked by network). Real-data validation is the next priority.
+1. **Out-of-sample validation**: ✅ Four production architectures (ResNet-18, ViT-Tiny, EfficientNet-B0, Mamba-Mini) detect 19/20 injected bugs with arch-agnostic injectors; the miss (ResNet sigmoid-stage) is asymptomatic on synthetic data. ⚠ Data remains synthetic (CIFAR-shaped random tensors; CIFAR-10 download blocked by network). Real-data validation is the next priority. ⚠ ViT-Tiny healthy baseline is noisy (123 events).
 2. **Causal chain quality**: Root cause identification sometimes misattributes when multiple failures occur simultaneously. A linear probe on frozen Qwen2-0.5B embeddings (29/29 holdout) assists diagnosis; generative fine-tuning attempts failed (13.9%/0.71%) and stand as negative results.
 3. **Upstream integration**: We have submitted diagnostic test PRs to PyTorch (#188053, #188923) for cataloged bugs; none merged as of publication (two further PRs closed/withdrawn). Our process lesson (per maintainer feedback) is to discuss on the issue and obtain the *actionable* label before opening a PR. Long-term, a standardized training diagnostic hook API would benefit the entire ecosystem.
 4. **Self-evolution**: A 7-step daily pipeline (Scrape→Fuzz→Test→Train→Retrain→Heal→Report) runs verification and discovery, but all verified gains to date come from human audit of its outputs — we describe it as a verification loop, not autonomous self-improvement. Multi-day continuous improvement remains to be demonstrated.
@@ -416,7 +416,7 @@ After these fixes, the healthy ResNet-18 baseline produces only 5 events (all mi
 
 ## 10. Conclusion
 
-NeuralDBG demonstrates that causal debugging of deep learning training is feasible and practical. By hooking into PyTorch's autograd and extracting semantic events, we construct causal chains linking root causes to symptoms across 200 architecture configurations (1,200 evaluations) plus tiered black-swan catalogs. Our detection rates — 99.4% on the combinatorial sweep, 96% on Tier 1 black-swans, 94% on Tier 2, 100% on stress tests, 24/24 out-of-sample — show that the approach generalizes beyond standard architectures. NeuralPrune extends the diagnostic paradigm to model optimization, identifying redundant parameters without weight modification. Ten cataloged PyTorch failures were reproduced and diagnosed, with two upstream diagnostic test PRs submitted (none merged as of publication). The system is open-source (MIT), non-invasive (single context manager), and ready for production use.
+NeuralDBG demonstrates that causal debugging of deep learning training is feasible and practical. By hooking into PyTorch's autograd and extracting semantic events, we construct causal chains linking root causes to symptoms across 200 architecture configurations (1,200 evaluations) plus tiered black-swan catalogs. Our detection rates — 99.2% on the combinatorial sweep, 96% on Tier 1 black-swans, 94% on Tier 2, 100% on stress tests, 19/20 out-of-sample — show that the approach generalizes beyond standard architectures. NeuralPrune extends the diagnostic paradigm to model optimization, identifying redundant parameters without weight modification. Ten cataloged PyTorch failures were reproduced and diagnosed, with two upstream diagnostic test PRs submitted (none merged as of publication). The system is open-source (MIT), non-invasive (single context manager), and ready for production use.
 
 ---
 

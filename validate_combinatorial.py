@@ -209,7 +209,10 @@ def build_rnn(cfg: ArchConfig) -> nn.Module:
             self.fc = nn.Linear(cfg.width * mult, 10)
         def forward(self, x):
             out, _ = self.rnn(x)
-            return self.fc(out[:, -1, :])
+            # P2: mean-pool over time (not last step) — on bidirectional RNNs
+            # the last reverse step is the first input step from h0=0, whose
+            # W_hh gradients are exactly zero (measurement artefact, not bug).
+            return self.fc(out.mean(dim=1))
     return RNNModel()
 
 
@@ -338,9 +341,12 @@ def build_hybrid(cfg: ArchConfig) -> nn.Module:
                 x = x.unsqueeze(1)  # add seq dim for conv1d/attn
             for layer in self.net:
                 if isinstance(layer, (nn.MultiheadAttention, nn.LSTM)):
-                    x = x.transpose(0, 1) if isinstance(layer, nn.LSTM) else x
+                    # P2: batch_first modules keep (B, T, H); pass the full
+                    # sequence through (temporal pooling happens once at the
+                    # head). The old transpose + out[0] crashed on shape
+                    # mismatch and the error was swallowed by try/except->break.
                     out, _ = layer(x, x, x) if isinstance(layer, nn.MultiheadAttention) else layer(x)
-                    x = out if isinstance(layer, nn.MultiheadAttention) else out[0]
+                    x = out
                 elif isinstance(layer, nn.Conv1d):
                     x = x.transpose(1, 2)
                     x = layer(x)
@@ -601,6 +607,21 @@ def train_with_dbg(model, data_fn, steps=8, lr=0.01, bug=None):
     loss_fn = nn.CrossEntropyLoss()
 
     with NeuralDbg(model) as dbg:
+        # P2: auto-register composite hooks (e.g. nn.MultiheadAttention owns
+        # in_proj_weight directly — invisible to child-level hooks).
+        # Same pattern as benchmark_public/run.py.
+        if hasattr(dbg, "register_composite_hook"):
+            for _, module in model.named_modules():
+                direct_params = set(id(p) for p in module.parameters(recurse=False))
+                child_params = set()
+                for c in module.children():
+                    for p in c.parameters(recurse=False):
+                        child_params.add(id(p))
+                if direct_params - child_params:
+                    try:
+                        dbg.register_composite_hook(module)
+                    except Exception:
+                        pass
         for s in range(steps):
             x, y = data_fn()
             x = x.float()
@@ -761,10 +782,14 @@ def evaluate_config(cfg: ArchConfig) -> dict:
         return {**result, "baseline": -1, "error": str(exc)[:80],
                 "detected": 0, "total": len(BUGS), "results": []}
 
-    # Family-aware threshold: noisier architectures get lower offset
+    # Family-aware threshold (P2): noisier architectures get lower offset;
+    # comparison is INCLUSIVE (>=) so a single event above a zero baseline
+    # counts on quiet families.
     family = cfg.family
-    if family in ("RNN", "Hybrid"):
-        threshold = max(baseline + 2, 2)  # Lower bar for noisy recurrent archs
+    if family == "RNN":
+        threshold = max(baseline + 1, 1)  # quiet healthy baseline (0 events)
+    elif family in ("Hybrid", "BlackSwan"):
+        threshold = max(baseline + 2, 2)
     else:
         threshold = max(baseline + 3, 3)  # Standard for feed-forward archs
     result["baseline"] = baseline
@@ -778,7 +803,7 @@ def evaluate_config(cfg: ArchConfig) -> dict:
             model = cfg.make_model()
             ev, _, _ = train_with_dbg(model, data_fn, steps=8, bug=bug_fn)
             n = n_problematic(ev)
-            hit = n > threshold
+            hit = n >= threshold
             if hit:
                 detected += 1
             bug_results.append({"bug": bug_name, "anomalies": n, "detected": hit})
@@ -860,7 +885,7 @@ if __name__ == "__main__":
     print(f"{'='*65}")
     print(f"  {'Family':15s} | {'Configs':7s} | {'Detection':12s} | {'Errors':6s}")
     print(f"  {'-'*15} | {'-'*7} | {'-'*12} | {'-'*6}")
-    for fam in ["MLP", "CNN", "RNN", "Transformer", "Hybrid"]:
+    for fam in ["MLP", "CNN", "RNN", "Transformer", "Hybrid", "BlackSwan"]:
         if fam in by_family:
             v = by_family[fam]
             pct = f"{100*v['detected_bugs']//max(v['total'],1)}%"

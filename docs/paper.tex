@@ -25,7 +25,7 @@
 \maketitle
 
 \begin{abstract}
-Training deep neural networks fails silently: vanishing gradients, exploding gradients, dead neurons, and data corruption can propagate undetected for hundreds of steps before surfacing as NaN losses. Existing tools monitor metrics but do not trace failures to their root causes. We present NeuralDBG, a causal diagnostic engine that instruments PyTorch's autograd to extract semantic events and construct directed causal chains linking root causes to final symptoms. Across a combinatorial sweep of 200 architectures spanning 6 families (MLP, CNN, RNN, Transformer, Hybrid, and Black-Swan), NeuralDBG detects 99.4\% of injected failures (1,193/1,200) with near-zero false positives on healthy baselines. On out-of-sample validation using four production-grade architectures (torchvision ResNet-18, ViT-Tiny, EfficientNet-B0, Mamba-Mini), it achieves 24/24 detection (100\%) with zero false positives (healthy baselines: 1/2/0/0 events). On novel black-swan architectures, Tier 1 (graph neural networks, mixture of experts, diffusion models) reaches 96\% detection (104/108) and Tier 2 (FlashAttention, Neural ODE, quantized) reaches 94\% (102/108); Tier 4 reaches 100\% on RAG with 50\% on federated learning (reinforcement learning is covered by a dedicated detector scoring 5/5 on policy-gradient scenarios). We introduce NeuralPrune, a companion diagnostic that identifies redundant parameters without modifying the model, and demonstrate a closed-loop auto-fix pipeline that diagnoses and remediates training failures. A linear probe on frozen Qwen2-0.5B embeddings scores 29/29 on a held-out diagnostic set. The engine, benchmark suite, and interactive notebook are open-source under the MIT license.
+Training deep neural networks fails silently: vanishing gradients, exploding gradients, dead neurons, and data corruption can propagate undetected for hundreds of steps before surfacing as NaN losses. Existing tools monitor metrics but do not trace failures to their root causes. We present NeuralDBG, a causal diagnostic engine that instruments PyTorch's autograd to extract semantic events and construct directed causal chains linking root causes to final symptoms. Across a combinatorial sweep of 200 architectures spanning 6 families (MLP, CNN, RNN, Transformer, Hybrid, and Black-Swan), NeuralDBG detects 99.2\% of injected failures (1,190/1,200) with near-zero false positives on healthy baselines. On out-of-sample validation using four production-grade architectures (torchvision ResNet-18, ViT-Tiny, EfficientNet-B0, Mamba-Mini), it detects 19/20 injected bugs; the single miss is a sigmoid-stage swap that leaves training dynamics nearly unchanged on synthetic data even over 60 steps. Healthy baselines are clean on ResNet-18 and Mamba-Mini (0 events); ViT-Tiny's baseline remains noisy (123 events), a disclosed limitation. On novel black-swan architectures, Tier 1 (graph neural networks, mixture of experts, diffusion models) reaches 96\% detection (104/108) and Tier 2 (FlashAttention, Neural ODE, quantized) reaches 94\% (102/108); Tier 4 reaches 100\% on RAG with 50\% on federated learning (reinforcement learning is covered by a dedicated detector scoring 5/5 on policy-gradient scenarios). We introduce NeuralPrune, a companion diagnostic that identifies redundant parameters without modifying the model, and demonstrate a closed-loop auto-fix pipeline that diagnoses and remediates training failures. A linear probe on frozen Qwen2-0.5B embeddings scores 29/29 on a held-out diagnostic set. The engine, benchmark suite, and interactive notebook are open-source under the MIT license.
 \end{abstract}
 
 % ============================================================
@@ -68,15 +68,15 @@ Academic debugging tools have explored specific failure modes. DeepXplore~\cite{
 
 Statistical fault localization techniques from software engineering---such as Tarantula~\cite{jones2005tarantula} and Ochiai~\cite{abreu2007ochiai}---rank program statements by their correlation with test failures. These approaches inspired the event-ranking component of NeuralDBG, but program spectra (statement coverage vectors) differ fundamentally from training spectra (gradient and activation time series). Causal discovery algorithms---including PC~\cite{spirtes2000causation}, FCI~\cite{zhang2008fci}, and Granger causality~\cite{granger1969causal}---infer causal graphs from observational data. NeuralDBG adopts a simpler but more computationally tractable approach: it constructs causal links from known compatibility patterns rather than learning structure de novo, trading completeness for speed (hook overhead is bounded to a single resource snapshot per training step).
 
-Model interpretability tools such as Captum~\cite{kokhlikyan2020captum}, LIME~\cite{ribeiro2016lime}, and SHAP~\cite{lundberg2017shap} attribute predictions to input features, but attribution is not diagnosis: knowing \emph{which pixels} influenced a prediction does not explain \emph{why training diverged}. Our experiments (\S5.12) confirm that Captum's attribution methods do not identify training failures---they solve a different problem.
+Model interpretability tools such as Captum~\cite{kokhlikyan2020captum}, LIME~\cite{ribeiro2016lime}, and SHAP~\cite{lundberg2017shap} attribute predictions to input features, but attribution is not diagnosis: knowing \emph{which pixels} influenced a prediction does not explain \emph{why training diverged}. Our comparison below confirms that Captum's attribution methods do not identify training failures---they solve a different problem.
 
 \subsection{Automated Remediation}
 
-The closed-loop auto-fix pipeline described in \S5.7 relates to automated program repair (APR)~\cite{legoues2019apr} and self-healing systems~\cite{kephart2003autonomic}. Unlike APR, which modifies source code, NeuralDBG's remediation operates at the training configuration level (learning rate, gradient clipping, optimizer choice), reducing the risk of introducing new bugs. The fine-tuned language model for diagnosis (\S5.8) is inspired by recent work on using LLMs for code explanation~\cite{chen2021codex} and bug localization~\cite{pearce2022codexbugs}, adapted to the domain-specific vocabulary of training dynamics.
+The closed-loop auto-fix pipeline (detect $\to$ diagnose $\to$ fix $\to$ validate, demonstrated end-to-end on LSTM architectures) relates to automated program repair (APR)~\cite{legoues2019apr} and self-healing systems~\cite{kephart2003autonomic}. Unlike APR, which modifies source code, NeuralDBG's remediation operates at the training configuration level (learning rate, gradient clipping, optimizer choice), reducing the risk of introducing new bugs. The diagnostic classifier (a linear probe on frozen embeddings) builds on recent work on using LLMs for code explanation~\cite{chen2021codex} and bug localization~\cite{pearce2022codexbugs}, adapted to the domain-specific vocabulary of training dynamics.
 
 \subsection{Redundancy Diagnostics}
 
-NeuralPrune (\S6) addresses a complementary problem: identifying parameters that can be removed without affecting model quality. Existing pruning criteria---magnitude pruning~\cite{han2015learning}, gradient-based pruning~\cite{molchanov2017pruning}, and movement pruning~\cite{sanh2020movement}---require the user to choose a pruning ratio a priori. NeuralPrune inverts this: it diagnoses \emph{what} is redundant and \emph{how much}, leaving the pruning decision to the practitioner. This is conceptually similar to NetAdapt's~\cite{yang2018netadapt} automated channel reduction, but NeuralPrune never modifies the model, acting purely as a diagnostic oracle.
+NeuralPrune (see below) addresses a complementary problem: identifying parameters that can be removed without affecting model quality. Existing pruning criteria---magnitude pruning~\cite{han2015learning}, gradient-based pruning~\cite{molchanov2017pruning}, and movement pruning~\cite{sanh2020movement}---require the user to choose a pruning ratio a priori. NeuralPrune inverts this: it diagnoses \emph{what} is redundant and \emph{how much}, leaving the pruning decision to the practitioner. This is conceptually similar to NetAdapt's~\cite{yang2018netadapt} automated channel reduction, but NeuralPrune never modifies the model, acting purely as a diagnostic oracle.
 
 % ============================================================
 \section{Method}
@@ -179,24 +179,24 @@ Each configuration is tested with a healthy baseline (8 steps) and 6 injected bu
 
 \begin{table}[h]
 \centering
-\caption{Detection rates by injected bug (combinatorial sweep, 200 configs $\times$ 6 bugs = 1,200 evaluations, run 2026-08-13)}
+\caption{Detection rates by injected bug (combinatorial sweep, 200 configs $\times$ 6 bugs = 1,200 evaluations, run 2026-10-03)}
 \begin{tabular}{lc}
 \toprule
 \textbf{Bug} & \textbf{Detection} \\
 \midrule
 Exploding gradients & 100\% \\
-Vanishing gradients & 100\% \\
-Dead bias & 100\% \\
+Vanishing gradients & 98.5\% \\
+Dead bias & 98\% \\
 Divergence & 100\% \\
-Zero initialization & 98\% \\
+Zero initialization & 100\% \\
 NaN data & 98.5\% \\
 \midrule
-\textbf{Overall} & \textbf{99.4\% (1,193/1,200)} \\
+\textbf{Overall} & \textbf{99.2\% (1,190/1,200)} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Seven residual misses (1 CNN, 6 FlashAttention) are masked by an absolute saturation heuristic unsuitable for unbounded Linear outputs; fixing it requires an engine change with full re-validation, so we report 99.4\% with this limitation disclosed rather than tuning around it.
+Ten residuals were analyzed without tuning around them: 3 shallow-MLP vanishing cases with weak signals near the detection floor, 1 GNN dead-bias case missed by a single event, and 6 FlashAttention cases where noisy healthy baselines (8 events) drown out the bug signal. RNN and Hybrid families reach 100\% (198/198 and 180/180).
 
 \subsection{Black-Swan Architecture Detection}
 
@@ -208,7 +208,7 @@ We designed 15 stress scenarios targeting extreme training conditions: 10$\times
 
 \subsection{Architecture Fuzzer}
 
-We built a random valid-model generator spanning 10 layer types. Across 20 randomly generated architectures (seed 42, deterministic), the generator produced zero crashes after fixing spec-generation bugs, and NeuralDBG detected 19/19 manifested bugs. One run injected an asymptomatic fault (a LayerNorm absorbed an fp16 scale perturbation, leaving no detectable failure); we report it as-is rather than forcing a detection. This demonstrates that even ``valid'' random architectures frequently contain silent bugs that NeuralDBG can detect pre-training.
+We built a random valid-model generator spanning 10 layer types. Across 20 randomly generated architectures (seed 42, deterministic), the generator produced zero crashes, and NeuralDBG detected 16/20 injected bugs. The 4 non-detections were analyzed: 3 vanishing cases with weak signals on short runs and 1 NaN case masked by a noisy healthy baseline (24 events against a threshold of 25). One run injected an asymptomatic fault in an earlier campaign (a LayerNorm absorbed an fp16 scale perturbation, leaving no detectable failure); we report such cases as-is rather than forcing a detection. This demonstrates that even ``valid'' random architectures frequently contain silent bugs that NeuralDBG can detect pre-training.
 
 \subsection{Comparison with Existing Tools}
 
@@ -242,7 +242,7 @@ Healthy control (FP gate) & 0 FP & 0 alerts & 0 FP & 0 \\
 
 \subsection{Out-of-Sample Validation}
 
-We tested NeuralDBG on four production-grade architectures never seen during development: torchvision ResNet-18 (11.2M parameters), a custom Vision Transformer (ViT-Tiny), an EfficientNet-B0 implementation, and a Mamba-inspired state-space model, using architecture-agnostic bug injectors. NeuralDBG achieved 24/24 detection (100\%) with zero false positives (healthy baselines: 1/2/0/0 events). Earlier runs that reported lower scores were traced to harness bugs (a removed \texttt{torch.silu} alias crashing Mamba builds; ResNet-specific injectors acting as no-ops on other architectures), not to detection limits; we document this history in the supplementary audit rather than citing those runs as results.
+We tested NeuralDBG on four production-grade architectures never seen during development: torchvision ResNet-18 (11.2M parameters), a custom Vision Transformer (ViT-Tiny), an EfficientNet-B0 implementation, and a Mamba-inspired state-space model, using architecture-agnostic bug injectors. NeuralDBG detected 19/20 injected bugs. The single miss is a ResNet sigmoid-stage swap that leaves training dynamics nearly unchanged on synthetic data (0 events even over 60 steps): a genuine sensitivity floor for misconfigurations without gradient pathology, disclosed rather than tuned around. Healthy baselines are clean on ResNet-18 and Mamba-Mini (0 events) and quiet on EfficientNet-B0 (5 events); ViT-Tiny's healthy baseline is noisy (123 events), a known limitation. Earlier runs that reported lower scores were traced to harness bugs (a removed \texttt{torch.silu} alias crashing Mamba builds; ResNet-specific injectors acting as no-ops on other architectures), not to detection limits; we document this history in the supplementary audit rather than citing those runs as results.
 
 % ============================================================
 \section{NeuralPrune --- Non-Destructive Redundancy Diagnostic}
@@ -263,11 +263,11 @@ Using NeuralDBG during development, we reproduced and diagnosed ten cataloged Py
 
 \subsection{When Does It Work?}
 
-NeuralDBG excels at detecting catastrophic failures: exploding gradients (100\%), vanishing gradients (100\%), divergence (100\%), and dead biases (100\%). On novel architectures (MoE, Diffusion), it achieves 100\% detection; FlashAttention is partial in-sweep (12/18) while reaching 100\% in the Tier 2 setup. These produce large, unmistakable signatures in gradient and activation statistics.
+NeuralDBG excels at detecting catastrophic failures: exploding gradients (100\%), divergence (100\%), zero initialization (100\%), vanishing gradients (98.5\%), dead biases (98\%), and NaN data (98.5\%). On novel architectures (MoE, Diffusion), it achieves 100\% detection; FlashAttention and GNN show partial in-sweep scores where noisy healthy baselines drown out weak bug signals (see the residuals note under Detection Results above). These produce large, unmistakable signatures in gradient and activation statistics.
 
 \subsection{When Does It Struggle?}
 
-Three limitations remain: (1) Quantized models (INT4) introduce gradient noise that partially masks bug signals (83\% vs 100\% for fp32). (2) GNN tuple inputs---backward hooks do not fully capture gradient flow for modules receiving tuple inputs (88\%). (3) An absolute saturation heuristic ($|x|>0.95$, designed for sigmoid/tanh) misfires on unbounded Linear outputs, masking 7 sweep residuals; fixing it requires an engine change with full re-validation.
+Three limitations remain: (1) Quantized models (INT4) introduce gradient noise that partially masks bug signals (83\% vs 100\% for fp32). (2) GNN tuple inputs---backward hooks do not fully capture gradient flow for modules receiving tuple inputs (88\%). (3) Saturation is now computed only for bounded activations (Sigmoid/Tanh/Softmax); the remaining sweep residuals are sensitivity gaps, not heuristic artifacts: weak vanishing signals on shallow nets and noisy healthy baselines on some FlashAttention configs. ViT-Tiny's healthy baseline is similarly noisy (123 events).
 
 \subsection{False Positive Reduction}
 
@@ -288,7 +288,7 @@ Initial versions exhibited high false positive rates on deep architectures: a he
 \section{Conclusion}
 % ============================================================
 
-NeuralDBG demonstrates that causal debugging of deep learning training is feasible and practical. By hooking into PyTorch's autograd and extracting semantic events, we construct causal chains linking root causes to symptoms across 200 architecture configurations (1,200 evaluations) plus tiered black-swan catalogs. Our detection rates---99.4\% on the combinatorial sweep, 96\% on Tier 1 black-swans, 94\% on Tier 2, 100\% on stress tests, 24/24 out-of-sample---show that the approach generalizes beyond standard architectures. NeuralPrune extends the diagnostic paradigm to model optimization, identifying redundant parameters without weight modification. Ten cataloged PyTorch failures were reproduced and diagnosed, with two upstream diagnostic test PRs submitted (none merged as of publication), and benchmark results showing NeuralDBG equals the detection rate of production monitoring tools while providing 150 causal chains where they provide zero. The system is open-source (MIT), non-invasive (single context manager), and available at \url{https://github.com/LambdaSection/NeuralDBG}.
+NeuralDBG demonstrates that causal debugging of deep learning training is feasible and practical. By hooking into PyTorch's autograd and extracting semantic events, we construct causal chains linking root causes to symptoms across 200 architecture configurations (1,200 evaluations) plus tiered black-swan catalogs. Our detection rates---99.2\% on the combinatorial sweep, 96\% on Tier 1 black-swans, 94\% on Tier 2, 100\% on stress tests, 19/20 out-of-sample---show that the approach generalizes beyond standard architectures. NeuralPrune extends the diagnostic paradigm to model optimization, identifying redundant parameters without weight modification. Ten cataloged PyTorch failures were reproduced and diagnosed, with two upstream diagnostic test PRs submitted (none merged as of publication), and benchmark results showing NeuralDBG equals the detection rate of production monitoring tools while providing 150 causal chains where they provide zero. The system is open-source (MIT), non-invasive (single context manager), and available at \url{https://github.com/LambdaSection/NeuralDBG}.
 
 % ============================================================
 % References

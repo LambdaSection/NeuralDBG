@@ -1,72 +1,46 @@
 {
   "runs": 20,
   "seed": 42,
-  "elapsed": 2,
-  "crashes": 4,
-  "detected": 13,
-  "ok": 3,
+  "elapsed": 6,
+  "crashes": 0,
+  "detected": 16,
+  "ok": 4,
   "bug_stats": {
-    "?": {
-      "total": 4,
-      "crashed": 4,
-      "detected": 0
+    "exploding": {
+      "total": 5,
+      "crashed": 0,
+      "detected": 5
     },
-    "nan_data": {
+    "divergence": {
       "total": 3,
       "crashed": 0,
       "detected": 3
     },
+    "nan_data": {
+      "total": 6,
+      "crashed": 0,
+      "detected": 5
+    },
     "mixed_precision": {
-      "total": 2,
+      "total": 1,
+      "crashed": 0,
+      "detected": 1
+    },
+    "vanishing": {
+      "total": 3,
+      "crashed": 0,
+      "detected": 0
+    },
+    "zero_init": {
+      "total": 1,
       "crashed": 0,
       "detected": 1
     },
     "dead_bias": {
-      "total": 4,
-      "crashed": 0,
-      "detected": 4
-    },
-    "zero_init": {
-      "total": 2,
-      "crashed": 0,
-      "detected": 1
-    },
-    "exploding": {
-      "total": 2,
-      "crashed": 0,
-      "detected": 2
-    },
-    "vanishing": {
       "total": 1,
       "crashed": 0,
-      "detected": 0
-    },
-    "divergence": {
-      "total": 2,
-      "crashed": 0,
-      "detected": 2
+      "detected": 1
     }
   },
-  "crash_details": [
-    {
-      "bug": "?",
-      "error": "invalid_spec_after_5_retries",
-      "layers": "?"
-    },
-    {
-      "bug": "?",
-      "error": "invalid_spec_after_5_retries",
-      "layers": "?"
-    },
-    {
-      "bug": "?",
-      "error": "invalid_spec_after_5_retries",
-      "layers": "?"
-    },
-    {
-      "bug": "?",
-      "error": "invalid_spec_after_5_retries",
-      "layers": "?"
-    }
-  ]
+  "crash_details": []
 }

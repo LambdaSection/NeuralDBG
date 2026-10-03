@@ -610,7 +610,7 @@ class NeuralDbg:
 
             # Extract activation regime information
             if isinstance(_output, torch.Tensor):
-                activation_stats = self._compute_activation_stats(_output)
+                activation_stats = self._compute_activation_stats(_output, module)
                 current_health = self._classify_activation_health(activation_stats)
 
                 # Sample resources once per step (outside transition check to build baseline)
@@ -982,7 +982,19 @@ class NeuralDbg:
             return module._get_name()
         return type(module).__name__
 
-    def _compute_activation_stats(self, tensor: torch.Tensor) -> Dict[str, float]:
+    # Activation functions with mathematically bounded outputs, where the
+    # |x| > 0.95 saturation heuristic is meaningful. All other modules
+    # (Linear/Conv outputs, ReLU/GELU/SiLU, norms, ...) are unbounded, so
+    # saturation is undefined and must report 0.0 (P2b: absolute saturation
+    # on unbounded outputs produced false SATURATED baselines that masked
+    # real bugs behind inflated healthy thresholds).
+    _BOUNDED_SATURATION_MODULES = frozenset(
+        {"Sigmoid", "Tanh", "Softmax", "Softmin"}
+    )
+
+    def _compute_activation_stats(
+        self, tensor: torch.Tensor, module: nn.Module | None = None
+    ) -> Dict[str, float]:
         """Compute statistical summary of activation tensor."""
         t = tensor.detach()
         if not torch.is_floating_point(t):
@@ -1024,9 +1036,15 @@ class NeuralDbg:
         else:
             dead_ratio = sparsity
 
-        # Calculate saturation ratio (for Sigmoid or Tanh typically)
-        # We consider a value saturated if it's very close to 1.0 or -1.0
-        saturation_ratio = (t.abs() > 0.95).sum().item() / numel
+        # Calculate saturation ratio — ONLY meaningful for bounded activations
+        # (Sigmoid/Tanh/Softmax outputs in [0,1] or [-1,1]). A value is
+        # saturated if very close to the bound (+/-1). For unbounded module
+        # outputs the heuristic is undefined: report 0.0 instead of flagging
+        # healthy large activations as saturated.
+        if module is None or type(module).__name__ in self._BOUNDED_SATURATION_MODULES:
+            saturation_ratio = (t.abs() > 0.95).sum().item() / numel
+        else:
+            saturation_ratio = 0.0
 
         # Standard statistics - compute directly on the detached tensor
         mean_val = t.mean().item()

@@ -75,10 +75,10 @@ Latest results: [benchmark_public/results.json](benchmark_public/results.json)
 
 - **Tier 1 Black-Swan detection: 96%** — GNN 88%, MoE 100%, Diffusion 100% (104/108 bugs detected)
 - **Tier 2 Black-Swan detection: 94%** — FlashAttention 100%, Neural ODE 100%, Quantized 83% (102/108)
-- **200-architecture validation** — 99.4% detection (1,193/1,200 bug injections) across 6 families (MLP/CNN/RNN/Transformer/Hybrid/Black-Swan); canonical numbers in [paper_number_audit.md](docs/paper_number_audit.md)
+- **200-architecture validation** — 99.2% detection (1,190/1,200 bug injections) across 6 families (MLP/CNN/RNN/Transformer/Hybrid/Black-Swan); canonical numbers in [paper_number_audit.md](docs/paper_number_audit.md)
 - **NeuralPrune v0.1** — Non-destructive redundancy diagnostic: dead neurons, low-rank weights, quantization opportunities
 - **LSTM/GRU support** — Forward hooks unwrap RNN output tuples. Per-gate gradient tracking (input/forget/cell/output)
-- **Architecture fuzzer** — 0 crashes, 19/20 injected bugs detected (1 documented asymptomatic: LayerNorm neutralizes fp16 overflow); deterministic (seed 42, audit §2.2)
+- **Architecture fuzzer** — 0 crashes, 16/20 injected bugs detected (4 analyzed residuals: 3 weak-signal vanishing + 1 noise-masked NaN); deterministic (seed 42, audit §6)
 - **Stress test suite** — 15/15 tests pass: 10x gradients, NaN/Inf, fp16, 100-layer depth, 1K token attention
 - **GPU classifier** — Qwen2-0.5B + LoRA (v5, 108 examples, 6 families); changelog "93.7% accuracy" **withdrawn** — re-verification scored 13.9% (15/108) with category collapse ([audit §2.7](docs/paper_number_audit.md))
 - **Aquarium web dashboard** — Zero-dependency HTML causal viewer. [Open Aquarium](https://lambdasection.github.io/NeuralDBG/docs/aquarium.html)
@@ -189,34 +189,34 @@ for h in hypotheses:
 
 ## Supported Architectures
 
-Validated on **200 architectures, 1,200 bug injections** (combinatorial sweep, 2026-08-13 run; canonical, artifact-verifiable figures per [paper_number_audit.md](docs/paper_number_audit.md)) plus 4 out-of-sample production architectures.
+Validated on **200 architectures, 1,200 bug injections** (combinatorial sweep, 2026-10-03 P2b run; canonical, artifact-verifiable figures per [paper_number_audit.md](docs/paper_number_audit.md)) plus 4 out-of-sample production architectures.
 
 | Family | Configs | Detection | Status |
 |--------|:-------:|:---------:|:------:|
-| MLP (deep, residual, bottleneck) | 38 | **100%** (228/228) | ✅ |
-| CNN (Conv2d, varying kernel/depth/norm) | 33 | **99.5%** (197/198) | ✅ |
+| MLP (deep, residual, bottleneck) | 38 | **98.7%** (225/228) | ✅ |
+| CNN (Conv2d, varying kernel/depth/norm) | 33 | **100%** (198/198) | ✅ |
 | Transformer (encoder, varying heads/depth) | 33 | **100%** (198/198) | ✅ |
 | RNN (LSTM/GRU, varying depth/width/bidir) | 33 | **100%** (198/198) | ✅ |
 | Hybrid | 30 | **100%** (180/180) | ✅ |
-| Black-Swan (GNN, MoE, Diffusion, RL, RAG, FlashAttn, NeuralODE) | 33 | **97%** (192/198) | ✅ |
-| **Overall** | **200** | **99.4% (1,193/1,200)** | |
+| Black-Swan (GNN, MoE, Diffusion, RL, RAG, FlashAttn, NeuralODE) | 33 | **96.5%** (191/198) | ✅ |
+| **Overall** | **200** | **99.2% (1,190/1,200)** | |
 
-RNN reached 100% (2026-08-13) after fixing a builder artifact: `out[:, -1, :]` zeroed the reverse-direction `W_hh` gradient on bidirectional LSTM (last reverse step = first step from h0=0), so healthy bi-LSTMs looked "vanishing" (baseline 40 events) and pushed buggy runs under threshold. Fix: temporal mean pooling + family-adaptive thresholds (audit §2.1d). Remaining 7/1200: 1 CNN gelu zero_init and 6 FlashAttn zero_init/nan_data, masked by the engine's absolute-bound saturation heuristic (`|x|>0.95`) firing on unbounded Linear outputs — a documented engine limitation (P2b, audit §2.1d item 4). FlashAttn improved 9/18 → 12/18 via `register_composite_hook` on `nn.MultiheadAttention`. Hybrid reached 100% after fixing a generator bug: the 18 RNN-composite configs crashed at step 0 (LSTM shape misuse) and were previously counted as undetected — not a detection limit (paper §5.2 note i, audit §2.1b).
+RNN reached 100% after fixing a builder artifact: `out[:, -1, :]` zeroed the reverse-direction `W_hh` gradient on bidirectional LSTM (last reverse step = first step from h0=0), so healthy bi-LSTMs looked "vanishing". Fix: temporal mean pooling + family-adaptive thresholds with inclusive comparison (audit §6). Hybrid reached 100% after fixing a generator bug (LSTM shape misuse crashed 18 RNN-composite configs at step 0). Remaining 10/1200 analyzed without tuning: 3 shallow-MLP weak-signal vanishing, 1 GNN off-by-one, 6 FlashAttn with noisy healthy baselines. The engine's saturation heuristic is now conditioned on bounded module outputs (Sigmoid/Tanh/Softmax), removing false-saturated baselines (P2b, audit §6).
 
 ### By Bug Type (200 configs each)
 
 | Bug | Detection | Difficulty |
 |-----|:---------:|:----------:|
-| Optimizer divergence | **100%** | Easy |
-| Vanishing gradients | **97.5%** | Easy |
-| Exploding gradients | **96.5%** | Easy |
-| Dead activations (bias) | **94.5%** | Moderate |
-| NaN in data | **90.5%** | Moderate |
-| Zero initialization | **80%** | Moderate |
+| Optimizer divergence | **100%** (200/200) | Easy |
+| Exploding gradients | **100%** (200/200) | Easy |
+| Zero initialization | **100%** (200/200) | Moderate |
+| Vanishing gradients | **98.5%** (197/200) | Moderate |
+| NaN in data | **98.5%** (197/200) | Moderate |
+| Dead activations (bias) | **98%** (196/200) | Moderate |
 
 ### Out-of-Sample (4 production architectures, never seen in calibration)
 
-ResNet-18 **6/6** · ViT-Tiny **6/6** · EfficientNet-B0 **6/6** · Mamba-Mini **6/6** (all 6 bugs genuinely injected via arch-agnostic injectors; 0 crashes, 0 false positives — healthy baselines: 1/2/0/0 events). Overall **24/24 (100%)** — `python validate_oos.py`. History: an initial "Mamba 0/6 crash" verdict was a builder bug (`torch.silu`, removed in torch ≥2.13), fixed and re-run; the 21/24 run used ResNet-only injectors that were no-ops on the other architectures; see [paper_number_audit.md](docs/paper_number_audit.md) §2.5b–2.5c.
+ResNet-18 **4/5** (vanishing miss: sigmoid-stage swap asymptomatic on synthetic data, 0 events at 60 steps) · ViT-Tiny **5/5** · EfficientNet-B0 **5/5** · Mamba-Mini **5/5** (arch-agnostic injectors, 0 crashes). Overall **19/20 injected bugs (95%)** — healthy baselines: ResNet-18 0 events, Mamba-Mini 0, EfficientNet-B0 5, ViT-Tiny 123 (noisy, known limitation). `python validate_oos.py`. History: an initial "Mamba 0/6 crash" verdict was a builder bug (`torch.silu`, removed in torch ≥2.13), fixed and re-run; ResNet-only injectors that were no-ops elsewhere were made arch-agnostic; see [paper_number_audit.md](docs/paper_number_audit.md) §2.5b–2.5c and §6.
 
 Reproduce: `python validate_combinatorial.py --full` (200 configs, ~4 min on CPU).
 

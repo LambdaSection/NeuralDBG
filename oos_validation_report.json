@@ -5,8 +5,8 @@
   "device": "cpu",
   "date": "2026-07-08",
   "neuraldbg_version": "1.5.0",
-  "elapsed_seconds": 410.51401114463806,
-  "detection_rate": "24/24",
+  "elapsed_seconds": 482.3458876609802,
+  "detection_rate": "21/24",
   "results": [
     {
       "scenario": "01_Healthy_Baseline",
@@ -15,15 +15,11 @@
       "data_source": "CIFAR-shaped synthetic (3x32x32, 512 samples)",
       "device": "cpu",
       "steps": 20,
-      "detected": "YES",
-      "total_events": 5,
-      "anomaly_events": 5,
-      "event_types": [
-        "activation_regime_shift"
-      ],
-      "anomaly_types": [
-        "activation_regime_shift"
-      ],
+      "detected": "NO",
+      "total_events": 0,
+      "anomaly_events": 0,
+      "event_types": [],
+      "anomaly_types": [],
       "chains": 0,
       "top_chain": "N/A",
       "final_loss": 3.2919836044311523,
@@ -38,8 +34,8 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 245,
-      "anomaly_events": 245,
+      "total_events": 110,
+      "anomaly_events": 110,
       "event_types": [
         "activation_regime_shift",
         "data_anomaly",
@@ -65,15 +61,11 @@
       "data_source": "CIFAR-shaped synthetic (3x32x32, 512 samples)",
       "device": "cpu",
       "steps": 20,
-      "detected": "YES",
-      "total_events": 7,
-      "anomaly_events": 7,
-      "event_types": [
-        "activation_regime_shift"
-      ],
-      "anomaly_types": [
-        "activation_regime_shift"
-      ],
+      "detected": "NO",
+      "total_events": 0,
+      "anomaly_events": 0,
+      "event_types": [],
+      "anomaly_types": [],
       "chains": 0,
       "top_chain": "N/A",
       "final_loss": 3.0325891971588135,
@@ -112,8 +104,8 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 103,
-      "anomaly_events": 103,
+      "total_events": 115,
+      "anomaly_events": 115,
       "event_types": [
         "activation_regime_shift",
         "data_anomaly",
@@ -138,8 +130,8 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 352,
-      "anomaly_events": 352,
+      "total_events": 187,
+      "anomaly_events": 187,
       "event_types": [
         "activation_regime_shift",
         "data_anomaly",
@@ -166,14 +158,12 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 127,
-      "anomaly_events": 127,
+      "total_events": 123,
+      "anomaly_events": 123,
       "event_types": [
-        "activation_regime_shift",
         "gradient_health_transition"
       ],
       "anomaly_types": [
-        "activation_regime_shift",
         "gradient_health_transition"
       ],
       "chains": 30,
@@ -190,16 +180,14 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 206,
-      "anomaly_events": 206,
+      "total_events": 164,
+      "anomaly_events": 164,
       "event_types": [
-        "activation_regime_shift",
         "data_anomaly",
         "gradient_health_transition",
         "optimizer_instability"
       ],
       "anomaly_types": [
-        "activation_regime_shift",
         "data_anomaly",
         "gradient_health_transition",
         "optimizer_instability"
@@ -218,17 +206,19 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 129,
-      "anomaly_events": 129,
+      "total_events": 26,
+      "anomaly_events": 26,
       "event_types": [
+        "data_anomaly",
         "gradient_health_transition"
       ],
       "anomaly_types": [
+        "data_anomaly",
         "gradient_health_transition"
       ],
       "chains": 30,
       "top_chain": "gradient_health_transition[vanishing]",
-      "final_loss": 2.5405373573303223,
+      "final_loss": 2.6760575771331787,
       "crashed": false,
       "crash_error": ""
     },
@@ -266,17 +256,19 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 134,
-      "anomaly_events": 134,
+      "total_events": 37,
+      "anomaly_events": 37,
       "event_types": [
+        "data_anomaly",
         "gradient_health_transition"
       ],
       "anomaly_types": [
+        "data_anomaly",
         "gradient_health_transition"
       ],
       "chains": 30,
       "top_chain": "gradient_health_transition[vanishing]",
-      "final_loss": 2.3308916091918945,
+      "final_loss": 2.4020297527313232,
       "crashed": false,
       "crash_error": ""
     },
@@ -288,22 +280,20 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 164,
-      "anomaly_events": 164,
+      "total_events": 130,
+      "anomaly_events": 130,
       "event_types": [
-        "activation_regime_shift",
         "data_anomaly",
         "gradient_health_transition",
         "optimizer_instability"
       ],
       "anomaly_types": [
-        "activation_regime_shift",
         "data_anomaly",
         "gradient_health_transition",
         "optimizer_instability"
       ],
       "chains": 30,
-      "top_chain": "gradient_health_transition[vanishing]",
+      "top_chain": "gradient_health_transition[exploding]",
       "final_loss": NaN,
       "crashed": false,
       "crash_error": ""
@@ -338,8 +328,8 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 132,
-      "anomaly_events": 132,
+      "total_events": 95,
+      "anomaly_events": 95,
       "event_types": [
         "activation_regime_shift",
         "data_anomaly",
@@ -353,7 +343,7 @@
         "optimizer_instability"
       ],
       "chains": 30,
-      "top_chain": "activation_regime_shift[saturated]",
+      "top_chain": "gradient_health_transition[exploding]",
       "final_loss": 3217.1201171875,
       "crashed": false,
       "crash_error": ""
@@ -366,17 +356,21 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 6,
-      "anomaly_events": 6,
+      "total_events": 106,
+      "anomaly_events": 106,
       "event_types": [
-        "data_anomaly"
+        "activation_regime_shift",
+        "data_anomaly",
+        "gradient_health_transition"
       ],
       "anomaly_types": [
-        "data_anomaly"
+        "activation_regime_shift",
+        "data_anomaly",
+        "gradient_health_transition"
       ],
       "chains": 30,
-      "top_chain": "data_anomaly[distribution_shift]",
-      "final_loss": 2.343850612640381,
+      "top_chain": "gradient_health_transition[vanishing]",
+      "final_loss": 2.3165321350097656,
       "crashed": false,
       "crash_error": ""
     },
@@ -412,17 +406,19 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 5,
-      "anomaly_events": 5,
+      "total_events": 101,
+      "anomaly_events": 101,
       "event_types": [
-        "data_anomaly"
+        "data_anomaly",
+        "gradient_health_transition"
       ],
       "anomaly_types": [
-        "data_anomaly"
+        "data_anomaly",
+        "gradient_health_transition"
       ],
       "chains": 30,
       "top_chain": "data_anomaly[distribution_shift]",
-      "final_loss": 2.3555727005004883,
+      "final_loss": 2.3556230068206787,
       "crashed": false,
       "crash_error": ""
     },
@@ -434,8 +430,8 @@
       "device": "cpu",
       "steps": 20,
       "detected": "YES",
-      "total_events": 169,
-      "anomaly_events": 169,
+      "total_events": 124,
+      "anomaly_events": 124,
       "event_types": [
         "activation_regime_shift",
         "data_anomaly",
@@ -461,16 +457,16 @@
       "data_source": "CIFAR-shaped synthetic (3x32x32, 512 samples)",
       "device": "cpu",
       "steps": 20,
-      "detected": "CRASH",
+      "detected": "NO",
       "total_events": 0,
       "anomaly_events": 0,
       "event_types": [],
       "anomaly_types": [],
       "chains": 0,
       "top_chain": "N/A",
-      "final_loss": null,
-      "crashed": true,
-      "crash_error": "module 'torch' has no attribute 'silu'"
+      "final_loss": 2.422471046447754,
+      "crashed": false,
+      "crash_error": ""
     },
     {
       "scenario": "Mamba-Mini/ExplodingLR",
@@ -479,16 +475,24 @@
       "data_source": "CIFAR-shaped synthetic (3x32x32, 512 samples)",
       "device": "cpu",
       "steps": 20,
-      "detected": "CRASH",
-      "total_events": 0,
-      "anomaly_events": 0,
-      "event_types": [],
-      "anomaly_types": [],
-      "chains": 0,
-      "top_chain": "N/A",
-      "final_loss": null,
-      "crashed": true,
-      "crash_error": "module 'torch' has no attribute 'silu'"
+      "detected": "YES",
+      "total_events": 73,
+      "anomaly_events": 73,
+      "event_types": [
+        "data_anomaly",
+        "gradient_health_transition",
+        "optimizer_instability"
+      ],
+      "anomaly_types": [
+        "data_anomaly",
+        "gradient_health_transition",
+        "optimizer_instability"
+      ],
+      "chains": 30,
+      "top_chain": "gradient_health_transition[vanishing]",
+      "final_loss": NaN,
+      "crashed": false,
+      "crash_error": ""
     },
     {
       "scenario": "Mamba-Mini/Vanishing",
@@ -497,16 +501,22 @@
       "data_source": "CIFAR-shaped synthetic (3x32x32, 512 samples)",
       "device": "cpu",
       "steps": 20,
-      "detected": "CRASH",
-      "total_events": 0,
-      "anomaly_events": 0,
-      "event_types": [],
-      "anomaly_types": [],
-      "chains": 0,
-      "top_chain": "N/A",
-      "final_loss": null,
-      "crashed": true,
-      "crash_error": "module 'torch' has no attribute 'silu'"
+      "detected": "YES",
+      "total_events": 22,
+      "anomaly_events": 22,
+      "event_types": [
+        "data_anomaly",
+        "gradient_health_transition"
+      ],
+      "anomaly_types": [
+        "data_anomaly",
+        "gradient_health_transition"
+      ],
+      "chains": 30,
+      "top_chain": "data_anomaly[distribution_shift]",
+      "final_loss": 2.407431125640869,
+      "crashed": false,
+      "crash_error": ""
     },
     {
       "scenario": "Mamba-Mini/NaN_Data",
@@ -515,16 +525,22 @@
       "data_source": "CIFAR-shaped synthetic (3x32x32, 512 samples)",
       "device": "cpu",
       "steps": 20,
-      "detected": "CRASH",
-      "total_events": 0,
-      "anomaly_events": 0,
-      "event_types": [],
-      "anomaly_types": [],
-      "chains": 0,
-      "top_chain": "N/A",
-      "final_loss": null,
-      "crashed": true,
-      "crash_error": "module 'torch' has no attribute 'silu'"
+      "detected": "YES",
+      "total_events": 20,
+      "anomaly_events": 20,
+      "event_types": [
+        "data_anomaly",
+        "optimizer_instability"
+      ],
+      "anomaly_types": [
+        "data_anomaly",
+        "optimizer_instability"
+      ],
+      "chains": 30,
+      "top_chain": "data_anomaly[nan_detected]",
+      "final_loss": NaN,
+      "crashed": false,
+      "crash_error": ""
     },
     {
       "scenario": "Mamba-Mini/Zero_Init",
@@ -533,16 +549,22 @@
       "data_source": "CIFAR-shaped synthetic (3x32x32, 512 samples)",
       "device": "cpu",
       "steps": 20,
-      "detected": "CRASH",
-      "total_events": 0,
-      "anomaly_events": 0,
-      "event_types": [],
-      "anomaly_types": [],
-      "chains": 0,
-      "top_chain": "N/A",
-      "final_loss": null,
-      "crashed": true,
-      "crash_error": "module 'torch' has no attribute 'silu'"
+      "detected": "YES",
+      "total_events": 35,
+      "anomaly_events": 35,
+      "event_types": [
+        "data_anomaly",
+        "gradient_health_transition"
+      ],
+      "anomaly_types": [
+        "data_anomaly",
+        "gradient_health_transition"
+      ],
+      "chains": 30,
+      "top_chain": "gradient_health_transition[vanishing]",
+      "final_loss": 2.5116477012634277,
+      "crashed": false,
+      "crash_error": ""
     },
     {
       "scenario": "Mamba-Mini/Divergence",
@@ -551,16 +573,24 @@
       "data_source": "CIFAR-shaped synthetic (3x32x32, 512 samples)",
       "device": "cpu",
       "steps": 20,
-      "detected": "CRASH",
-      "total_events": 0,
-      "anomaly_events": 0,
-      "event_types": [],
-      "anomaly_types": [],
-      "chains": 0,
-      "top_chain": "N/A",
-      "final_loss": null,
-      "crashed": true,
-      "crash_error": "module 'torch' has no attribute 'silu'"
+      "detected": "YES",
+      "total_events": 40,
+      "anomaly_events": 40,
+      "event_types": [
+        "data_anomaly",
+        "gradient_health_transition",
+        "optimizer_instability"
+      ],
+      "anomaly_types": [
+        "data_anomaly",
+        "gradient_health_transition",
+        "optimizer_instability"
+      ],
+      "chains": 30,
+      "top_chain": "gradient_health_transition[vanishing]",
+      "final_loss": NaN,
+      "crashed": false,
+      "crash_error": ""
     }
   ]
 }

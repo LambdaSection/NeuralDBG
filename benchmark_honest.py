@@ -6,7 +6,10 @@ Compares NeuralDBG against:
   2. Threshold-based monitoring — realistic W&B/TensorBoard simulation
   3. Captum attribution — can interpretability tools find training bugs?
 
-Six canonical failure scenarios on identical architectures + seeds.
+Six runs on identical architectures + seeds: five injected bugs plus one
+healthy control. Scoring counts ONLY the five injected bugs; the healthy
+control is reported separately as a false-positive gate (silence there is
+correct behavior, not a miss).
 Metrics: detection rate, root cause accuracy, time-to-diagnosis, false positives.
 
 Usage: python benchmark_honest.py
@@ -14,7 +17,11 @@ Output: benchmark_honest.json
 """
 
 import sys, json, time, math
+from datetime import date
 from pathlib import Path
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.path.insert(0, str(Path(__file__).parent))
 
 import torch
@@ -257,20 +264,30 @@ for name, bug_fn in SCENARIOS:
     print(f"    W&B monitoring:  {'ALERTED' if wb_ok else 'SILENT'} ({monitor.summary()['total_alerts']} alerts)")
     print(f"    NeuralDBG:       {'DETECTED' if nd_ok else 'MISSED'} ({ndbg_result['anomaly_events']} events, {nd_chains} chains)")
 
-# Summary
+# Summary — score ONLY on injected bugs; healthy control is an FP gate.
 print(f"\n{'=' * 70}")
-print(f"  BENCHMARK SUMMARY")
+print(f"  BENCHMARK SUMMARY (5 injected bugs; healthy control = FP gate)")
 print(f"{'=' * 70}")
 
-da_total = sum(1 for r in results if r["detect_anomaly"]["errors_detected"] > 0 or r["detect_anomaly"]["crashed"])
-wb_total = sum(1 for r in results if r["wandb_monitoring"]["total_alerts"] > 0)
-nd_total = sum(1 for r in results if r["neuraldbg"]["anomaly_events"] > 0)
-nd_chains_total = sum(r["neuraldbg"]["causal_chains"] for r in results)
-total = len(results)
+bug_results = [r for r, (name, fn) in zip(results, SCENARIOS) if fn is not None]
+ctrl_results = [r for r, (name, fn) in zip(results, SCENARIOS) if fn is None]
+
+da_total = sum(1 for r in bug_results if r["detect_anomaly"]["errors_detected"] > 0 or r["detect_anomaly"]["crashed"])
+wb_total = sum(1 for r in bug_results if r["wandb_monitoring"]["total_alerts"] > 0)
+nd_total = sum(1 for r in bug_results if r["neuraldbg"]["anomaly_events"] > 0)
+nd_chains_total = sum(r["neuraldbg"]["causal_chains"] for r in bug_results)
+total = len(bug_results)
+
+fp = {
+    "detect_anomaly": sum(r["detect_anomaly"]["errors_detected"] for r in ctrl_results),
+    "wandb": sum(r["wandb_monitoring"]["total_alerts"] for r in ctrl_results),
+    "neuraldbg": sum(r["neuraldbg"]["anomaly_events"] for r in ctrl_results),
+}
 
 print(f"  detect_anomaly:  {da_total}/{total} detection")
 print(f"  W&B monitoring:  {wb_total}/{total} detection, 0 causal chains")
 print(f"  NeuralDBG:       {nd_total}/{total} detection, {nd_chains_total} causal chains")
+print(f"  Healthy-control FP gate: detect_anomaly={fp['detect_anomaly']}, W&B={fp['wandb']}, NeuralDBG={fp['neuraldbg']} (0 = correct silence)")
 
 # NeuralDBG advantage
 print(f"\n  NeuralDBG advantage over detect_anomaly:")
@@ -286,12 +303,13 @@ print(f"    Time to diagnose: ~5min vs ~hours (manual correlation)")
 # Save
 with open("benchmark_honest.json", "w") as f:
     json.dump({
-        "date": "2026-07-19",
+        "date": date.today().isoformat(),
         "scenarios": total,
         "detect_anomaly_detection": f"{da_total}/{total}",
         "wandb_detection": f"{wb_total}/{total}",
         "neuraldbg_detection": f"{nd_total}/{total}",
         "neuraldbg_causal_chains": nd_chains_total,
+        "false_positives_healthy": fp,
         "neuraldbg_advantage": f"+{nd_total - max(da_total, wb_total)} detection, +{nd_chains_total} chains",
         "results": results,
     }, f, indent=2)

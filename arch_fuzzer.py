@@ -100,10 +100,14 @@ class FuzzResult:
 # Random model generator
 # ============================================================
 
-def generate_random_model(max_layers=8, input_dim=None, output_dim=2):
-    """Generate a random valid PyTorch model."""
-    if input_dim is None:
-        input_dim = random.choice([8, 16, 32, 64, 128])
+def generate_random_model(max_layers=8, input_dim=16, output_dim=2):
+    """Generate a random valid PyTorch model.
+
+    P4: input_dim is FIXED (16) to match the build entry point — the old
+    random internal dim produced specs incompatible with the fixed build
+    dim (LN 128 vs input 16, conv/RNN mismatches) and burned all retries.
+    Fuzz variety comes from layer combinations, not input dims.
+    """
 
     layers = []
     current_dim = input_dim
@@ -254,24 +258,32 @@ def build_model_from_spec(spec, input_dim, output_dim):
             self.fc = nn.Linear(current_dim, output_dim)
 
         def forward(self, x):
-            if self.is_image and x.dim() == 2:
-                x = x.unsqueeze(-1)  # [B, D] -> [B, D, 1] for conv1d
+            # P4 shape state machine: every layer sees flat (B, D) input.
+            # Structured layers (conv/rnn/attention) expand internally and
+            # collapse back via temporal/spatial mean, so spec dims generated
+            # against current_dim stay consistent end to end.
+            if x.dim() == 4:  # (B, C, H, W) image data
+                x = x.mean(dim=(2, 3))
+            elif x.dim() == 3:  # (B, C, L) sequence data
+                x = x.mean(dim=-1)
             for ltype, module in self.layer_info:
                 if ltype in ("lstm", "gru"):
-                    if x.dim() == 2:
-                        x = x.unsqueeze(1)  # add seq dim
-                    out, _ = module(x)
-                    x = out[:, -1, :]  # last timestep
+                    # T=4 (not T=1): single step from h0=0 gives exactly-zero
+                    # W_hh gradients (measurement artefact). Temporal mean,
+                    # not last step (bidirectional artefact class).
+                    out, _ = module(x.unsqueeze(1).repeat(1, 4, 1))
+                    x = out.mean(dim=1)
                 elif ltype == "mha":
-                    if x.dim() == 2:
-                        x = x.unsqueeze(1)
-                    a, _ = module(x, x, x)
+                    a, _ = module(
+                        x.unsqueeze(1).repeat(1, 4, 1),
+                        x.unsqueeze(1).repeat(1, 4, 1),
+                        x.unsqueeze(1).repeat(1, 4, 1),
+                    )
                     x = a.mean(dim=1)
-                elif ltype in ("conv1d", "conv2d"):
-                    if x.dim() == 2:
-                        x = x.unsqueeze(-1)  # [B,D] -> [B,D,1]
-                    x = module(x)
-                    x = x.flatten(1).mean(dim=0, keepdim=True).expand(x.size(0), -1) if x.dim() > 2 else x
+                elif ltype == "conv1d":
+                    x = module(x.unsqueeze(-1)).mean(dim=-1)
+                elif ltype == "conv2d":
+                    x = module(x.unsqueeze(-1).unsqueeze(-1)).mean(dim=(2, 3))
                 else:
                     x = module(x)
             return self.fc(x)
@@ -308,10 +320,16 @@ def fuzz_one(seed=None):
         torch.manual_seed(seed)
 
     # Try a few specs until one builds successfully (skip shape-incompatible archs)
+    # P4: require >=2 trainable layers (a 0/1-trainable spec cannot manifest
+    # meaningful bugs — skipping it is harness hygiene, not a result).
+    TRAINABLE = {"linear", "conv1d", "conv2d", "lstm", "gru", "mha"}
     spec = None
     for _ in range(5):
         try:
             spec = generate_random_model(max_layers=6)
+            if sum(1 for lt, _ in spec[0] if lt in TRAINABLE) < 2:
+                spec = None
+                continue
             model = build_model_from_spec(spec, input_dim=16, output_dim=2)
             data_fn = lambda: make_fuzz_data(model)
             x, y = data_fn()
@@ -332,16 +350,13 @@ def fuzz_one(seed=None):
             error="invalid_spec_after_5_retries",
         )
 
-    try:
-
-        bug_name, bug_fn, bug_type = random.choice(BUGS)
-        is_half = False  # track mixed_precision for data conversion
-
+    def _run(model, bug_name, bug_fn, bug_type):
+        """One 8-step run; returns event count. bug_name None = healthy control."""
         with NeuralDbg(model) as dbg:
             opt = torch.optim.SGD(model.parameters(), lr=random.uniform(0.001, 0.1))
             for s in range(8):
                 x, y = data_fn()
-                if s >= 3:
+                if bug_name is not None and s >= 3:
                     if bug_type == "opt":
                         bug_fn(opt)
                     elif bug_type == "data":
@@ -350,11 +365,11 @@ def fuzz_one(seed=None):
                         if s == 3:
                             result = bug_fn(model)
                             if result is True:  # mixed_precision signals data conversion needed
-                                is_half = True
+                                nonlocal_is_half[0] = True
                     elif bug_name == "vanishing":
                         bug_fn(model)
 
-                if is_half:
+                if nonlocal_is_half[0]:
                     x = x.half()  # only convert inputs, labels stay Long
 
                 opt.zero_grad()
@@ -365,25 +380,37 @@ def fuzz_one(seed=None):
                     dbg.record_loss(loss.item())
                     opt.step()
                 except Exception as e:
-                    return FuzzResult(
-                        model_name=f"fuzz_{seed}",
-                        layers=str(spec[0]),
-                        bug=bug_name,
-                        events=0,
-                        crashed=True,
-                        error=str(e)[:100],
-                    )
+                    return None, str(e)[:100]
+            return len(dbg.dump_events()), None
 
-            events = dbg.dump_events()
-            n = len(events)
+    try:
+        bug_name, bug_fn, bug_type = random.choice(BUGS)
+        nonlocal_is_half = [False]  # track mixed_precision for data conversion
+
+        # P4: comparative healthy control — detection means buggy events
+        # reach baseline+2 (inclusive), not a raw n>2 count.
+        base_n, _ = _run(build_model_from_spec(spec, input_dim=16, output_dim=2),
+                         None, None, None)
+        if base_n is None:
+            base_n = 0
+        n, err = _run(model, bug_name, bug_fn, bug_type)
+        if err is not None:
             return FuzzResult(
                 model_name=f"fuzz_{seed}",
                 layers=str(spec[0]),
                 bug=bug_name,
-                events=n,
-                crashed=False,
-                detected=n > 2,
+                events=0,
+                crashed=True,
+                error=err,
             )
+        return FuzzResult(
+            model_name=f"fuzz_{seed}",
+            layers=str(spec[0]),
+            bug=bug_name,
+            events=n,
+            crashed=False,
+            detected=n >= base_n + 2,
+        )
     except Exception as e:
         return FuzzResult(
             model_name=f"fuzz_{seed}",

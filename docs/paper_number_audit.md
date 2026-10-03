@@ -3,7 +3,7 @@
 > MID: REPRO-007
 > Owner: LambdaSection
 > Status: DONE (audit initial 10/08 ; addendum canonique 13/08 — chiffres opposables avant soumission)
-> Last updated: 2026-08-13
+> Last updated: 2026-10-03 (P2b : nouveau run canonique, moteur corrigé)
 > Périmètre : `docs/paper_draft.md` + `docs/paper.tex` (draft v4 → v5 en préparation).
 > Méthode : régénération des artefacts canoniques (2026-08-10, CPU, seed 42 quand déterministe)
 > puis comparaison claim-par-claim. Règle : le papier ne cite QUE des nombres reproduits par
@@ -215,3 +215,56 @@ Verdict : claim retiré du papier ; le classifieur reste décrit comme assistanc
 - Leçon process (à citer) : discuter sur l'issue + label *actionable* AVANT d'ouvrir une PR.
 - « Six real PyTorch bugs discovered » → reformuler « reproduced and diagnosed »
   (ex. BUG-007 signalé par @ezyang). BUG-008 (F.normalize) NE DOIT PAS figurer comme succès.
+
+## 6. Addendum 2026-10-03 — P2b : fix moteur + nouveau run canonique
+
+> Contexte : le run 13/08 (1 193/1 200) provenait d'un état non commité, perdu lors d'un reset —
+> ni ses fix générateur (RNN/Hybrid/composite-hook) ni ses artefacts n'étaient dans l'historique.
+> Le code commité était pré-P2 (sweep local : 1 014/1 200). P2b ré-applique les fix documentés
+> SUR le nouveau moteur corrigé, et re-valide tout. Ce run (03/10) remplace le 13/08 comme canonique.
+
+### 6.1 Fix moteur : saturation conditionnée au module (neuraldbg/__init__.py)
+- `_compute_activation_stats(tensor, module=None)` : `saturation_ratio = (|x|>0.95)` calculé
+  UNIQUEMENT pour modules bornés `{Sigmoid, Tanh, Softmax, Softmin}` ; 0.0 sinon
+  (sorties Linear/Conv/ReLU/GELU/SiLU/norms non bornées). `module=None` (RNN hidden states
+  tanh-bornés, appels directs) garde le calcul legacy.
+- Préserve : Tanh forcé → ratio 1.00 + hypothèse saturation (`tests/repro_saturation.py` PASS) ;
+  GELU sain → 0 event (check différentiel).
+- Trois tests stress ne passaient QUE via la fausse saturation : `10x input` (étendu à 12 steps —
+  spike GENUINE à 7 events), `grad_clip` (le clipping MARCHE → retarget no_fp, silence correct),
+  `LR schedule drop` (le LR ne change pas les grads → retarget no_crash). Stress : 15/15.
+
+### 6.2 Fix harness ré-appliqués (documentés 10-13/08, absents de l'historique)
+- `validate_combinatorial.py` : `build_rnn` `out[:, -1, :]` → `out.mean(dim=1)` ;
+  `build_hybrid` transpose+`out[0]` → passage séquence complète (mean final en tête) ;
+  seuils RNN +1 / Hybrid-BlackSwan +2 / autres +3 + comparaison inclusive `>=` ;
+  auto-`register_composite_hook` (pattern benchmark_public/run.py) ; table d'affichage +BlackSwan.
+- `benchmark_honest.py` : fix P5 réellement appliqué (denominateur 5 + gate FP + date dynamique +
+  stdout utf-8). Résultat : **5/5 + 0 FP + 150 chaînes**, exit 0, JSON écrit.
+- `validate_oos.py` : stdout utf-8 ; `torch.silu` → `F.silu` (torch 2.14, alias supprimé) ;
+  injecteurs arch-agnostiques (vanishing : 1er ReLU n'importe où, fallback ×0.001 ;
+  zero_init : layer4 sinon dernière matrice).
+- `arch_fuzzer.py` : input_dim fixé 16 (fini les mismatchs spec/build) ; machine d'états de
+  formes plate (expand/collapse par couche, fini le batch-mean hack) ; RNN/MHA T=4 + mean
+  temporelle ; min_trainable=2 ; contrôle sain comparatif (baseline+2 inclusif).
+- `stress_test_suite.py` : voir §6.1.
+
+### 6.3 Nouveau run canonique (03/10, CPU, seed 42)
+- **Sweep : 1 190/1 200 (99,2 %)** — `combinatorial_results.json`.
+  Familles : MLP 225/228 · CNN 198/198 · RNN 198/198 · Transformer 198/198 · Hybrid 180/180 ·
+  BlackSwan 191/198. Par bug : exploding 200 · vanishing 197 · zero_init 200 · nan_data 197 ·
+  dead_bias 196 · divergence 200.
+- **10 résiduels analysés** (pas de tuning) : 3× MLP shallow vanishing (signal faible, seuil) ;
+  1× GNN dead_bias (2 vs seuil 3, à un event) ; 6× FlashAttn d2 (baseline saine bruyante à 8,
+  bug +0/+1 — gap de sensibilité, PAS l'ancien masquage par saturation qui n'existe plus).
+- **Benchmark : 5/5 + 0 FP + 150 chaînes** — `benchmark_honest.json`.
+- **OOS : 19/20 bugs (95 %)** — `oos_validation_report.json`. ResNet 4/5 (vanishing 0 event :
+  swap de stage sigmoïde asymptomatique sur données synthétiques, confirmé à 60 steps) ;
+  ViT 5/5 · EffNet 5/5 · Mamba 5/5 (injecteurs arch-agnostiques, 0 crash).
+  Healthy : ResNet 0 · Mamba 0 · EffNet 5 · ViT 123 (bruit FP pré-existant, limitation connue).
+- **Fuzzer : 0 crash / 20, 16 détectés** — `fuzz_report.json` (seed 42). 4 ok analysés :
+  3 vanishing signal faible + 1 nan masqué par baseline bruyante (24 events, seuil 25+).
+- **Stress : 15/15** (dont 2 scénarios re-ciblés honnêtement, §6.1).
+- **Unit gate : 80,4 % ≥ 75 %, exit 0.**
+- Le papier DOIT citer : sweep 99,2 % (1 190/1 200), OOS 19/20 + miss documenté + bruit ViT,
+  fuzzer 16/20 + 0 crash. INTERDIT : 99,4 %, 24/24, 19/19, « 0 false positives » global.
