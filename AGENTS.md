@@ -33,6 +33,8 @@ To read a rule, use your 'view_file' tool on the corresponding file in the maste
 - **rule_119_marketing_technique**: RULE 119: Marketing Technique â€” RÃ©soudre des ProblÃ¨mes RÃ©els en Public
 - **rule_120_kuro_marketing**: RULE 120: Marketing via Kuro â€” Tout Passe par la Pipeline
 - **rule_121_pr_fix_marketing**: RULE 121: PR-Fix Marketing â€” Reparer en Public avec nos Outils (MANDATORY)
+- **rule_122_open_design**: RULE 122: OpenDesign â€” donner le brief, pas de contrat forcÃ©
+- **rule_123_hermetic_test_env**: RULE 123: Hermetic Tests & Demo Isolation â€” MANDATORY
 - **rule_14_validation_and_failure**: RULE 14.5: 5-Risk Failure Mode Table - Full Detail
 - **rule_20_21_22_23_24_25_26_27_29_31_32_33_34_35_37_40**: LINEAR, TEAM & PROJECT MANAGEMENT RULES - Full Detail
 - **rule_28_linear_review**: RULE 28: Linear Automation and DevOps Review - Full Detail

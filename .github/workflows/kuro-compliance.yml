@@ -1,6 +1,8 @@
 # Kuro Rules Compliance — déployé automatiquement par sync-rules.ps1, NE PAS EDITER
-# Force: fraîcheur des règles (R11/R105), fichiers protégés (R76),
+# Force: fraîcheur des règles (R11/R105), fichiers protégés (R76/R101),
+# qualité (R39/R64), version (R91), standard tooling (R112),
 # split PLAN/ROADMAP (R106), nommage de branche (R30).
+# Miroir allégé de .github/workflows/compliance.yml (kuro-rules central).
 name: kuro-rules-compliance
 
 on:
@@ -19,18 +21,65 @@ jobs:
 
       - name: R76/R106 - fichiers prives non tracks
         run: |
-          FAIL=0
-          for f in PLAN.md SESSION_SUMMARY.md acquisition_tracker.md decision-memo.md LAUNCH_POSTS.md .env; do
-            if git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
-              echo "::error file=$f::Fichier protege tracke (R76): git rm --cached $f"
-              FAIL=1
-            fi
-          done
-          if git ls-files --error-unmatch PLAN.md >/dev/null 2>&1; then
-            echo "::error file=PLAN.md::PLAN.md doit rester PRIVE (R106)"
-            FAIL=1
+          # Pattern-based check (R76) — miroir compliance.yml central
+          PROTECTED='^(PLAN|SESSION_SUMMARY|acquisition_tracker|decision-memo|LAUNCH_POSTS|decision)\.md$|^\.env$|credentials\.json$|service_account.*\.json$|\.pem$|\.key$|\.p12$'
+          VIOLATIONS=$(git ls-files | grep -E "$PROTECTED" || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "::error::Fichiers proteges trackes (R76/R106):"
+            echo "$VIOLATIONS"
+            echo "Fix: git rm --cached <file>"
+            exit 1
           fi
-          exit $FAIL
+          echo "OK: aucun fichier protege tracke."
+
+      - name: R101 - pas de secrets dans le diff
+        run: |
+          if git diff HEAD~1 2>/dev/null | grep -qiE "(api_key|apikey|secret|password)\s*=\s*['\"]\w{8,}"; then
+            echo "::error title=R101::Secret potentiel detecte dans le diff."
+            exit 1
+          fi
+          if git ls-files | grep -qx '\.env'; then
+            echo "::error title=R101::Fichier .env tracke."
+            exit 1
+          fi
+          echo "OK: pas de secret detecte (R101)."
+
+      - name: R39 - pas de assert en prod
+        run: |
+          if [ -d "neuraldbg" ] || [ -d "src" ] || [ -d "sugar" ]; then
+            VIOLATIONS=$(grep -rn "assert " --include="*.py" . --exclude-dir=tests --exclude-dir=test --exclude-dir=.venv 2>/dev/null | grep -v "assert isinstance\|assert __name__" | head -20 || true)
+            if [ -n "$VIOLATIONS" ]; then
+              echo "::error title=R39::assert() en prod:"
+              echo "$VIOLATIONS"
+              exit 1
+            fi
+          fi
+          echo "OK: pas de assert en prod (R39)."
+
+      - name: R64/R2 - pas de mot workaround
+        run: |
+          VIOLATIONS=$(grep -rn "workaround" --include="*.py" --include="*.md" . --exclude-dir=.venv --exclude-dir=node_modules --exclude-dir=.git 2>/dev/null | grep -v "PR_GATE.md\|DEV_RULES.md\|pr_gate_check\|rule_\|prompts/\|install_hooks.py" | head -10 || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "::error title=R64::Mot 'workaround' detecte."
+            echo "$VIOLATIONS"
+            exit 1
+          fi
+          echo "OK: pas de workaround (R64)."
+
+      - name: R91 - coherence version (si pyproject + CHANGELOG)
+        run: |
+          if [ -f "pyproject.toml" ] && [ -f "CHANGELOG.md" ]; then
+            VERSION=$(grep 'version\s*=' pyproject.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+            if [ -n "$VERSION" ]; then
+              if grep -q "\[$VERSION\]" CHANGELOG.md; then
+                echo "OK: version $VERSION dans CHANGELOG (R91)."
+              else
+                echo "::warning::Version $VERSION absente de CHANGELOG.md (R91)."
+              fi
+            fi
+          else
+            echo "OK: pas de check version applicable (R91)."
+          fi
 
       - name: Regles AGENTS.md presentes et non alterees (manifest)
         run: |
@@ -73,4 +122,18 @@ jobs:
             echo "::warning::ROADMAP.md absent (R106) - creer un roadmap public."
           else
             echo "OK: ROADMAP.md present."
+          fi
+
+      - name: R112 - standard tooling + pre-commit (avertissement)
+        run: |
+          if [ ! -f .pre-commit-config.yaml ]; then
+            echo "::warning::.pre-commit-config.yaml absent (R112) - relancer sync-rules.ps1 (OWNED) ou install.ps1."
+          else
+            echo "OK: pre-commit present (R112)."
+          fi
+          if [ ! -d ".codebase-memory" ] && [ ! -f ".codebase-memory/graph.db.zst" ]; then
+            echo "::warning::Index codebase-memory absent (R112) - indexer via codebase-memory-mcp."
+          fi
+          if ! command -v agent-reach >/dev/null 2>&1; then
+            echo "::warning::agent-reach non installé sur ce runner (R112) - vérification locale uniquement."
           fi
