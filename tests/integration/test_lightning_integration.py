@@ -11,21 +11,23 @@ except ImportError:
     HAS_LIGHTNING = False
 
 
-class LinearModel(pl.LightningModule):
-    def __init__(self):
-        super().__init__()
-        self.net = nn.Linear(16, 2)
+if HAS_LIGHTNING:
 
-    def forward(self, x):
-        return self.net(x)
+    class LinearModel(pl.LightningModule):
+        def __init__(self):
+            super().__init__()
+            self.net = nn.Linear(16, 2)
 
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        loss = nn.functional.cross_entropy(self(x), y)
-        return loss
+        def forward(self, x):
+            return self.net(x)
 
-    def configure_optimizers(self):
-        return torch.optim.SGD(self.parameters(), lr=0.01)
+        def training_step(self, batch, batch_idx):
+            x, y = batch
+            loss = nn.functional.cross_entropy(self(x), y)
+            return loss
+
+        def configure_optimizers(self):
+            return torch.optim.SGD(self.parameters(), lr=0.01)
 
 
 @pytest.mark.skipif(not HAS_LIGHTNING, reason="pytorch_lightning not installed")

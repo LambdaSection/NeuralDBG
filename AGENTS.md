@@ -13,7 +13,6 @@ To read a rule, use your 'view_file' tool on the corresponding file in the maste
 - **rule_07_08_09_10_11_12_13_15_16_17**: PLANNING, ROADMAP & CORE BEHAVIOUR RULES - Full Detail
 - **rule_100_session_compliance**: RULE 100: Session Compliance â€” VÃ©rification Obligatoire en DÃ©but de Session
 - **rule_101_file_integrity_guard**: RULE 101: File Integrity Guard â€” Protection des fichiers privÃ©s
-- **rule_101_tensor_and_pytest_safety**: RULE 101: Tensor Operations and Test Suite Warning Governance
 - **rule_102_test_coverage**: RULE 102: ML Project Test Coverage â€” Mandatory Standards
 - **rule_103_profile_readme_sync**: RULE 103: Profile README Sync â€” MANDATORY
 - **rule_104_auto_issues_tracking**: RULE 104: Auto-Issues & Tracking â€” CrÃ©ation Obligatoire d'Issues pour Chaque Action
@@ -21,12 +20,19 @@ To read a rule, use your 'view_file' tool on the corresponding file in the maste
 - **rule_106_plan_roadmap_split**: RULE 106: Private Plan + Public Roadmap Split â€” MANDATORY
 - **rule_107_upstream_pr_strategy**: RULE 107: Upstream PR Strategy â€” Credibility Through Merged Contributions
 - **rule_108_design_language**: RULE 108: Design Language â€” Â« Quiet Precision Â» (LifeTrack & dÃ©rivÃ©s)
-- **rule_108_validation_pipeline**: RULE 108: Validation Pipeline â€” Progressive Gates (MANDATORY)
 - **rule_109_adaptive_design**: RULE 109: Adaptive Design Systems â€” identitÃ© par produit, socle universel
 - **rule_110_blogging**: RULE 110: Blogging & Contenu Public â€” le systÃ¨me d'Ã©criture lambda-Section
 - **rule_111_finance_local**: RULE 111: Local Finance Data â€” donnÃ©es financiÃ¨res 100% locales â€” MANDATORY
 - **rule_112_standard_tooling**: RULE 112: Standard Tooling â€” Agent-Reach + Codebase-Memory sur chaque projet â€” MANDATORY
-- **rule_113_desktop_install**: RULE 113: Desktop Install on Every Test/Update â€” MANDATORY
+- **rule_113_github_discovery**: RULE 113: GitHub Discovery Protocol â€” Mesure & MÃ©tadonnÃ©es
+- **rule_114_tensor_and_pytest_safety**: RULE 114: Tensor Operations and Test Suite Warning Governance
+- **rule_115_validation_pipeline**: RULE 115: Validation Pipeline â€” Progressive Gates (MANDATORY)
+- **rule_116_regression_guards**: RULE 116: Regression Guards â€” Les Erreurs CorrigÃ©es Ne Reviennent Pas
+- **rule_117_desktop_build**: RULE 117: Desktop Build â€” Rebuild + RÃ©install auto aprÃ¨s chaque modif â€” MANDATORY
+- **rule_118_clarte_permanente**: RULE 118: ClartÃ© Permanente â€” Toujours Comme La PremiÃ¨re Fois
+- **rule_119_marketing_technique**: RULE 119: Marketing Technique â€” RÃ©soudre des ProblÃ¨mes RÃ©els en Public
+- **rule_120_kuro_marketing**: RULE 120: Marketing via Kuro â€” Tout Passe par la Pipeline
+- **rule_121_pr_fix_marketing**: RULE 121: PR-Fix Marketing â€” Reparer en Public avec nos Outils (MANDATORY)
 - **rule_14_validation_and_failure**: RULE 14.5: 5-Risk Failure Mode Table - Full Detail
 - **rule_20_21_22_23_24_25_26_27_29_31_32_33_34_35_37_40**: LINEAR, TEAM & PROJECT MANAGEMENT RULES - Full Detail
 - **rule_28_linear_review**: RULE 28: Linear Automation and DevOps Review - Full Detail

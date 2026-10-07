@@ -36,11 +36,15 @@ class CouplingDetector:
 
                     trigger = event1.id
                     consequence = event2.id
+                    # Tolerate foreign event-likes (e.g. merged RLDetector
+                    # events whose event_type is a plain string).
+                    t1 = getattr(event1.event_type, "value", event1.event_type)
+                    t2 = getattr(event2.event_type, "value", event2.event_type)
                     candidate = {
                         "trigger": trigger,
                         "consequence": consequence,
-                        "trigger_label": f"{event1.event_type.value} in {event1.layer_name}",
-                        "consequence_label": f"{event2.event_type.value} in {event2.layer_name}",
+                        "trigger_label": f"{t1} in {event1.layer_name}",
+                        "consequence_label": f"{t2} in {event2.layer_name}",
                         "step_difference": step_diff,
                         "confidence": confidence,
                         "is_causal_candidate": True,

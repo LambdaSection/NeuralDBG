@@ -115,7 +115,7 @@ def train_ppo(model, num_steps=20, lr=3e-4, state_dim=8, action_dim=4,
 
     # Merge RL detector events into NeuralDBG events
     if rl_detector is not None:
-        for rl_event in rl_detector.dump_events():
+        for i, rl_event in enumerate(rl_detector.dump_events()):
             # Create an event-like object compatible with NeuralDBG's Event protocol
             merged = type('RLEvent', (), {
                 'event_type': rl_event['event_type'],
@@ -129,12 +129,19 @@ def train_ppo(model, num_steps=20, lr=3e-4, state_dim=8, action_dim=4,
                 'to_state': rl_event['event_type'],
                 'to_dict': lambda self, d=rl_event: d,
             })()
+            # Unique id per instance (cf SemanticEvent.id) for graph exporters.
+            merged.id = f"rl_{rl_event['step']}_{i}_{rl_event['event_type']}"
             dbg.events.append(merged)
 
     return dbg, rl_detector
 
 
 def analyze_results(dbg, rl_detector=None):
+    # Scenarios return (dbg, rl_detector) tuples; accept them directly.
+    if isinstance(dbg, tuple):
+        dbg, _rl = dbg
+        if rl_detector is None:
+            rl_detector = _rl
     result = {
         "events": dbg.events,
     }
