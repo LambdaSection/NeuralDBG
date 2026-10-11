@@ -1,0 +1,2110 @@
+{
+  "version": "1.0",
+  "model_type": "unspecified",
+  "events": [
+    {
+      "id": "b0bcb0d4fa96474595df42d31a91063f",
+      "type": "activation_regime_shift",
+      "layer": "Linear_0",
+      "step": 0,
+      "from": "NONE",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "mean": -0.07059969007968903,
+        "std": 0.5991211533546448,
+        "min": -2.023306369781494,
+        "max": 1.5828185081481934,
+        "sparsity": 0.0,
+        "dead_ratio": 0.0,
+        "norm": 13.637207984924316,
+        "saturation_ratio": 0.109375,
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "3490b5cc287e4a35b82291972cab0967",
+      "type": "activation_regime_shift",
+      "layer": "ReLU_1",
+      "step": 0,
+      "from": "NONE",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "mean": 0.20300063490867615,
+        "std": 0.3220573663711548,
+        "min": 0.0,
+        "max": 1.5828185081481934,
+        "sparsity": 0.541015625,
+        "dead_ratio": 0.0,
+        "norm": 8.608166694641113,
+        "saturation_ratio": 0.044921875,
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "48223ca3beb8425c95140d743181fdf3",
+      "type": "activation_regime_shift",
+      "layer": "Linear_2",
+      "step": 0,
+      "from": "NONE",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "mean": -0.01740141212940216,
+        "std": 0.23133443295955658,
+        "min": -0.7951314449310303,
+        "max": 0.848717451095581,
+        "sparsity": 0.0,
+        "dead_ratio": 0.0,
+        "norm": 5.2441887855529785,
+        "saturation_ratio": 0.0,
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "type": "activation_regime_shift",
+      "layer": "ReLU_3",
+      "step": 0,
+      "from": "NONE",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "mean": 0.08241318166255951,
+        "std": 0.1316821575164795,
+        "min": 0.0,
+        "max": 0.848717451095581,
+        "sparsity": 0.541015625,
+        "dead_ratio": 0.0625,
+        "norm": 3.5125925540924072,
+        "saturation_ratio": 0.0,
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "fd664a1acde04b59a20b9f3edf463609",
+      "type": "activation_regime_shift",
+      "layer": "Linear_4",
+      "step": 0,
+      "from": "NONE",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "mean": 0.05411357805132866,
+        "std": 0.06061956286430359,
+        "min": -0.0521533340215683,
+        "max": 0.15377430617809296,
+        "sparsity": 0.0,
+        "dead_ratio": 0.0,
+        "norm": 0.3193328082561493,
+        "saturation_ratio": 0.0,
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "971e6c7212b449cba9ab1651ca62fe85",
+      "type": "data_anomaly",
+      "layer": "root",
+      "step": 0,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.04623114103722099,
+      "metadata": {
+        "prev_mean": -0.17478764057159424,
+        "current_mean": 0.05411357805132866,
+        "prev_std": 0.9902468919754028,
+        "current_std": 0.06061956286430359,
+        "mean_shift_sigma": 0.23115570518610493,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_root_08a23bb03a58484eaa562eebfa09344f.pt",
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "65b400ff4fcd4f8db0460139c79caa5f",
+      "type": "activation_regime_shift",
+      "layer": "root",
+      "step": 0,
+      "from": "NONE",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "mean": 0.05411357805132866,
+        "std": 0.06061956286430359,
+        "min": -0.0521533340215683,
+        "max": 0.15377430617809296,
+        "sparsity": 0.0,
+        "dead_ratio": 0.0,
+        "norm": 0.3193328082561493,
+        "saturation_ratio": 0.0,
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "25398a2d254d4078ad43328485e903e5",
+      "type": "gradient_health_transition",
+      "layer": "Linear_4",
+      "step": 0,
+      "from": "NONE",
+      "to": "healthy",
+      "confidence": 1.0,
+      "metadata": {
+        "current_norm": 1.636850357055664,
+        "transition_type": "baseline",
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "d8779e38fbd74b9989120a6782fd7f48",
+      "type": "gradient_health_transition",
+      "layer": "root",
+      "step": 0,
+      "from": "NONE",
+      "to": "healthy",
+      "confidence": 1.0,
+      "metadata": {
+        "current_norm": 1.636850357055664,
+        "transition_type": "baseline",
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "type": "gradient_health_transition",
+      "layer": "ReLU_3",
+      "step": 0,
+      "from": "NONE",
+      "to": "healthy",
+      "confidence": 1.0,
+      "metadata": {
+        "current_norm": 0.9369150400161743,
+        "transition_type": "baseline",
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "157457a6e9694e638c52ac866395c5ff",
+      "type": "gradient_health_transition",
+      "layer": "Linear_2",
+      "step": 0,
+      "from": "NONE",
+      "to": "healthy",
+      "confidence": 1.0,
+      "metadata": {
+        "current_norm": 0.6266376972198486,
+        "transition_type": "baseline",
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "de3feae2f3694499bb63ac25f447e0b4",
+      "type": "gradient_health_transition",
+      "layer": "ReLU_1",
+      "step": 0,
+      "from": "NONE",
+      "to": "healthy",
+      "confidence": 1.0,
+      "metadata": {
+        "current_norm": 0.40746626257896423,
+        "transition_type": "baseline",
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "559e686cc38c46df9549dc2ebef3c63a",
+      "type": "gradient_health_transition",
+      "layer": "Linear_0",
+      "step": 0,
+      "from": "NONE",
+      "to": "healthy",
+      "confidence": 1.0,
+      "metadata": {
+        "current_norm": 0.2814159691333771,
+        "transition_type": "baseline",
+        "resources": {
+          "cpu_memory_mb": 277.828125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "a1b25daaec48467fa46931ed0187863f",
+      "type": "data_anomaly",
+      "layer": "root",
+      "step": 13,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.30859375
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "385c4f738cb94a17927ee3e3708aa3da",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 20,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.8568934902712151,
+      "metadata": {
+        "prev_mean": 0.04389071464538574,
+        "current_mean": -0.2234809398651123,
+        "prev_std": 0.062404874712228775,
+        "current_std": 0.0,
+        "mean_shift_sigma": 4.284467451356075,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_35f2241103d64272a5f3914b07b86e92.pt",
+        "resources": {
+          "cpu_memory_mb": 279.3203125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "198936d5487a414f9042c368a10be58c",
+      "type": "data_anomaly",
+      "layer": "root",
+      "step": 20,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.05084628216091182,
+      "metadata": {
+        "prev_mean": 0.031877487897872925,
+        "current_mean": -0.2234809398651123,
+        "prev_std": 1.004433035850525,
+        "current_std": 0.0,
+        "mean_shift_sigma": 0.2542314108045591,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_root_10a4e879d3074b22b7dc1d61a8aa9054.pt",
+        "resources": {
+          "cpu_memory_mb": 279.3203125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "1611a354fa9641e1999b8d38876dfad7",
+      "type": "gradient_health_transition",
+      "layer": "ReLU_1",
+      "step": 20,
+      "from": "healthy",
+      "to": "vanishing",
+      "confidence": 0.1,
+      "metadata": {
+        "prev_norm": 0.4922841787338257,
+        "current_norm": 0.0,
+        "transition_type": "healthy_to_vanishing",
+        "resources": {
+          "cpu_memory_mb": 279.3203125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "6fb2b9374c714f8c9c413abe097230b9",
+      "type": "gradient_health_transition",
+      "layer": "Linear_0",
+      "step": 20,
+      "from": "healthy",
+      "to": "vanishing",
+      "confidence": 0.1,
+      "metadata": {
+        "prev_norm": 0.36352840065956116,
+        "current_norm": 0.0,
+        "transition_type": "healthy_to_vanishing",
+        "resources": {
+          "cpu_memory_mb": 279.3203125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "ced45f1ee68546deabd1fd1ebfa16cca",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 21,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.32421875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "32d40bcb336b43cf86e88e658ccaa17b",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 21,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.7408754094720176,
+      "metadata": {
+        "prev_mean": 0.04316624999046326,
+        "current_mean": -0.17458006739616394,
+        "prev_std": 0.058780819177627563,
+        "current_std": 0.034533146768808365,
+        "mean_shift_sigma": 3.7043770473600874,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_32499d2d652e49dab69620d774d85652.pt",
+        "resources": {
+          "cpu_memory_mb": 279.32421875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "1a496fa97da942cc9b55e85fc2e8c478",
+      "type": "data_anomaly",
+      "layer": "root",
+      "step": 21,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.32421875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "d0fcac39a10547faa9b53dbfd59bf06d",
+      "type": "data_anomaly",
+      "layer": "root",
+      "step": 21,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.04878851724937232,
+      "metadata": {
+        "prev_mean": 0.08925289660692215,
+        "current_mean": -0.17458006739616394,
+        "prev_std": 1.081537127494812,
+        "current_std": 0.034533146768808365,
+        "mean_shift_sigma": 0.24394258624686158,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_root_ff62762a2df74ce1bac76e42ec5579ec.pt",
+        "resources": {
+          "cpu_memory_mb": 279.32421875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "e5667e52eab54c0da718f8436ac8d506",
+      "type": "gradient_health_transition",
+      "layer": "ReLU_1",
+      "step": 21,
+      "from": "vanishing",
+      "to": "healthy",
+      "confidence": 0.005976413935422898,
+      "metadata": {
+        "prev_norm": 0.0,
+        "current_norm": 0.05976413935422897,
+        "transition_type": "vanishing_to_healthy",
+        "resources": {
+          "cpu_memory_mb": 279.32421875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "ab8acca87bae4dc3b637601d7c7347c2",
+      "type": "gradient_health_transition",
+      "layer": "Linear_0",
+      "step": 21,
+      "from": "vanishing",
+      "to": "healthy",
+      "confidence": 0.004880769923329354,
+      "metadata": {
+        "prev_norm": 0.0,
+        "current_norm": 0.04880769923329353,
+        "transition_type": "vanishing_to_healthy",
+        "resources": {
+          "cpu_memory_mb": 279.32421875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "b7c93f8fe7f44944b32cb96afc983814",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 23,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.33203125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "88bfec562ca644ceb9991ac5ac9f2266",
+      "type": "data_anomaly",
+      "layer": "root",
+      "step": 31,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.33203125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "f8daa81a5c0c4f7b92cdbddbfeed92ff",
+      "type": "data_anomaly",
+      "layer": "root",
+      "step": 33,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.2164460360079269,
+      "metadata": {
+        "prev_mean": 0.12548047304153442,
+        "current_mean": -0.0841042622923851,
+        "prev_std": 0.19366003572940826,
+        "current_std": 1.016806960105896,
+        "mean_shift_sigma": 1.0822301800396343,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_root_a2fe9f5a7c6b4f2d863b7a2c00a4c9ec.pt",
+        "resources": {
+          "cpu_memory_mb": 279.33203125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "1cb5d3dc156f415985169015f2eb467d",
+      "type": "data_anomaly",
+      "layer": "root",
+      "step": 33,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.33203125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "4265ec78214b4532974eda46f1cff8d4",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 49,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.10102123099469829,
+      "metadata": {
+        "prev_mean": 0.7256245613098145,
+        "current_mean": 0.10226553678512573,
+        "prev_std": 1.2341148853302002,
+        "current_std": 0.18292418122291565,
+        "mean_shift_sigma": 0.5051061549734914,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_9cc9441d876f4b729c71c8225cd9ad4b.pt",
+        "resources": {
+          "cpu_memory_mb": 279.3359375
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "637a477f27a248f7a1d2784dc73eb6a1",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 49,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.3359375
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "7144915b461d4472816d80e9702004a9",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 51,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.03918814919858286,
+      "metadata": {
+        "prev_mean": 0.35403868556022644,
+        "current_mean": 0.11582846939563751,
+        "prev_std": 1.2157257795333862,
+        "current_std": 0.21123170852661133,
+        "mean_shift_sigma": 0.19594074599291428,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_ca3b10e112d3400496a1169e4b9ab6e1.pt",
+        "resources": {
+          "cpu_memory_mb": 279.3515625
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "31932eb509084f639fe2c2f233a2a5de",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 51,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.3515625
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "67b54dec4b2b427b88303040304ce32a",
+      "type": "activation_regime_shift",
+      "layer": "Linear_4",
+      "step": 51,
+      "from": "normal",
+      "to": "saturated",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5,
+        "current_saturation": 0.5625,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.3515625
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "58d004dfc12c4cc189a7ff2424a93b13",
+      "type": "activation_regime_shift",
+      "layer": "root",
+      "step": 51,
+      "from": "normal",
+      "to": "saturated",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5,
+        "current_saturation": 0.5625,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.3515625
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "8008a6f1eb0449e0baaf740a76f436b5",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 52,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.16535763443976725,
+      "metadata": {
+        "prev_mean": 0.1334538757801056,
+        "current_mean": -0.0816328376531601,
+        "prev_std": 0.2601473033428192,
+        "current_std": 1.3432621955871582,
+        "mean_shift_sigma": 0.8267881721988362,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_997787e152734f00bf56b0e715456f66.pt",
+        "resources": {
+          "cpu_memory_mb": 279.3515625
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "80d1d5f59cf24c30856e3940b8265c26",
+      "type": "activation_regime_shift",
+      "layer": "Linear_4",
+      "step": 52,
+      "from": "saturated",
+      "to": "normal",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5625,
+        "current_saturation": 0.3125,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.3515625
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "b2821a74edb546478cef0600e11245fc",
+      "type": "activation_regime_shift",
+      "layer": "root",
+      "step": 52,
+      "from": "saturated",
+      "to": "normal",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5625,
+        "current_saturation": 0.3125,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.3515625
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "42a46489a1da4401adf96a68b895b945",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 53,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "8c2faa0521624e3b819474308682ac6d",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 53,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.29752438201385617,
+      "metadata": {
+        "prev_mean": 0.14392617344856262,
+        "current_mean": 0.5856534838676453,
+        "prev_std": 0.29693520069122314,
+        "current_std": 1.5508933067321777,
+        "mean_shift_sigma": 1.487621910069281,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_66c719a8374f491fbef484e63d143c95.pt",
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "139644d82e3b404e8187f789d745e534",
+      "type": "activation_regime_shift",
+      "layer": "Linear_4",
+      "step": 53,
+      "from": "normal",
+      "to": "saturated",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.3125,
+        "current_saturation": 0.5625,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "ebdfd3e8287e497cbfe2e54a17db9069",
+      "type": "activation_regime_shift",
+      "layer": "root",
+      "step": 53,
+      "from": "normal",
+      "to": "saturated",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.3125,
+        "current_saturation": 0.5625,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "4faabdcaef8445fdb23a77e7cd605a6c",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 54,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "59c2c66461e84f9caca301d59ed82e2a",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 54,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.07389977294635501,
+      "metadata": {
+        "prev_mean": 0.15493911504745483,
+        "current_mean": 0.2738931477069855,
+        "prev_std": 0.32193341851234436,
+        "current_std": 1.876582145690918,
+        "mean_shift_sigma": 0.369498864731775,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_ecbc3e2a70514f03b57c065367ec2253.pt",
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "770307a3a0cf4ac1a592c721c6e4dc9f",
+      "type": "activation_regime_shift",
+      "layer": "Linear_4",
+      "step": 56,
+      "from": "saturated",
+      "to": "normal",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5625,
+        "current_saturation": 0.5,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "835979a584e64c2fa19b8bf81e267955",
+      "type": "activation_regime_shift",
+      "layer": "root",
+      "step": 56,
+      "from": "saturated",
+      "to": "normal",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5625,
+        "current_saturation": 0.5,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "af81fba652414e2d84587d66f17f65e4",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 57,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "39883a8f377340ddb0f45be7630eb0c1",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 57,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.31149401747867267,
+      "metadata": {
+        "prev_mean": 0.15090785920619965,
+        "current_mean": 0.6533883810043335,
+        "prev_std": 0.32262611389160156,
+        "current_std": 1.899794578552246,
+        "mean_shift_sigma": 1.5574700873933633,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_9dad1694720445c2939efbe9a1a0576e.pt",
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "bb85602cb91e438bab47f011c96589a5",
+      "type": "activation_regime_shift",
+      "layer": "Linear_4",
+      "step": 57,
+      "from": "normal",
+      "to": "saturated",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5,
+        "current_saturation": 0.6875,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "3a5ba94745e749968df6620f7392bb5b",
+      "type": "activation_regime_shift",
+      "layer": "root",
+      "step": 57,
+      "from": "normal",
+      "to": "saturated",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5,
+        "current_saturation": 0.6875,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.35546875
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "2873af5a28544847ba864c4250dd913a",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 63,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.36328125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "ac41ed143658457094b201dfb49e6d54",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 63,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.20867199189596156,
+      "metadata": {
+        "prev_mean": 0.16989798843860626,
+        "current_mean": -0.18334424495697021,
+        "prev_std": 0.3385621905326843,
+        "current_std": 2.2072677612304688,
+        "mean_shift_sigma": 1.0433599594798078,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_abaefbff58d04c0cadc1590f430c3b49.pt",
+        "resources": {
+          "cpu_memory_mb": 279.36328125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    },
+    {
+      "id": "7fdd8e15d47a45a5aa2d1865eb864902",
+      "type": "activation_regime_shift",
+      "layer": "Linear_4",
+      "step": 64,
+      "from": "saturated",
+      "to": "normal",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.625,
+        "current_saturation": 0.5,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.36328125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "f8d8919ab045419f8a34eb282e6ba581",
+      "type": "activation_regime_shift",
+      "layer": "root",
+      "step": 64,
+      "from": "saturated",
+      "to": "normal",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.625,
+        "current_saturation": 0.5,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.36328125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "c8a23e838d8a47f2b1a447e70f90ea26",
+      "type": "activation_regime_shift",
+      "layer": "Linear_4",
+      "step": 65,
+      "from": "normal",
+      "to": "saturated",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5,
+        "current_saturation": 0.8125,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.36328125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "6807b73254244b2fb85e164bce4d1ade",
+      "type": "activation_regime_shift",
+      "layer": "root",
+      "step": 65,
+      "from": "normal",
+      "to": "saturated",
+      "confidence": 0.9,
+      "metadata": {
+        "prev_saturation": 0.5,
+        "current_saturation": 0.8125,
+        "prev_dead": 0.0,
+        "current_dead": 0.0,
+        "resources": {
+          "cpu_memory_mb": 279.36328125
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "128677cad2e848d2bf37b56249549e97",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 70,
+      "from": "distribution_shift",
+      "to": "normal",
+      "confidence": 1.0,
+      "metadata": {
+        "resources": {
+          "cpu_memory_mb": 279.37109375
+        },
+        "memory_spike": false,
+        "memory_spike_keys": []
+      }
+    },
+    {
+      "id": "598537bd79cd45dc88fb78788824d317",
+      "type": "data_anomaly",
+      "layer": "Linear_4",
+      "step": 70,
+      "from": "normal",
+      "to": "distribution_shift",
+      "confidence": 0.16845637949177367,
+      "metadata": {
+        "prev_mean": 0.20039549469947815,
+        "current_mean": -0.15472888946533203,
+        "prev_std": 0.42162176966667175,
+        "current_std": 3.0952060222625732,
+        "mean_shift_sigma": 0.8422818974588683,
+        "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_Linear_4_ecacfb834dff4a01b3c44d3e3d6a97ab.pt",
+        "resources": {
+          "cpu_memory_mb": 279.37109375
+        },
+        "memory_spike": false,
+        "memory_spike_keys": [],
+        "tensor_cache_status": "bundled"
+      }
+    }
+  ],
+  "hypotheses": [
+    {
+      "description": "Root cause candidate: data distribution shift originated in 'root' at step 0",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "id": "971e6c7212b449cba9ab1651ca62fe85",
+          "type": "data_anomaly",
+          "layer": "root",
+          "step": 0,
+          "from": "normal",
+          "to": "distribution_shift",
+          "confidence": 0.04623114103722099,
+          "metadata": {
+            "prev_mean": -0.17478764057159424,
+            "current_mean": 0.05411357805132866,
+            "prev_std": 0.9902468919754028,
+            "current_std": 0.06061956286430359,
+            "mean_shift_sigma": 0.23115570518610493,
+            "tensor_cache_path": "examples/panos_bundle/tensor_cache/anomaly_root_08a23bb03a58484eaa562eebfa09344f.pt",
+            "resources": {
+              "cpu_memory_mb": 277.828125
+            },
+            "memory_spike": false,
+            "memory_spike_keys": [],
+            "tensor_cache_status": "bundled"
+          }
+        }
+      ],
+      "causal_chain": [
+        "First instance of data_distribution_shift detected in layer root"
+      ]
+    },
+    {
+      "description": "Root cause candidate: gradient vanishing originated in 'ReLU_1' at step 20",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "id": "1611a354fa9641e1999b8d38876dfad7",
+          "type": "gradient_health_transition",
+          "layer": "ReLU_1",
+          "step": 20,
+          "from": "healthy",
+          "to": "vanishing",
+          "confidence": 0.1,
+          "metadata": {
+            "prev_norm": 0.4922841787338257,
+            "current_norm": 0.0,
+            "transition_type": "healthy_to_vanishing",
+            "resources": {
+              "cpu_memory_mb": 279.3203125
+            },
+            "memory_spike": false,
+            "memory_spike_keys": []
+          }
+        }
+      ],
+      "causal_chain": [
+        "First instance of gradient_vanishing detected in layer ReLU_1"
+      ]
+    },
+    {
+      "description": "Root cause candidate: activation saturated originated in 'Linear_4' at step 51",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "id": "67b54dec4b2b427b88303040304ce32a",
+          "type": "activation_regime_shift",
+          "layer": "Linear_4",
+          "step": 51,
+          "from": "normal",
+          "to": "saturated",
+          "confidence": 0.9,
+          "metadata": {
+            "prev_saturation": 0.5,
+            "current_saturation": 0.5625,
+            "prev_dead": 0.0,
+            "current_dead": 0.0,
+            "resources": {
+              "cpu_memory_mb": 279.3515625
+            },
+            "memory_spike": false,
+            "memory_spike_keys": []
+          }
+        }
+      ],
+      "causal_chain": [
+        "First instance of activation_saturated detected in layer Linear_4"
+      ]
+    },
+    {
+      "description": "Gradient vanishing originated in layer 'ReLU_1' at step 20",
+      "confidence": 0.1,
+      "evidence": [
+        {
+          "id": "1611a354fa9641e1999b8d38876dfad7",
+          "type": "gradient_health_transition",
+          "layer": "ReLU_1",
+          "step": 20,
+          "from": "healthy",
+          "to": "vanishing",
+          "confidence": 0.1,
+          "metadata": {
+            "prev_norm": 0.4922841787338257,
+            "current_norm": 0.0,
+            "transition_type": "healthy_to_vanishing",
+            "resources": {
+              "cpu_memory_mb": 279.3203125
+            },
+            "memory_spike": false,
+            "memory_spike_keys": []
+          }
+        }
+      ],
+      "causal_chain": [
+        "Vanishing detected in ReLU_1"
+      ]
+    }
+  ],
+  "couplings": [
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "3490b5cc287e4a35b82291972cab0967",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "activation_regime_shift in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "48223ca3beb8425c95140d743181fdf3",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "activation_regime_shift in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "activation_regime_shift in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "fd664a1acde04b59a20b9f3edf463609",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "activation_regime_shift in Linear_4",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "971e6c7212b449cba9ab1651ca62fe85",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "data_anomaly in root",
+      "step_difference": 0,
+      "confidence": 0.04623114103722099,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "65b400ff4fcd4f8db0460139c79caa5f",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "activation_regime_shift in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "25398a2d254d4078ad43328485e903e5",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "gradient_health_transition in Linear_4",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "d8779e38fbd74b9989120a6782fd7f48",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "gradient_health_transition in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "gradient_health_transition in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "157457a6e9694e638c52ac866395c5ff",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "gradient_health_transition in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b0bcb0d4fa96474595df42d31a91063f",
+      "consequence": "de3feae2f3694499bb63ac25f447e0b4",
+      "trigger_label": "activation_regime_shift in Linear_0",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "48223ca3beb8425c95140d743181fdf3",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "activation_regime_shift in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "activation_regime_shift in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "fd664a1acde04b59a20b9f3edf463609",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "activation_regime_shift in Linear_4",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "971e6c7212b449cba9ab1651ca62fe85",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "data_anomaly in root",
+      "step_difference": 0,
+      "confidence": 0.04623114103722099,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "65b400ff4fcd4f8db0460139c79caa5f",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "activation_regime_shift in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "25398a2d254d4078ad43328485e903e5",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "gradient_health_transition in Linear_4",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "d8779e38fbd74b9989120a6782fd7f48",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "gradient_health_transition in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "gradient_health_transition in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "157457a6e9694e638c52ac866395c5ff",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "gradient_health_transition in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "3490b5cc287e4a35b82291972cab0967",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "activation_regime_shift in ReLU_1",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "48223ca3beb8425c95140d743181fdf3",
+      "consequence": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "trigger_label": "activation_regime_shift in Linear_2",
+      "consequence_label": "activation_regime_shift in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "48223ca3beb8425c95140d743181fdf3",
+      "consequence": "fd664a1acde04b59a20b9f3edf463609",
+      "trigger_label": "activation_regime_shift in Linear_2",
+      "consequence_label": "activation_regime_shift in Linear_4",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "48223ca3beb8425c95140d743181fdf3",
+      "consequence": "971e6c7212b449cba9ab1651ca62fe85",
+      "trigger_label": "activation_regime_shift in Linear_2",
+      "consequence_label": "data_anomaly in root",
+      "step_difference": 0,
+      "confidence": 0.04623114103722099,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "48223ca3beb8425c95140d743181fdf3",
+      "consequence": "65b400ff4fcd4f8db0460139c79caa5f",
+      "trigger_label": "activation_regime_shift in Linear_2",
+      "consequence_label": "activation_regime_shift in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "48223ca3beb8425c95140d743181fdf3",
+      "consequence": "25398a2d254d4078ad43328485e903e5",
+      "trigger_label": "activation_regime_shift in Linear_2",
+      "consequence_label": "gradient_health_transition in Linear_4",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "48223ca3beb8425c95140d743181fdf3",
+      "consequence": "d8779e38fbd74b9989120a6782fd7f48",
+      "trigger_label": "activation_regime_shift in Linear_2",
+      "consequence_label": "gradient_health_transition in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "48223ca3beb8425c95140d743181fdf3",
+      "consequence": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "trigger_label": "activation_regime_shift in Linear_2",
+      "consequence_label": "gradient_health_transition in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "48223ca3beb8425c95140d743181fdf3",
+      "consequence": "de3feae2f3694499bb63ac25f447e0b4",
+      "trigger_label": "activation_regime_shift in Linear_2",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "48223ca3beb8425c95140d743181fdf3",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "activation_regime_shift in Linear_2",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "consequence": "fd664a1acde04b59a20b9f3edf463609",
+      "trigger_label": "activation_regime_shift in ReLU_3",
+      "consequence_label": "activation_regime_shift in Linear_4",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "consequence": "971e6c7212b449cba9ab1651ca62fe85",
+      "trigger_label": "activation_regime_shift in ReLU_3",
+      "consequence_label": "data_anomaly in root",
+      "step_difference": 0,
+      "confidence": 0.04623114103722099,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "consequence": "65b400ff4fcd4f8db0460139c79caa5f",
+      "trigger_label": "activation_regime_shift in ReLU_3",
+      "consequence_label": "activation_regime_shift in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "consequence": "25398a2d254d4078ad43328485e903e5",
+      "trigger_label": "activation_regime_shift in ReLU_3",
+      "consequence_label": "gradient_health_transition in Linear_4",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "consequence": "d8779e38fbd74b9989120a6782fd7f48",
+      "trigger_label": "activation_regime_shift in ReLU_3",
+      "consequence_label": "gradient_health_transition in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "consequence": "157457a6e9694e638c52ac866395c5ff",
+      "trigger_label": "activation_regime_shift in ReLU_3",
+      "consequence_label": "gradient_health_transition in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "consequence": "de3feae2f3694499bb63ac25f447e0b4",
+      "trigger_label": "activation_regime_shift in ReLU_3",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "90dfdcadb259435fa0fac4c8f90c96e8",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "activation_regime_shift in ReLU_3",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "fd664a1acde04b59a20b9f3edf463609",
+      "consequence": "971e6c7212b449cba9ab1651ca62fe85",
+      "trigger_label": "activation_regime_shift in Linear_4",
+      "consequence_label": "data_anomaly in root",
+      "step_difference": 0,
+      "confidence": 0.04623114103722099,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "fd664a1acde04b59a20b9f3edf463609",
+      "consequence": "65b400ff4fcd4f8db0460139c79caa5f",
+      "trigger_label": "activation_regime_shift in Linear_4",
+      "consequence_label": "activation_regime_shift in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "fd664a1acde04b59a20b9f3edf463609",
+      "consequence": "d8779e38fbd74b9989120a6782fd7f48",
+      "trigger_label": "activation_regime_shift in Linear_4",
+      "consequence_label": "gradient_health_transition in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "fd664a1acde04b59a20b9f3edf463609",
+      "consequence": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "trigger_label": "activation_regime_shift in Linear_4",
+      "consequence_label": "gradient_health_transition in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "fd664a1acde04b59a20b9f3edf463609",
+      "consequence": "157457a6e9694e638c52ac866395c5ff",
+      "trigger_label": "activation_regime_shift in Linear_4",
+      "consequence_label": "gradient_health_transition in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "fd664a1acde04b59a20b9f3edf463609",
+      "consequence": "de3feae2f3694499bb63ac25f447e0b4",
+      "trigger_label": "activation_regime_shift in Linear_4",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "fd664a1acde04b59a20b9f3edf463609",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "activation_regime_shift in Linear_4",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "971e6c7212b449cba9ab1651ca62fe85",
+      "consequence": "25398a2d254d4078ad43328485e903e5",
+      "trigger_label": "data_anomaly in root",
+      "consequence_label": "gradient_health_transition in Linear_4",
+      "step_difference": 0,
+      "confidence": 0.04623114103722099,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "971e6c7212b449cba9ab1651ca62fe85",
+      "consequence": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "trigger_label": "data_anomaly in root",
+      "consequence_label": "gradient_health_transition in ReLU_3",
+      "step_difference": 0,
+      "confidence": 0.04623114103722099,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "971e6c7212b449cba9ab1651ca62fe85",
+      "consequence": "157457a6e9694e638c52ac866395c5ff",
+      "trigger_label": "data_anomaly in root",
+      "consequence_label": "gradient_health_transition in Linear_2",
+      "step_difference": 0,
+      "confidence": 0.04623114103722099,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "198936d5487a414f9042c368a10be58c",
+      "consequence": "1611a354fa9641e1999b8d38876dfad7",
+      "trigger_label": "data_anomaly in root",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 0.05084628216091182,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "198936d5487a414f9042c368a10be58c",
+      "consequence": "6fb2b9374c714f8c9c413abe097230b9",
+      "trigger_label": "data_anomaly in root",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 0.05084628216091182,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "65b400ff4fcd4f8db0460139c79caa5f",
+      "consequence": "25398a2d254d4078ad43328485e903e5",
+      "trigger_label": "activation_regime_shift in root",
+      "consequence_label": "gradient_health_transition in Linear_4",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "65b400ff4fcd4f8db0460139c79caa5f",
+      "consequence": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "trigger_label": "activation_regime_shift in root",
+      "consequence_label": "gradient_health_transition in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "65b400ff4fcd4f8db0460139c79caa5f",
+      "consequence": "157457a6e9694e638c52ac866395c5ff",
+      "trigger_label": "activation_regime_shift in root",
+      "consequence_label": "gradient_health_transition in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "65b400ff4fcd4f8db0460139c79caa5f",
+      "consequence": "de3feae2f3694499bb63ac25f447e0b4",
+      "trigger_label": "activation_regime_shift in root",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "65b400ff4fcd4f8db0460139c79caa5f",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "activation_regime_shift in root",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "25398a2d254d4078ad43328485e903e5",
+      "consequence": "d8779e38fbd74b9989120a6782fd7f48",
+      "trigger_label": "gradient_health_transition in Linear_4",
+      "consequence_label": "gradient_health_transition in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "25398a2d254d4078ad43328485e903e5",
+      "consequence": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "trigger_label": "gradient_health_transition in Linear_4",
+      "consequence_label": "gradient_health_transition in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "25398a2d254d4078ad43328485e903e5",
+      "consequence": "157457a6e9694e638c52ac866395c5ff",
+      "trigger_label": "gradient_health_transition in Linear_4",
+      "consequence_label": "gradient_health_transition in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "25398a2d254d4078ad43328485e903e5",
+      "consequence": "de3feae2f3694499bb63ac25f447e0b4",
+      "trigger_label": "gradient_health_transition in Linear_4",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "25398a2d254d4078ad43328485e903e5",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "gradient_health_transition in Linear_4",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "d8779e38fbd74b9989120a6782fd7f48",
+      "consequence": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "trigger_label": "gradient_health_transition in root",
+      "consequence_label": "gradient_health_transition in ReLU_3",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "d8779e38fbd74b9989120a6782fd7f48",
+      "consequence": "157457a6e9694e638c52ac866395c5ff",
+      "trigger_label": "gradient_health_transition in root",
+      "consequence_label": "gradient_health_transition in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "d8779e38fbd74b9989120a6782fd7f48",
+      "consequence": "de3feae2f3694499bb63ac25f447e0b4",
+      "trigger_label": "gradient_health_transition in root",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "d8779e38fbd74b9989120a6782fd7f48",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "gradient_health_transition in root",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "consequence": "157457a6e9694e638c52ac866395c5ff",
+      "trigger_label": "gradient_health_transition in ReLU_3",
+      "consequence_label": "gradient_health_transition in Linear_2",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "consequence": "de3feae2f3694499bb63ac25f447e0b4",
+      "trigger_label": "gradient_health_transition in ReLU_3",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "a51b57dd78d04f94b26f07fed93cb3c3",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "gradient_health_transition in ReLU_3",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "157457a6e9694e638c52ac866395c5ff",
+      "consequence": "de3feae2f3694499bb63ac25f447e0b4",
+      "trigger_label": "gradient_health_transition in Linear_2",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "157457a6e9694e638c52ac866395c5ff",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "gradient_health_transition in Linear_2",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "de3feae2f3694499bb63ac25f447e0b4",
+      "consequence": "559e686cc38c46df9549dc2ebef3c63a",
+      "trigger_label": "gradient_health_transition in ReLU_1",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "ced45f1ee68546deabd1fd1ebfa16cca",
+      "consequence": "1a496fa97da942cc9b55e85fc2e8c478",
+      "trigger_label": "data_anomaly in Linear_4",
+      "consequence_label": "data_anomaly in root",
+      "step_difference": 0,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "385c4f738cb94a17927ee3e3708aa3da",
+      "consequence": "1611a354fa9641e1999b8d38876dfad7",
+      "trigger_label": "data_anomaly in Linear_4",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 0,
+      "confidence": 0.1,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "385c4f738cb94a17927ee3e3708aa3da",
+      "consequence": "6fb2b9374c714f8c9c413abe097230b9",
+      "trigger_label": "data_anomaly in Linear_4",
+      "consequence_label": "gradient_health_transition in Linear_0",
+      "step_difference": 0,
+      "confidence": 0.1,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "1a496fa97da942cc9b55e85fc2e8c478",
+      "consequence": "b7c93f8fe7f44944b32cb96afc983814",
+      "trigger_label": "data_anomaly in root",
+      "consequence_label": "data_anomaly in Linear_4",
+      "step_difference": 2,
+      "confidence": 1.0,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "1611a354fa9641e1999b8d38876dfad7",
+      "consequence": "ced45f1ee68546deabd1fd1ebfa16cca",
+      "trigger_label": "gradient_health_transition in ReLU_1",
+      "consequence_label": "data_anomaly in Linear_4",
+      "step_difference": 1,
+      "confidence": 0.1,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "1611a354fa9641e1999b8d38876dfad7",
+      "consequence": "1a496fa97da942cc9b55e85fc2e8c478",
+      "trigger_label": "gradient_health_transition in ReLU_1",
+      "consequence_label": "data_anomaly in root",
+      "step_difference": 1,
+      "confidence": 0.1,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "6fb2b9374c714f8c9c413abe097230b9",
+      "consequence": "ced45f1ee68546deabd1fd1ebfa16cca",
+      "trigger_label": "gradient_health_transition in Linear_0",
+      "consequence_label": "data_anomaly in Linear_4",
+      "step_difference": 1,
+      "confidence": 0.1,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "6fb2b9374c714f8c9c413abe097230b9",
+      "consequence": "1a496fa97da942cc9b55e85fc2e8c478",
+      "trigger_label": "gradient_health_transition in Linear_0",
+      "consequence_label": "data_anomaly in root",
+      "step_difference": 1,
+      "confidence": 0.1,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "6fb2b9374c714f8c9c413abe097230b9",
+      "consequence": "e5667e52eab54c0da718f8436ac8d506",
+      "trigger_label": "gradient_health_transition in Linear_0",
+      "consequence_label": "gradient_health_transition in ReLU_1",
+      "step_difference": 1,
+      "confidence": 0.005976413935422898,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "31932eb509084f639fe2c2f233a2a5de",
+      "consequence": "58d004dfc12c4cc189a7ff2424a93b13",
+      "trigger_label": "data_anomaly in Linear_4",
+      "consequence_label": "activation_regime_shift in root",
+      "step_difference": 0,
+      "confidence": 0.9,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "b2821a74edb546478cef0600e11245fc",
+      "consequence": "42a46489a1da4401adf96a68b895b945",
+      "trigger_label": "activation_regime_shift in root",
+      "consequence_label": "data_anomaly in Linear_4",
+      "step_difference": 1,
+      "confidence": 0.9,
+      "is_causal_candidate": true
+    },
+    {
+      "trigger": "58d004dfc12c4cc189a7ff2424a93b13",
+      "consequence": "80d1d5f59cf24c30856e3940b8265c26",
+      "trigger_label": "activation_regime_shift in root",
+      "consequence_label": "activation_regime_shift in Linear_4",
+      "step_difference": 1,
+      "confidence": 0.9,
+      "is_causal_candidate": true
+    }
+  ],
+  "first_failure_layer": {
+    "data_distribution_shift": "root",
+    "gradient_vanishing": "ReLU_1",
+    "activation_saturated": "Linear_4"
+  },
+  "first_failure_step": {
+    "data_distribution_shift": 0,
+    "gradient_vanishing": 20,
+    "activation_saturated": 51
+  },
+  "loss_history": [
+    10.717116355895996,
+    8.296010971069336,
+    13.747987747192383,
+    9.679655075073242,
+    16.206491470336914,
+    13.347338676452637,
+    10.40866756439209,
+    6.780836582183838,
+    14.005929946899414,
+    13.1420316696167,
+    5.2084455490112305,
+    11.743502616882324,
+    10.05586051940918,
+    14.642436981201172,
+    11.354337692260742,
+    11.79544448852539,
+    15.513233184814453,
+    6.98369026184082,
+    9.467353820800781,
+    4.664917945861816,
+    9.509654998779297,
+    14.113200187683105,
+    10.418630599975586,
+    13.588658332824707,
+    5.560679912567139,
+    12.689430236816406,
+    5.824044227600098,
+    6.58134126663208,
+    7.058768272399902,
+    7.199243545532227,
+    8.003022193908691,
+    10.05276870727539,
+    5.662055492401123,
+    11.937451362609863,
+    11.923868179321289,
+    9.41622543334961,
+    9.099061965942383,
+    6.837656497955322,
+    14.07891845703125,
+    6.562268257141113,
+    4.77693510055542,
+    7.905796051025391,
+    9.252820014953613,
+    11.086236000061035,
+    6.319605350494385,
+    10.274288177490234,
+    4.526358127593994,
+    7.918421745300293,
+    8.10548210144043,
+    6.7062578201293945,
+    5.79212760925293,
+    5.400026321411133,
+    6.130247592926025,
+    4.13576602935791,
+    3.7122268676757812,
+    2.87900972366333,
+    1.0054981708526611,
+    3.396677017211914,
+    1.787217378616333,
+    3.720404624938965,
+    2.012450695037842,
+    1.0973927974700928,
+    0.9500409960746765,
+    1.3657665252685547,
+    0.6964364051818848,
+    1.9570221900939941,
+    0.8605647087097168,
+    3.9682722091674805,
+    0.647142231464386,
+    0.2810666859149933,
+    0.9848910570144653,
+    0.7355408668518066,
+    0.5773585438728333,
+    0.2981317639350891,
+    0.10507120192050934,
+    0.7142117619514465,
+    0.4540049135684967,
+    1.1941945552825928,
+    0.436237096786499,
+    0.842200756072998
+  ],
+  "repro": {
+    "case": "panos_case3",
+    "env": {
+      "torch": "2.12.1+cpu",
+      "seed": 3,
+      "fault": "model[2].weight.zero_() at step 20 (bias NOT zeroed)",
+      "command": "python examples/repro_panos_case3.py (from repo root)"
+    },
+    "loss_first": 10.717116355895996,
+    "loss_last": 0.842200756072998,
+    "dead_frac": 0.5625,
+    "dead_frac_formula": "(acts==0).all(dim=0).float().mean() over 32 channels, 256 samples, model[:4]",
+    "all_finite": true,
+    "invariant_note": "UNSUPPORTED: no TrainProof log in archive; claim is only finite loss, no crash"
+  }
+}
