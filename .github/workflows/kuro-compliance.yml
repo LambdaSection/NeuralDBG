@@ -124,6 +124,27 @@ jobs:
             echo "OK: ROADMAP.md present."
           fi
 
+      - name: R91-fleet - version source + CHANGELOG (avertissement, VERSIONING.md)
+        run: |
+          FAIL=0
+          if [ ! -f package.json ] && [ ! -f pyproject.toml ] && [ ! -f Cargo.toml ] && [ ! -f VERSION ]; then
+            echo "::warning::Aucune source de version (package.json/pyproject.toml/Cargo.toml/VERSION). Spec: kuro-rules/VERSIONING.md §1."
+            FAIL=1
+          else
+            echo "OK: source de version presente."
+          fi
+          if [ ! -f CHANGELOG.md ]; then
+            echo "::warning::CHANGELOG.md absent (R91). release-please le tient a jour une fois installe."
+            FAIL=1
+          else
+            echo "OK: CHANGELOG.md present."
+          fi
+          if [ "${VERSIONING_STRICT:-0}" = "1" ] && [ "$FAIL" = "1" ]; then
+            echo "::error::VERSIONING_STRICT=1 et versioning incomplet."
+            exit 1
+          fi
+          echo "OK: versioning check done (strict=${VERSIONING_STRICT:-0})."
+
       - name: R112 - standard tooling + pre-commit (avertissement)
         run: |
           if [ ! -f .pre-commit-config.yaml ]; then
