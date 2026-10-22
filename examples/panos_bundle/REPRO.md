@@ -5,8 +5,9 @@ Date: 2026-10-11 · OS: Windows (win32), CPU-only run
 
 This bundle answers the 2026-10-10 review (loss 6.516 @1205 vs 0.021 @1203;
 missing tensor-cache artifacts; unpinned deps; weight-only vs bias zeroing).
-Every correction below is verified by rerun on this machine. No commit yet —
-files are staged for review, not pushed.
+Every correction below is verified by rerun on this machine. Files live on
+branch `fix/panos-repro-bundle` (public); the zip you receive is built from
+that branch — its exact commit SHA is quoted in the covering mail.
 
 ## 1. Exact environment (authoritative)
 
