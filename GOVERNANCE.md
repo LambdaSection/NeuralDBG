@@ -9,17 +9,24 @@ NeuralDBG is maintained by **LambdaSection** as an open-source MIT project. We f
 | Name | GitHub | Role | Since |
 |------|--------|------|-------|
 | Jacques-Charles SENOUVO (Kuro) | `@Lemniscate-world` | Lead Maintainer, BDFL | 2025 |
-| P3niel | `@P3niel` | Maintainer — docs, integrations, community | 2025 |
 
-Core maintainers have merge rights and are listed in `.github/CODEOWNERS`. A second maintainer satisfies the Ecosystem WG requirement of ≥2 core maintainers.
+Currently single active maintainer. Second maintainer position is open — see `Roles` below.
+
+Core maintainer has merge rights and is listed in `.github/CODEOWNERS`.
 
 Historical contributors: see `https://github.com/LambdaSection/NeuralDBG/graphs/contributors` and `CHANGELOG.md`.
+
+## Emeritus
+
+| Name | GitHub | Role | Period |
+|------|--------|------|--------|
+| P3niel | `@P3niel` | Emeritus — docs, integrations, community (past contributions) | 2025 |
 
 ## Decision Making
 
 - **Trivial** (docs, typos, CI): single maintainer approval.
-- **Standard** (features, bug fixes): PR + 1 maintainer review, CI green.
-- **Major** (API breaking, license, governance): issue/RFC + approval from all core maintainers.
+- **Standard** (features, bug fixes): PR + maintainer review, CI green.
+- **Major** (API breaking, license, governance): issue/RFC + lead maintainer approval. Second maintainer approval required once the position is filled.
 
 Lazy consensus: if no objection within 72h after review, the PR may be merged.
 
@@ -27,9 +34,9 @@ Lazy consensus: if no objection within 72h after review, the PR may be merged.
 
 - **Maintainer**: review/merge PRs, cut releases, triage issues, enforce Code of Conduct.
 - **Contributor**: anyone submitting PRs/issues. Recognized after 5 merged PRs or significant feature.
-- **Emeritus**: former maintainers retaining advisory role.
+- **Emeritus**: former maintainers retaining advisory role with no merge obligations.
 
-Becoming a maintainer: sustained contributions (≥3 months, ≥10 merged PRs or equivalent) + nomination by existing maintainer + unanimous approval.
+Becoming a maintainer: sustained contributions (≥3 months, ≥10 merged PRs or equivalent) + nomination by existing maintainer + lead approval. Open call: second maintainer actively sought to meet PyTorch Ecosystem ≥2 requirement.
 
 ## Release Methodology
 
@@ -56,4 +63,4 @@ Related repos:
 
 ## Amending Governance
 
-Changes to this document require PR + approval from all core maintainers.
+Changes to this document require PR + lead maintainer approval (unanimous core approval once a second maintainer is onboarded).

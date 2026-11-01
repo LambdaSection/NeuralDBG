@@ -78,8 +78,9 @@ filterwarnings = [
     "ignore::FutureWarning:torch.nn.modules.module.*",
     "ignore::DeprecationWarning:torch.jit.*",
     # Expected internal warnings — intentional design decisions
-    "ignore:NeuralDbg\\: Model is wrapped in DataParallel.*:UserWarning",
-    "ignore:NeuralDbg\\: Model is already compiled.*:UserWarning",
+    # NB: no colon allowed inside message regex (pytest splits on unescaped ":")
+    "ignore:Model is wrapped in DataParallel.*:UserWarning",
+    "ignore:Model is already compiled.*:UserWarning",
 ]
 
 [tool.coverage.run]

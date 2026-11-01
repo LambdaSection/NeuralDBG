@@ -1,6 +1,6 @@
 {
-    "syncedAt":  "2026-09-01T11:29:19.4774974Z",
+    "syncedAt":  "2026-10-02T11:06:50.0556132Z",
     "generator":  "sync-rules.ps1",
-    "agentsSha256":  "ffe83a3438541496e477f5fa37de38181f033660effb2fbd1499b41070d80465",
-    "ruleCount":  53
+    "agentsSha256":  "7faefac0cbac9534585b2b64e86c7d6cae11ab34b6b066c8f27b315aefb48c0b",
+    "ruleCount":  59
 }
