@@ -9,7 +9,7 @@
 
 **NeuralSuite** is the unified brand for the toolkit that diagnoses and fixes deep learning training failures.
 
-```
+```text
 ┌─────────────────┐    events JSON    ┌─────────────────┐
 │   NeuralDBG     │ ────────────────▶ │   Aquarium      │
 │ (diagnostic)    │                   │ (visualizer)    │
@@ -142,4 +142,3 @@ Review by @hogepodge 2026-08-20: "too early for inclusion". All governance crite
 - Core Maintainers ≥2 : P3niel emeritus Oct 2026 — 2nd maintainer position open, blocks re-submission
 
 **Re-engagement trigger**: stars ≥100 OR 5 contributors active → comment on #80 requesting re-review.
-

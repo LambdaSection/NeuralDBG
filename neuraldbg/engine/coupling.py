@@ -4,7 +4,7 @@ Copyright (c) 2026 NeuralDBG. All rights reserved.
 """
 
 import math
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Tuple
 
 
 class CouplingDetector:

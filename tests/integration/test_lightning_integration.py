@@ -4,6 +4,7 @@ import torch.nn as nn
 
 try:
     import pytorch_lightning as pl
+
     from neuraldbg.integrations.lightning import NeuralDBGLightningCallback
 
     HAS_LIGHTNING = True
@@ -32,7 +33,6 @@ if HAS_LIGHTNING:
 
 @pytest.mark.skipif(not HAS_LIGHTNING, reason="pytorch_lightning not installed")
 def test_lightning_callback_initializes():
-    model = LinearModel()
     callback = NeuralDBGLightningCallback(family="MLP", log_every_n_steps=10)
     assert callback.family == "MLP"
     assert callback.log_every_n_steps == 10
