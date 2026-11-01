@@ -3,7 +3,9 @@ Causal explanation engine — proprietary reasoning logic.
 Copyright (c) 2026 NeuralDBG. All rights reserved.
 """
 
-from typing import Dict, List, Tuple
+import json
+from pathlib import Path
+from typing import Dict, List, Tuple, Any
 
 
 class Explanator:
@@ -11,6 +13,8 @@ class Explanator:
         self.dbg = dbg
 
     def explain(self, failure_type: str = "vanishing_gradients"):
+        from neuraldbg import CausalHypothesis
+
         hypotheses = []
         root_causes = self.get_root_causes()
         hypotheses.extend(root_causes)
@@ -66,10 +70,7 @@ class Explanator:
             evidence = matching_events[:1]
             hypotheses.append(
                 CausalHypothesis(
-                    description=(
-                        f"Root cause candidate: {failure_key.replace('_', ' ')} "
-                        f"originated in '{layer_name}' at step {step}"
-                    ),
+                    description=f"Root cause candidate: {failure_key.replace('_', ' ')} originated in '{layer_name}' at step {step}",
                     confidence=0.95,
                     evidence=evidence,
                     causal_chain=[
@@ -118,7 +119,7 @@ class Explanator:
         ]
 
     def _explain_exploding_gradients(self):
-        from neuraldbg import CausalHypothesis, EventType, GradientHealth
+        from neuraldbg import GradientHealth, EventType, CausalHypothesis
 
         hypotheses = []
         exploding_events = [
@@ -132,10 +133,7 @@ class Explanator:
         first_exploding = min(exploding_events, key=lambda e: e.step)
         hypotheses.append(
             CausalHypothesis(
-                description=(
-                    f"Gradient explosion originated in layer "
-                    f"'{first_exploding.layer_name}' at step {first_exploding.step}"
-                ),
+                description=f"Gradient explosion originated in layer '{first_exploding.layer_name}' at step {first_exploding.step}",
                 confidence=first_exploding.confidence,
                 evidence=[first_exploding],
                 causal_chain=[f"Explosion detected in {first_exploding.layer_name}"],
@@ -144,7 +142,7 @@ class Explanator:
         return hypotheses
 
     def _explain_dead_neurons(self):
-        from neuraldbg import ActivationHealth, CausalHypothesis, EventType
+        from neuraldbg import ActivationHealth, EventType, CausalHypothesis
 
         hypotheses = []
         dead_events = [
@@ -156,24 +154,20 @@ class Explanator:
         if not dead_events:
             return hypotheses
         first_dead = min(dead_events, key=lambda e: e.step)
-        dead_value = first_dead.metadata.get("current_dead", 1.0)
         hypotheses.append(
             CausalHypothesis(
-                description=(
-                    f"Neuron death detected in layer "
-                    f"'{first_dead.layer_name}' at step {first_dead.step}"
-                ),
+                description=f"Neuron death detected in layer '{first_dead.layer_name}' at step {first_dead.step}",
                 confidence=first_dead.confidence,
                 evidence=[first_dead],
                 causal_chain=[
-                    f"High dead_ratio ({dead_value:.2f}) in {first_dead.layer_name}"
+                    f"High dead_ratio ({first_dead.metadata.get('current_dead', 1.0):.2f}) in {first_dead.layer_name}"
                 ],
             )
         )
         return hypotheses
 
     def _explain_saturated_activations(self):
-        from neuraldbg import ActivationHealth, CausalHypothesis, EventType
+        from neuraldbg import ActivationHealth, EventType, CausalHypothesis
 
         hypotheses = []
         sat_events = [
@@ -185,20 +179,14 @@ class Explanator:
         if not sat_events:
             return hypotheses
         first_sat = min(sat_events, key=lambda e: e.step)
-        sat_value = first_sat.metadata.get(
-            "current_saturation", first_sat.metadata.get("saturation_ratio", 1.0)
-        )
         hypotheses.append(
             CausalHypothesis(
-                description=(
-                    f"Activation saturation detected in layer "
-                    f"'{first_sat.layer_name}' at step {first_sat.step}"
-                ),
+                description=f"Activation saturation detected in layer '{first_sat.layer_name}' at step {first_sat.step}",
                 confidence=first_sat.confidence,
                 evidence=[first_sat],
                 causal_chain=[
                     "High saturation_ratio "
-                    f"({sat_value:.2f}) "
+                    f"({first_sat.metadata.get('current_saturation', first_sat.metadata.get('saturation_ratio', 1.0)):.2f}) "
                     f"in {first_sat.layer_name}"
                 ],
             )
@@ -207,10 +195,10 @@ class Explanator:
 
     def _explain_vanishing_gradients(self):
         from neuraldbg import (
-            ActivationHealth,
-            CausalHypothesis,
-            EventType,
             GradientHealth,
+            ActivationHealth,
+            EventType,
+            CausalHypothesis,
         )
 
         hypotheses = []
@@ -225,10 +213,7 @@ class Explanator:
         first_vanishing = min(vanishing_events, key=lambda e: e.step)
         hypotheses.append(
             CausalHypothesis(
-                description=(
-                    f"Gradient vanishing originated in layer "
-                    f"'{first_vanishing.layer_name}' at step {first_vanishing.step}"
-                ),
+                description=f"Gradient vanishing originated in layer '{first_vanishing.layer_name}' at step {first_vanishing.step}",
                 confidence=first_vanishing.confidence,
                 evidence=[first_vanishing],
                 causal_chain=[f"Vanishing detected in {first_vanishing.layer_name}"],
@@ -247,16 +232,12 @@ class Explanator:
             )
             hypotheses.append(
                 CausalHypothesis(
-                    description=(
-                        f"Gradient vanishing likely due to LR x activation mismatch - "
-                        f"saturation in '{nearest_sat.layer_name}' preceded vanishing"
-                    ),
+                    description=f"Gradient vanishing likely due to LR x activation mismatch - saturation in '{nearest_sat.layer_name}' preceded vanishing",
                     confidence=min(first_vanishing.confidence, nearest_sat.confidence),
                     evidence=[first_vanishing, nearest_sat],
                     causal_chain=[
                         f"Saturation in {nearest_sat.layer_name} at step {nearest_sat.step}",
-                        f"Led to vanishing gradients in "
-                        f"{first_vanishing.layer_name} at step {first_vanishing.step}",
+                        f"Led to vanishing gradients in {first_vanishing.layer_name} at step {first_vanishing.step}",
                     ],
                 )
             )
@@ -264,10 +245,10 @@ class Explanator:
 
     def _explain_optimizer_instability(self):
         from neuraldbg import (
-            CausalHypothesis,
-            EventType,
-            GradientHealth,
             OptimizerHealth,
+            GradientHealth,
+            EventType,
+            CausalHypothesis,
         )
 
         hypotheses = []
@@ -292,11 +273,10 @@ class Explanator:
 
         if loss_spikes:
             first = min(loss_spikes, key=lambda e: e.step)
-            recent_losses = first.metadata.get("recent_losses", [])
-            previous_loss = recent_losses[-2] if len(recent_losses) > 1 else "?"
+            last = max(loss_spikes, key=lambda e: e.step)
             description = (
                 f"Loss spike detected at step {first.step}. "
-                f"Loss jumped from {previous_loss} "
+                f"Loss jumped from {first.metadata.get('recent_losses', ['?'])[-2] if len(first.metadata.get('recent_losses', [])) > 1 else '?'} "
                 f"to {first.metadata.get('current_loss', '?')}. "
                 "Check for gradient explosion, corrupted batch, or extremely high learning rate."
             )
@@ -313,12 +293,8 @@ class Explanator:
             first = min(diverging, key=lambda e: e.step)
             hypotheses.append(
                 CausalHypothesis(
-                    description=(
-                        f"Training divergence (NaN/Inf loss) detected at "
-                        f"step {first.step}. "
-                        "Check for numerical instability, learning rate explosion, "
-                        "or corrupted data."
-                    ),
+                    description=f"Training divergence (NaN/Inf loss) detected at step {first.step}. "
+                    "Check for numerical instability, learning rate explosion, or corrupted data.",
                     confidence=1.0,
                     evidence=diverging,
                     causal_chain=[f"Divergence at step {first.step}"],
@@ -381,7 +357,7 @@ class Explanator:
         return hypotheses
 
     def _explain_data_anomaly(self):
-        from neuraldbg import CausalHypothesis, DataHealth, EventType
+        from neuraldbg import DataHealth, EventType, CausalHypothesis
 
         hypotheses = []
         nan_events = [
@@ -430,14 +406,11 @@ class Explanator:
         if shift_events:
             first = min(shift_events, key=lambda e: e.step)
             metadata = first.metadata
-            std_ratio = metadata.get("current_std", 0) / max(
-                metadata.get("prev_std", 1), 1e-9
-            )
             hypotheses.append(
                 CausalHypothesis(
                     description=f"Distribution shift in '{first.layer_name}' at step {first.step}: "
                     f"mean shift {metadata.get('mean_shift_sigma', 0):.1f}σ, "
-                    f"std ratio {std_ratio:.2f}",
+                    f"std ratio {metadata.get('current_std', 0) / max(metadata.get('prev_std', 1), 1e-9):.2f}",
                     confidence=0.85,
                     evidence=[first],
                     causal_chain=[f"Shift in {first.layer_name}"],
@@ -460,7 +433,7 @@ class Explanator:
         via get_root_causes(), so it is wired into the explain() output
         regardless of the user's chosen failure_type.
         """
-        from neuraldbg import CausalHypothesis, EventType
+        from neuraldbg import EventType, CausalHypothesis
 
         hypotheses = []
         grad_event_count = sum(
@@ -561,7 +534,7 @@ class Explanator:
         return hypotheses
 
     def collapse_events(self):
-        from neuraldbg import SemanticEvent
+        from neuraldbg import EventType, SemanticEvent
 
         if not self.dbg.events:
             return []
@@ -662,10 +635,9 @@ class Explanator:
         lines = ["graph TD"]
 
         for event in self.dbg.events:
-            # Tolerate foreign event-likes (e.g. merged RLDetector events
-            # whose event_type is a plain string, not an EventType enum).
-            etype = getattr(event.event_type, "value", event.event_type)
-            label = f"{etype} in {event.layer_name} (Step {event.step})"
+            label = (
+                f"{event.event_type.value} in {event.layer_name} (Step {event.step})"
+            )
             lines.append(f'    E_{event.id}["{label}"]')
 
         couplings = self.dbg.detect_coupled_failures()
